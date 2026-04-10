@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../server/auth-middleware'
@@ -97,6 +100,34 @@ function slugify(input: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)+/g, '')
   return result || 'skill'
+}
+
+// ── Local skill preferences (enable/disable toggle) ────────────────────────
+// Stored in ~/.hermes/skills/.studio-prefs.json so the state survives restarts
+// and doesn't require gateway support.
+
+type StudioPrefs = { disabled: Array<string> }
+
+const PREFS_PATH = path.join(os.homedir(), '.hermes', 'skills', '.studio-prefs.json')
+
+function readLocalPrefs(): StudioPrefs {
+  try {
+    const raw = fs.readFileSync(PREFS_PATH, 'utf8')
+    const parsed = JSON.parse(raw) as Partial<StudioPrefs>
+    return { disabled: Array.isArray(parsed.disabled) ? parsed.disabled : [] }
+  } catch {
+    return { disabled: [] }
+  }
+}
+
+function writeLocalPrefs(prefs: StudioPrefs): void {
+  try {
+    const dir = path.dirname(PREFS_PATH)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(PREFS_PATH, JSON.stringify(prefs, null, 2))
+  } catch {
+    // non-fatal
+  }
 }
 
 function normalizeSecurity(value: unknown): SecurityRisk {
@@ -200,9 +231,17 @@ async function fetchHermesSkills(): Promise<Array<SkillSummary>> {
         ? (asRecord(payload).skills as Array<unknown>)
         : []
 
+  const prefs = readLocalPrefs()
+  const disabledSet = new Set(prefs.disabled)
+
   return items
     .map((entry) => normalizeSkill(entry))
     .filter((entry): entry is SkillSummary => entry !== null)
+    .map((skill) => ({
+      ...skill,
+      // Local prefs override the gateway's enabled state
+      enabled: skill.installed && !disabledSet.has(skill.id),
+    }))
 }
 
 function matchesSearch(skill: SkillSummary, rawSearch: string): boolean {
@@ -330,28 +369,49 @@ export const Route = createFileRoute('/api/skills')({
         if (!isAuthenticated(request)) {
           return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
         }
-        await ensureGatewayProbed()
-        if (!getCapabilities().skills) {
-          return json(
-            {
-              ...createCapabilityUnavailablePayload('skills', {
-                error: `Gateway does not support /api/skills. ${HERMES_UPGRADE_INSTRUCTIONS}`,
-              }),
-            },
-            { status: 503 },
-          )
-        }
         const csrfCheck = requireJsonContentType(request)
         if (csrfCheck) return csrfCheck
 
-        return json(
-          {
-            ok: false,
-            error:
-              'Skill installation is not available in the Hermes Workspace fork.',
-          },
-          { status: 501 },
-        )
+        try {
+          const body = (await request.json()) as {
+            action?: string
+            skillId?: string
+            enabled?: boolean
+          }
+          const action = (body.action || '').trim()
+          const skillId = (body.skillId || '').trim()
+
+          if (!skillId) {
+            return json({ ok: false, error: 'skillId required' }, { status: 400 })
+          }
+
+          if (action === 'toggle') {
+            const prefs = readLocalPrefs()
+            const nowEnabled = Boolean(body.enabled)
+            if (nowEnabled) {
+              prefs.disabled = prefs.disabled.filter((id) => id !== skillId)
+            } else {
+              if (!prefs.disabled.includes(skillId)) {
+                prefs.disabled.push(skillId)
+              }
+            }
+            writeLocalPrefs(prefs)
+            return json({ ok: true, skillId, enabled: nowEnabled })
+          }
+
+          return json(
+            { ok: false, error: `Unknown action: ${action}` },
+            { status: 400 },
+          )
+        } catch (err) {
+          return json(
+            {
+              ok: false,
+              error: err instanceof Error ? err.message : 'Request failed',
+            },
+            { status: 500 },
+          )
+        }
       },
     },
   },

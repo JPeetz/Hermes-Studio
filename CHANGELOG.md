@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.0] — 2026-04-09
+
+### Added
+- **Skill Installation UI** (Task 5) — fully functional install/uninstall/toggle from the browser
+  - `POST /api/skills` now implements the `toggle` action via a local prefs file (`~/.hermes/skills/.studio-prefs.json`); `enabled` state survives server restarts without gateway support
+  - `GET /api/skills` merges local prefs to reflect accurate `enabled` state per skill
+  - `POST /api/skills/install` now tries the Hermes gateway native endpoint first, then falls back to `clawhub` CLI, then returns a clear install hint (`pip install skillhub`) when clawhub is missing — the install command is auto-copied to clipboard
+  - Install/uninstall buttons show ⏳ loading spinner while action is in progress
+  - "Installing... may take up to 2 minutes" progress hint shown during install
+  - clawhub-missing banner with `pip install skillhub` instructions shown inline (dismissible)
+  - Success toasts on install and uninstall completion
+
+### Fixed
+- **Security: path traversal in `POST /api/skills/uninstall`** — `skillId` is now validated to ensure the resolved path stays within `~/.hermes/skills/`
+- Branding: "Hermes Workspace Marketplace" → "Hermes Studio Marketplace" in skills browser header
+- Branding: "Hermes Workspace" → "Hermes Studio" in security scan badge
+
+---
+
 ## [1.1.0] — 2026-04-09
 
 ### Added

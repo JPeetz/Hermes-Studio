@@ -4,6 +4,49 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-09 — Session 3
+
+### What was done
+- Completed Task 5: Skill Installation from web UI
+
+**Research findings:**
+- `POST /api/skills/install` and `POST /api/skills/uninstall` already existed and worked
+- `POST /api/skills` (toggle) was a 501 Not Implemented stub
+- `clawhub` CLI is NOT installed on this machine
+- `GET /api/skills` correctly returns skill lists from gateway
+- Full install/uninstall/toggle UI was already in `skills-screen.tsx` — wired to the endpoints
+
+**What was implemented:**
+- `POST /api/skills` toggle action: reads/writes `~/.hermes/skills/.studio-prefs.json` to track disabled skill IDs; does not require gateway
+- `GET /api/skills` merges local prefs to report accurate `enabled` state
+- `POST /api/skills/install`: now tries Hermes gateway native endpoint first, then clawhub CLI, then returns `installClawhub: 'pip install skillhub'` if clawhub is missing
+- `POST /api/skills/uninstall`: added path traversal security guard
+- UI: loading spinners (⏳) on action buttons while in progress
+- UI: "Installing... may take up to 2 minutes" progress hint
+- UI: clawhub-missing inline banner with `pip install skillhub` instructions + dismiss
+- UI: success toasts on install/uninstall completion
+- Branding: "Hermes Workspace" → "Hermes Studio" in header and security badge
+
+**Tests passed:**
+- Toggle disable/enable prefs file round-trip: ✅
+- Install with missing clawhub → returns hint: ✅
+- Uninstall path traversal attack blocked: ✅
+- TypeScript: zero errors ✅
+- Build: clean ✅
+- Live API tests via pnpm dev: all 5 scenarios ✅
+
+### Repo state
+- Branch: `dev`
+- Version: 1.2.0
+
+### Next session start
+- Task 6: Cron Job Manager UI
+  - Backend: GET/POST/PUT/DELETE /api/jobs endpoints
+  - UI: list cron jobs, create/edit (expression + command), enable/disable toggle, delete
+  - Already has /api/hermes-jobs route — check its capabilities
+
+---
+
 ## 2026-04-09 — Session 2
 
 ### What was done

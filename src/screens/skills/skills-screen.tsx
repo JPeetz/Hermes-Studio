@@ -131,8 +131,10 @@ export function SkillsScreen() {
   const [sort, setSort] = useState<SkillsSort>('name')
   const [page, setPage] = useState(1)
   const [actionSkillId, setActionSkillId] = useState<string | null>(null)
+  const [actionType, setActionType] = useState<'install' | 'uninstall' | 'toggle' | null>(null)
   const [selectedSkill, setSelectedSkill] = useState<SkillSummary | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [clawhubHint, setClawhubHint] = useState<string | null>(null)
 
   useEffect(() => {
     if (tab !== 'marketplace') return
@@ -294,7 +296,9 @@ export function SkillsScreen() {
     },
   ) {
     setActionError(null)
+    setClawhubHint(null)
     setActionSkillId(payload.skillId)
+    setActionType(action)
 
     try {
       const endpoint =
@@ -318,8 +322,22 @@ export function SkillsScreen() {
       const data = (await response.json()) as {
         error?: string
         command?: string
+        installClawhub?: string
         ok?: boolean
       }
+
+      // clawhub not installed — show persistent hint instead of a toast
+      if (!response.ok && data.installClawhub) {
+        setClawhubHint(data.installClawhub)
+        if (data.command) {
+          await copyCommandAndToast(
+            data.command,
+            data.error || 'clawhub not installed.',
+          )
+        }
+        return
+      }
+
       if (!response.ok) {
         throw new Error(data.error || 'Action failed')
       }
@@ -342,26 +360,22 @@ export function SkillsScreen() {
         queryClient.invalidateQueries({ queryKey: ['skills-browser'] }),
         queryClient.invalidateQueries({ queryKey: ['skills-hub-search'] }),
       ])
+
+      if (action === 'install') {
+        toast(`${payload.skillId} installed`, { type: 'success', icon: '✅' })
+      } else if (action === 'uninstall') {
+        toast(`${payload.skillId} uninstalled`, { type: 'info', icon: '🗑️' })
+      }
+
       setSelectedSkill(function updateSelectedSkill(current) {
         if (!current || current.id !== payload.skillId) return current
         if (action === 'install') {
-          return {
-            ...current,
-            installed: true,
-            enabled: true,
-          }
+          return { ...current, installed: true, enabled: true }
         }
         if (action === 'uninstall') {
-          return {
-            ...current,
-            installed: false,
-            enabled: false,
-          }
+          return { ...current, installed: false, enabled: false }
         }
-        return {
-          ...current,
-          enabled: payload.enabled ?? current.enabled,
-        }
+        return { ...current, enabled: payload.enabled ?? current.enabled }
       })
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err)
@@ -369,6 +383,7 @@ export function SkillsScreen() {
       toast(errorMessage, { type: 'error', icon: '❌' })
     } finally {
       setActionSkillId(null)
+      setActionType(null)
     }
   }
 
@@ -410,7 +425,7 @@ export function SkillsScreen() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="space-y-1.5">
               <p className="text-xs font-medium uppercase text-primary-500 tabular-nums">
-                Hermes Workspace Marketplace
+                Hermes Studio Marketplace
               </p>
               <h1 className="text-2xl font-medium text-ink text-balance sm:text-3xl">
                 Skills Browser
@@ -489,9 +504,34 @@ export function SkillsScreen() {
               ) : null}
             </div>
 
+            {clawhubHint ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm dark:border-amber-800/50 dark:bg-amber-900/15">
+                <p className="font-medium text-amber-700 dark:text-amber-400">
+                  clawhub CLI not installed
+                </p>
+                <p className="mt-0.5 text-xs text-amber-600 dark:text-amber-500">
+                  Install it to enable one-click skill installation from the browser:
+                </p>
+                <code className="mt-1 block rounded bg-amber-100 px-2 py-1 font-mono text-xs text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                  {clawhubHint}
+                </code>
+                <button
+                  type="button"
+                  className="mt-1 text-xs text-amber-600 underline hover:text-amber-800 dark:text-amber-400"
+                  onClick={() => setClawhubHint(null)}
+                >
+                  Dismiss
+                </button>
+              </div>
+            ) : null}
             {actionError ? (
               <p className="rounded-lg border border-primary-200 bg-primary-100/60 px-3 py-2 text-sm text-ink">
                 {actionError}
+              </p>
+            ) : null}
+            {actionSkillId && actionType === 'install' ? (
+              <p className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700 dark:border-blue-800/50 dark:bg-blue-900/15 dark:text-blue-400">
+                Installing {actionSkillId}... This may take up to 2 minutes.
               </p>
             ) : null}
 
@@ -721,7 +761,7 @@ export function SkillsScreen() {
                         })
                       }}
                     >
-                      Uninstall
+                      {actionSkillId === selectedSkill.id ? '⏳ Removing…' : 'Uninstall'}
                     </Button>
                   ) : (
                     <Button
@@ -731,7 +771,7 @@ export function SkillsScreen() {
                         runSkillAction('install', { skillId: selectedSkill.id })
                       }
                     >
-                      Install
+                      {actionSkillId === selectedSkill.id ? '⏳ Installing…' : 'Install'}
                     </Button>
                   )}
                   <Button
@@ -858,7 +898,7 @@ function SecurityScanCard({ security }: { security: SecurityRisk }) {
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <span className="text-primary-500 font-medium w-16 shrink-0">
-              Hermes Workspace
+              Hermes Studio
             </span>
             <span
               className={cn(
@@ -1029,7 +1069,7 @@ function SkillsGrid({
                       disabled={isActing}
                       onClick={() => onUninstall(skill.id)}
                     >
-                      Uninstall
+                      {isActing ? '⏳' : 'Uninstall'}
                     </Button>
                   </div>
                 ) : skill.installed ? (
@@ -1039,7 +1079,7 @@ function SkillsGrid({
                     disabled={isActing}
                     onClick={() => onUninstall(skill.id)}
                   >
-                    Uninstall
+                    {isActing ? '⏳' : 'Uninstall'}
                   </Button>
                 ) : (
                   <Button
@@ -1047,7 +1087,7 @@ function SkillsGrid({
                     disabled={isActing}
                     onClick={() => onInstall(skill.id)}
                   >
-                    Install
+                    {isActing ? '⏳ Installing…' : 'Install'}
                   </Button>
                 )}
               </div>

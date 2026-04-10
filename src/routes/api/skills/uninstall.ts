@@ -20,12 +20,18 @@ export const Route = createFileRoute('/api/skills/uninstall')({
               { ok: false, error: 'skillId required' },
               { status: 400 },
             )
-          const skillPath = path.join(
-            os.homedir(),
-            '.hermes',
-            'skills',
-            skillId,
-          )
+
+          const skillsBase = path.join(os.homedir(), '.hermes', 'skills')
+          const skillPath = path.join(skillsBase, skillId)
+
+          // Path traversal guard — resolved path must be within skills dir
+          if (!skillPath.startsWith(skillsBase + path.sep)) {
+            return json(
+              { ok: false, error: 'Invalid skillId' },
+              { status: 400 },
+            )
+          }
+
           if (!fs.existsSync(skillPath)) {
             return json(
               {
