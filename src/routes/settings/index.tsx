@@ -2,6 +2,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import {
   CheckmarkCircle02Icon,
   CloudIcon,
+  LockIcon,
   MessageMultiple01Icon,
   Mic01Icon,
   Notification03Icon,
@@ -249,6 +250,7 @@ type SettingsSectionId =
   | 'chat'
   | 'hermes'
   | 'agent'
+  | 'permissions'
   | 'routing'
   | 'voice'
   | 'display'
@@ -264,6 +266,7 @@ type SettingsNavItem = {
 const SETTINGS_NAV_ITEMS: Array<SettingsNavItem> = [
   { id: 'hermes', label: 'Model & Provider' },
   { id: 'agent', label: 'Agent Behavior' },
+  { id: 'permissions', label: 'Permissions & Toolsets' },
   { id: 'routing', label: 'Smart Routing' },
   { id: 'voice', label: 'Voice' },
   { id: 'display', label: 'Display' },
@@ -402,6 +405,9 @@ function SettingsRoute() {
           )}
           {activeSection === 'display' && (
             <HermesConfigSection activeView="display" />
+          )}
+          {activeSection === 'permissions' && (
+            <HermesConfigSection activeView="permissions" />
           )}
 
           {/* ── Appearance ──────────────────────────────────────── */}
@@ -936,7 +942,7 @@ type AvailableModelsResponse = {
 function HermesConfigSection({
   activeView = 'hermes',
 }: {
-  activeView?: 'hermes' | 'agent' | 'routing' | 'voice' | 'display'
+  activeView?: 'hermes' | 'agent' | 'permissions' | 'routing' | 'voice' | 'display'
 }) {
   const [data, setData] = useState<HermesConfigData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -947,6 +953,7 @@ function HermesConfigSection({
   const [modelInput, setModelInput] = useState('')
   const [providerInput, setProviderInput] = useState('')
   const [baseUrlInput, setBaseUrlInput] = useState('')
+  const [newToolset, setNewToolset] = useState('')
 
   const [availableProviders, setAvailableProviders] = useState<
     Array<{ id: string; label: string; authenticated: boolean }>
@@ -1092,6 +1099,16 @@ function HermesConfigSection({
   const sttConfig = (data.config.stt as Record<string, unknown>) || {}
   const customProviders = Array.isArray(data.config.custom_providers)
     ? (data.config.custom_providers as Array<Record<string, unknown>>)
+    : []
+  const securityConfig = (data.config.security as Record<string, unknown>) || {}
+  const websiteBlocklist =
+    (securityConfig.website_blocklist as Record<string, unknown>) || {}
+  const approvalsConfig =
+    (data.config.approvals as Record<string, unknown>) || {}
+  const codeExecConfig =
+    (data.config.code_execution as Record<string, unknown>) || {}
+  const toolsets = Array.isArray(data.config.toolsets)
+    ? (data.config.toolsets as Array<string>)
     : []
 
   const ttsProvider = (ttsConfig.provider as string) || 'edge'
@@ -1502,6 +1519,250 @@ function HermesConfigSection({
     </SettingsSection>
   )
 
+  const renderPermissions = () => {
+    const removeToolset = (ts: string) => {
+      void saveConfig({ config: { toolsets: toolsets.filter((t) => t !== ts) } })
+    }
+
+    const addToolset = () => {
+      const trimmed = newToolset.trim()
+      if (!trimmed || toolsets.includes(trimmed)) return
+      void saveConfig({ config: { toolsets: [...toolsets, trimmed] } })
+      setNewToolset('')
+    }
+
+    return (
+      <>
+        <SettingsSection
+          title="Approvals"
+          description="Control how Hermes requests approval for dangerous actions."
+          icon={LockIcon}
+        >
+          <SettingsRow
+            label="Approval mode"
+            description="manual = prompt the user; auto = approve automatically; off = skip approval checks."
+          >
+            <select
+              value={(approvalsConfig.mode as string) || 'manual'}
+              onChange={(e) =>
+                void saveConfig({
+                  config: { approvals: { mode: e.target.value } },
+                })
+              }
+              className={selectClassName}
+            >
+              <option value="manual">manual</option>
+              <option value="auto">auto</option>
+              <option value="off">off</option>
+            </select>
+          </SettingsRow>
+          <SettingsRow
+            label="Approval timeout (seconds)"
+            description="Seconds to wait for user response before auto-denying."
+          >
+            <Input
+              type="number"
+              min={5}
+              max={600}
+              value={readNumber(approvalsConfig.timeout, 60)}
+              onChange={(e) =>
+                saveNumberField('approvals', 'timeout', e.target.value, 60)
+              }
+              className="md:w-28"
+            />
+          </SettingsRow>
+        </SettingsSection>
+
+        <SettingsSection
+          title="Toolsets"
+          description="Which tool collections are available to the agent. Changes take effect after gateway restart."
+          icon={LockIcon}
+        >
+          <SettingsRow
+            label="Active toolsets"
+            description="Remove a toolset to revoke access to that group of tools."
+          >
+            <div className="flex w-full flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
+                {toolsets.length === 0 ? (
+                  <span className="text-xs text-[var(--theme-muted)]">
+                    No toolsets configured
+                  </span>
+                ) : (
+                  toolsets.map((ts) => (
+                    <span
+                      key={ts}
+                      className="flex items-center gap-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-card)] px-2.5 py-1 text-xs font-medium text-[var(--theme-text)]"
+                    >
+                      {ts}
+                      <button
+                        type="button"
+                        onClick={() => removeToolset(ts)}
+                        className="ml-0.5 text-[var(--theme-muted)] hover:text-[var(--theme-danger)] transition-colors"
+                        aria-label={`Remove ${ts}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={newToolset}
+                  onChange={(e) => setNewToolset(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addToolset()
+                    }
+                  }}
+                  placeholder="hermes-web, hermes-memory…"
+                  className="flex-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-input)] px-3 py-1.5 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-accent)] md:max-w-xs"
+                />
+                <button
+                  type="button"
+                  onClick={addToolset}
+                  className="rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                  style={{ background: 'var(--theme-accent)' }}
+                  disabled={!newToolset.trim()}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </SettingsRow>
+        </SettingsSection>
+
+        <SettingsSection
+          title="Security"
+          description="Tirith security scanner and secret redaction settings."
+          icon={LockIcon}
+        >
+          <SettingsRow
+            label="Redact secrets"
+            description="Automatically redact API keys and tokens from agent memory and logs."
+          >
+            <Switch
+              checked={readBoolean(securityConfig.redact_secrets, true)}
+              onCheckedChange={(checked) =>
+                void saveConfig({
+                  config: { security: { redact_secrets: checked } },
+                })
+              }
+            />
+          </SettingsRow>
+          <SettingsRow
+            label="Tirith security scanner"
+            description="Block dangerous commands using the Tirith policy engine."
+          >
+            <Switch
+              checked={readBoolean(securityConfig.tirith_enabled, true)}
+              onCheckedChange={(checked) =>
+                void saveConfig({
+                  config: { security: { tirith_enabled: checked } },
+                })
+              }
+            />
+          </SettingsRow>
+          <SettingsRow
+            label="Website blocklist"
+            description="Prevent the agent from browsing blocked domains."
+          >
+            <Switch
+              checked={readBoolean(websiteBlocklist.enabled, false)}
+              onCheckedChange={(checked) =>
+                void saveConfig({
+                  config: {
+                    security: { website_blocklist: { enabled: checked } },
+                  },
+                })
+              }
+            />
+          </SettingsRow>
+        </SettingsSection>
+
+        <SettingsSection
+          title="Code Execution"
+          description="Limits applied to sandboxed code and tool execution."
+          icon={LockIcon}
+        >
+          <SettingsRow
+            label="Execution timeout (seconds)"
+            description="Maximum seconds for a single code execution block."
+          >
+            <Input
+              type="number"
+              min={10}
+              max={3600}
+              value={readNumber(codeExecConfig.timeout, 300)}
+              onChange={(e) =>
+                saveNumberField('code_execution', 'timeout', e.target.value, 300)
+              }
+              className="md:w-28"
+            />
+          </SettingsRow>
+          <SettingsRow
+            label="Max tool calls per turn"
+            description="Hard limit on tool invocations per agent turn."
+          >
+            <Input
+              type="number"
+              min={1}
+              max={500}
+              value={readNumber(codeExecConfig.max_tool_calls, 50)}
+              onChange={(e) =>
+                saveNumberField(
+                  'code_execution',
+                  'max_tool_calls',
+                  e.target.value,
+                  50,
+                )
+              }
+              className="md:w-28"
+            />
+          </SettingsRow>
+        </SettingsSection>
+
+        <SettingsSection
+          title="Agent Reasoning"
+          description="Reasoning effort and verbosity controls."
+          icon={LockIcon}
+        >
+          <SettingsRow
+            label="Reasoning effort"
+            description="How much time the agent spends thinking before responding."
+          >
+            <select
+              value={(agentConfig.reasoning_effort as string) || 'medium'}
+              onChange={(e) =>
+                void saveConfig({
+                  config: { agent: { reasoning_effort: e.target.value } },
+                })
+              }
+              className={selectClassName}
+            >
+              <option value="low">low</option>
+              <option value="medium">medium</option>
+              <option value="high">high</option>
+            </select>
+          </SettingsRow>
+          <SettingsRow
+            label="Verbose mode"
+            description="Show detailed tool output and internal agent steps."
+          >
+            <Switch
+              checked={readBoolean(agentConfig.verbose, false)}
+              onCheckedChange={(checked) =>
+                void saveConfig({ config: { agent: { verbose: checked } } })
+              }
+            />
+          </SettingsRow>
+        </SettingsSection>
+      </>
+    )
+  }
+
   const renderSmartRouting = () => (
     <SettingsSection
       title="Smart Model Routing"
@@ -1823,6 +2084,7 @@ function HermesConfigSection({
   const sectionContent = {
     hermes: renderHermesOverview(),
     agent: renderAgentBehavior(),
+    permissions: renderPermissions(),
     routing: renderSmartRouting(),
     voice: renderVoice(),
     display: renderDisplay(),

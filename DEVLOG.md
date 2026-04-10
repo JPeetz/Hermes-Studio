@@ -4,6 +4,46 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-10 — Session 5
+
+### What was done
+- Completed Task 7: Permissions & Toolsets Settings UI
+
+**Research findings:**
+- `~/.hermes/config.yaml` has rich permissions/sandbox fields: `approvals`, `security`, `toolsets`, `code_execution`, `agent.reasoning_effort`, `agent.verbose`
+- Existing settings page already has Agent Behavior (max_turns, gateway_timeout, tool_use_enforcement) but not these
+- Existing `PATCH /api/hermes-config` deep-merges config changes — no new backend needed
+- `HermesConfigSection` component already handles multi-view dispatch via `sectionContent` map
+
+**What was implemented:**
+- `'permissions'` added to `SettingsSectionId` type union
+- `{ id: 'permissions', label: 'Permissions & Toolsets' }` added to `SETTINGS_NAV_ITEMS` (appears after "Agent Behavior")
+- `HermesConfigSection activeView="permissions"` wired into content area
+- `renderPermissions()` function with 4 sub-sections:
+  - **Approvals**: mode (manual/auto/off) + timeout slider
+  - **Toolsets**: list of active toolsets as removable tags + add-custom input
+  - **Security**: redact_secrets, tirith_enabled, website_blocklist toggles
+  - **Code Execution**: timeout + max_tool_calls number inputs
+  - **Agent Reasoning**: reasoning_effort (low/medium/high) + verbose toggle
+- State for `newToolset` input hoisted to `HermesConfigSection` component level (hooks rule compliance)
+- `LockIcon` imported from `@hugeicons/core-free-icons`
+
+**Tests passed:**
+- TypeScript: zero errors ✅
+- Build: clean (3.76s) ✅
+
+### Repo state
+- Branch: `dev`
+- Version: 1.4.0
+
+### Next session start
+- Task 8: Session Persistence via Redis
+  - Research what session state is currently stored and where
+  - Design Redis adapter for session/history persistence
+  - Implement Redis connection + session store
+
+---
+
 ## 2026-04-10 — Session 4
 
 ### What was done
@@ -26,10 +66,7 @@ Running log of development sessions. Most recent at top.
 - Version: 1.3.0
 
 ### Next session start
-- Task 7: Permissions & Sandbox Config UI
-  - Goal: configure agent capabilities (allowed tools, blocked commands, sandbox settings) without editing config.yaml
-  - Research: check what the gateway exposes at `/api/config` or similar
-  - Design: read-only config viewer + editable fields for sandbox/permissions section
+- Task 7: Permissions & Sandbox Config UI ✅ (see Session 5)
 
 ---
 

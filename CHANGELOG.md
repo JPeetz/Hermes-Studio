@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.0] — 2026-04-10
+
+### Added
+- **Permissions & Toolsets Settings** (Task 7) — new "Permissions & Toolsets" section in Settings
+  - **Approvals** — configure `approvals.mode` (manual/auto/off) and `approvals.timeout` from the UI; no config.yaml editing required
+  - **Toolsets** — view active toolsets as removable tags; add custom toolsets with an inline input + Enter/Add button; changes saved to `~/.hermes/config.yaml`
+  - **Security** — toggle `security.redact_secrets`, `security.tirith_enabled` (Tirith policy engine), and `security.website_blocklist.enabled`
+  - **Code Execution** — configure `code_execution.timeout` and `code_execution.max_tool_calls` numeric limits
+  - **Agent Reasoning** — set `agent.reasoning_effort` (low/medium/high) and toggle `agent.verbose` mode
+  - All fields use the existing `PATCH /api/hermes-config` endpoint; changes persist to `~/.hermes/config.yaml` immediately
+  - `LockIcon` added to the settings icon imports
+
+---
+
 ## [1.3.0] — 2026-04-10
 
 ### Added

@@ -6,7 +6,7 @@
 
 **The most complete web UI for Hermes Agent — chat, memory, skills, terminal, approvals, and multi-agent orchestration in one place.**
 
-[![Version](https://img.shields.io/badge/version-1.3.0-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.0-6366F1.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366F1.svg)](CONTRIBUTING.md)
@@ -22,7 +22,7 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 - ✅ **Execution Approvals UI** — approve, deny, or always-allow dangerous agent actions from the browser (no terminal required)
 - ✅ **Skill Installation** — install, uninstall, and toggle skills from the registry directly in the browser; clawhub fallback with inline instructions
 - ✅ **Cron Job Manager** — full create/edit/delete/pause/resume/trigger UI for scheduled Hermes tasks; run history with output preview
-- 🔜 **Permissions & Sandbox Config** — configure agent capabilities without touching config.yaml
+- ✅ **Permissions & Toolsets** — configure approvals mode, toolsets, security scanner, code execution limits, and reasoning effort from Settings
 - 🔜 **Session Persistence** — Redis-backed sessions that survive restarts
 - 🔜 **Multi-Agent Orchestration** — crew status dashboard for coordinating multiple agents
 
@@ -41,6 +41,7 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 - ✅ **Execution Approvals** — Approve, deny, or always-allow agent shell commands from the UI
 - 📦 **Skill Installation** — Install/uninstall/toggle skills directly from the browser
 - ⏰ **Job Scheduler** — Create, edit, pause, trigger, and monitor scheduled Hermes tasks
+- 🔐 **Permissions & Toolsets** — Configure approvals, toolsets, security scanner, code limits, and reasoning from Settings UI
 
 ---
 
@@ -496,9 +497,9 @@ The Docker setup uses `hermes --gateway` automatically — no action needed if u
 | Execution Approvals UI          | ✅ Shipped v1.1.0 |
 | Skill Install / Toggle UI       | ✅ Shipped v1.2.0 |
 | Cron Job Manager UI             | ✅ Shipped v1.3.0 |
-| Permissions & Sandbox Config    | 🔜 Planned v1.4.0 |
-| Session Persistence (Redis)     | 🔜 Planned v1.5.0 |
-| Multi-Agent Orchestration       | 🔜 Planned v1.6.0 |
+| Permissions & Toolsets Settings | ✅ Shipped v1.4.0 |
+| Session Persistence (Redis)     | 🔜 Planned        |
+| Multi-Agent Orchestration       | 🔜 Planned        |
 | Native Desktop App (Electron)   | 🔨 In Development |
 | Cloud / Hosted Version          | 🔜 Coming Soon    |
 
