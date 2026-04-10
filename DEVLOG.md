@@ -4,6 +4,35 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-10 — Session 4
+
+### What was done
+- Completed Task 6: Cron Job Manager UI (confirmed already shipped in codebase)
+- Updated README.md: all "Hermes Workspace" → "Hermes Studio", clone URLs, Docker commands, roadmap, features section, star history chart, version badge 1.0.0 → 1.3.0
+- Bumped package.json version: 1.0.0 → 1.3.0
+- Updated CHANGELOG.md with v1.3.0 entry (Task 6)
+- Committed and pushed to GitHub
+
+**Task 6 research findings:**
+- Jobs UI was already fully implemented in hermes-workspace and carried over cleanly
+- `GET/POST /api/hermes-jobs` and `GET/POST/PATCH/DELETE /api/hermes-jobs/$jobId` proxy routes complete
+- `jobs-api.ts` covers: fetchJobs, createJob, updateJob, deleteJob, pauseJob, resumeJob, triggerJob, fetchJobOutput
+- `JobsScreen` wired into workspace-shell.tsx nav and mobile-tab-bar.tsx
+- Feature gate: shows BackendUnavailableState if gateway lacks `/api/jobs`
+- Auto-refresh every 30s via React Query; run history expandable per card
+
+### Repo state
+- Branch: `dev`
+- Version: 1.3.0
+
+### Next session start
+- Task 7: Permissions & Sandbox Config UI
+  - Goal: configure agent capabilities (allowed tools, blocked commands, sandbox settings) without editing config.yaml
+  - Research: check what the gateway exposes at `/api/config` or similar
+  - Design: read-only config viewer + editable fields for sandbox/permissions section
+
+---
+
 ## 2026-04-09 — Session 3
 
 ### What was done
@@ -40,10 +69,8 @@ Running log of development sessions. Most recent at top.
 - Version: 1.2.0
 
 ### Next session start
-- Task 6: Cron Job Manager UI
-  - Backend: GET/POST/PUT/DELETE /api/jobs endpoints
-  - UI: list cron jobs, create/edit (expression + command), enable/disable toggle, delete
-  - Already has /api/hermes-jobs route — check its capabilities
+- Task 6: Cron Job Manager UI ✅ (confirmed already shipped — see Session 4)
+- Task 7: Permissions & Sandbox Config UI
 
 ---
 

@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0] — 2026-04-10
+
+### Added
+- **Cron Job Manager UI** (Task 6) — full scheduled task management from the browser
+  - `GET /api/hermes-jobs` and `GET /api/hermes-jobs/$jobId` proxy routes forward to Hermes gateway `/api/jobs`
+  - `POST /api/hermes-jobs` creates new jobs; `PATCH` updates; `DELETE` deletes
+  - `POST /api/hermes-jobs/$jobId?action=pause|resume|run` for lifecycle control
+  - `GET /api/hermes-jobs/$jobId?action=output` fetches run history
+  - `JobsScreen` — job list with search, status indicators (active/paused/completed), next run time, last run result
+  - `CreateJobDialog` — schedule presets (every 15m/30m/1h/6h/daily/weekly) or custom cron; prompt; skills; delivery channels (local/telegram/discord); repeat count
+  - `EditJobDialog` — pre-populated form for updating existing jobs; smart schedule display fallback
+  - Expand any job card inline to view recent run outputs with timestamps and content preview
+  - Pause/resume/trigger-now/delete/edit actions per job card
+  - Auto-refresh every 30 seconds via React Query
+  - Feature-gated: shows `BackendUnavailableState` when gateway doesn't expose `/api/jobs`
+  - `HermesJob` and `JobOutput` types in `src/lib/jobs-api.ts`
+
+---
+
 ## [1.2.0] — 2026-04-09
 
 ### Added

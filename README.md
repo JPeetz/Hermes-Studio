@@ -6,7 +6,7 @@
 
 **The most complete web UI for Hermes Agent — chat, memory, skills, terminal, approvals, and multi-agent orchestration in one place.**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.0-6366F1.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366F1.svg)](CONTRIBUTING.md)
@@ -19,12 +19,12 @@
 
 Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/hermes-workspace) extended with:
 
-- ✅ **Execution Approvals UI** — approve, deny, or always-allow agent actions from the web UI
-- ✅ **Skill Installation** — install skills from the registry directly in the browser
-- ✅ **Cron Job Manager** — create, edit, enable/disable scheduled tasks from the UI
-- ✅ **Permissions & Sandbox Config** — configure agent capabilities without touching config.yaml
-- ✅ **Session Persistence** — Redis-backed sessions that survive restarts
-- ✅ **Multi-Agent Orchestration** — crew status dashboard for coordinating multiple agents
+- ✅ **Execution Approvals UI** — approve, deny, or always-allow dangerous agent actions from the browser (no terminal required)
+- ✅ **Skill Installation** — install, uninstall, and toggle skills from the registry directly in the browser; clawhub fallback with inline instructions
+- ✅ **Cron Job Manager** — full create/edit/delete/pause/resume/trigger UI for scheduled Hermes tasks; run history with output preview
+- 🔜 **Permissions & Sandbox Config** — configure agent capabilities without touching config.yaml
+- 🔜 **Session Persistence** — Redis-backed sessions that survive restarts
+- 🔜 **Multi-Agent Orchestration** — crew status dashboard for coordinating multiple agents
 
 </div>
 
@@ -34,10 +34,13 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 
 - 🤖 **Hermes Agent Integration** — Direct gateway connection with real-time SSE streaming
 - 🎨 **8-Theme System** — Official, Classic, Slate, Mono — each with light and dark variants
-- 🔒 **Security Hardened** — Auth middleware on all API routes, CSP headers, exec approval prompts
+- 🔒 **Security Hardened** — Auth middleware on all API routes, CSP headers, path traversal guards, exec approval prompts
 - 📱 **Mobile-First PWA** — Full feature parity on any device via Tailscale
 - ⚡ **Live SSE Streaming** — Real-time agent output with tool call rendering
 - 🧠 **Memory & Skills** — Browse, search, and edit agent memory; explore 2,000+ skills
+- ✅ **Execution Approvals** — Approve, deny, or always-allow agent shell commands from the UI
+- 📦 **Skill Installation** — Install/uninstall/toggle skills directly from the browser
+- ⏰ **Job Scheduler** — Create, edit, pause, trigger, and monitor scheduled Hermes tasks
 
 ---
 
@@ -59,7 +62,7 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 
 ## 🚀 Quick Start
 
-Hermes Workspace works with any OpenAI-compatible backend. If your backend also exposes Hermes gateway APIs, enhanced features like sessions, memory, skills, and jobs unlock automatically.
+Hermes Studio works with any OpenAI-compatible backend. If your backend also exposes Hermes gateway APIs, enhanced features like sessions, memory, skills, approvals, and jobs unlock automatically.
 
 ### Prerequisites
 
@@ -69,7 +72,7 @@ Hermes Workspace works with any OpenAI-compatible backend. If your backend also 
 
 ### Step 1: Start your backend
 
-Point Hermes Workspace at any backend that supports:
+Point Hermes Studio at any backend that supports:
 
 - `POST /v1/chat/completions`
 - `GET /v1/models` recommended
@@ -88,12 +91,12 @@ hermes --gateway
 
 If you're using another OpenAI-compatible server, just note its base URL.
 
-### Step 2: Install & Run Hermes Workspace
+### Step 2: Install & Run Hermes Studio
 
 ```bash
 # In a new terminal
-git clone https://github.com/outsourc-e/hermes-workspace.git
-cd hermes-workspace
+git clone https://github.com/JPeetz/Hermes-Studio.git
+cd Hermes-Studio
 pnpm install
 cp .env.example .env
 printf '\nHERMES_API_URL=http://127.0.0.1:8642\n' >> .env
@@ -119,21 +122,21 @@ ANTHROPIC_API_KEY=your-key-here
 
 ## 🧠 Local Models (Ollama, LM Studio, vLLM)
 
-Hermes Workspace supports two modes with local models:
+Hermes Studio supports two modes with local models:
 
 ### Portable Mode (Easiest)
 
-Point the workspace directly at your local server — no Hermes gateway needed:
+Point Hermes Studio directly at your local server — no Hermes gateway needed:
 
 ```bash
 # Start Ollama
 OLLAMA_ORIGINS=* ollama serve
 
-# Start workspace pointed at Ollama
+# Start Hermes Studio pointed at Ollama
 HERMES_API_URL=http://127.0.0.1:11434 pnpm dev
 ```
 
-Chat works immediately. Sessions, memory, and skills show "Not Available" — that's expected in portable mode.
+Chat works immediately. Sessions, memory, skills, and jobs show "Not Available" — that's expected in portable mode.
 
 ### Enhanced Mode (Full Features)
 
@@ -172,9 +175,9 @@ All workspace features unlock automatically — sessions persist, memory saves a
 
 ## 🐳 Docker Quickstart
 
-[![Open in GitHub Codespaces](https://img.shields.io/badge/GitHub%20Codespaces-Open-181717?logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=outsourc-e/hermes-workspace)
+[![Open in GitHub Codespaces](https://img.shields.io/badge/GitHub%20Codespaces-Open-181717?logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=JPeetz/Hermes-Studio)
 
-The Docker setup runs both the **Hermes Agent gateway** and **Hermes Workspace** together.
+The Docker setup runs both the **Hermes Agent gateway** and **Hermes Studio** together.
 
 ### Prerequisites
 
@@ -185,8 +188,8 @@ The Docker setup runs both the **Hermes Agent gateway** and **Hermes Workspace**
 ### Step 1: Configure Environment
 
 ```bash
-git clone https://github.com/outsourc-e/hermes-workspace.git
-cd hermes-workspace
+git clone https://github.com/JPeetz/Hermes-Studio.git
+cd Hermes-Studio
 cp .env.example .env
 ```
 
@@ -207,7 +210,7 @@ docker compose up
 This starts two services:
 
 - **hermes-agent** — The AI agent gateway (port 8642)
-- **hermes-workspace** — The web UI (port 3000)
+- **hermes-studio** — The web UI (port 3000)
 
 ### Step 3: Access the Workspace
 
@@ -219,36 +222,36 @@ Open `http://localhost:3000` and complete the onboarding.
 
 ## 📱 Install as App (Recommended)
 
-Hermes Workspace is a **Progressive Web App (PWA)** — install it for the full native app experience with no browser chrome, keyboard shortcuts, and offline support.
+Hermes Studio is a **Progressive Web App (PWA)** — install it for the full native app experience with no browser chrome, keyboard shortcuts, and offline support.
 
 ### 🖥️ Desktop (macOS / Windows / Linux)
 
-1. Open Hermes Workspace in **Chrome** or **Edge** at `http://localhost:3000`
+1. Open Hermes Studio in **Chrome** or **Edge** at `http://localhost:3000`
 2. Click the **install icon** (⊕) in the address bar
-3. Click **Install** — Hermes Workspace opens as a standalone desktop app
+3. Click **Install** — Hermes Studio opens as a standalone desktop app
 4. Pin to Dock / Taskbar for quick access
 
 > **macOS users:** After installing, you can also add it to your Launchpad.
 
 ### 📱 iPhone / iPad (iOS Safari)
 
-1. Open Hermes Workspace in **Safari** on your iPhone
+1. Open Hermes Studio in **Safari** on your iPhone
 2. Tap the **Share** button (□↑)
 3. Scroll down and tap **"Add to Home Screen"**
-4. Tap **Add** — the Hermes Workspace icon appears on your home screen
+4. Tap **Add** — the Hermes Studio icon appears on your home screen
 5. Launch from home screen for the full native app experience
 
 ### 🤖 Android
 
-1. Open Hermes Workspace in **Chrome** on your Android device
+1. Open Hermes Studio in **Chrome** on your Android device
 2. Tap the **three-dot menu** (⋮) → **"Add to Home screen"**
-3. Tap **Add** — Hermes Workspace is now a native-feeling app on your device
+3. Tap **Add** — Hermes Studio is now a native-feeling app on your device
 
 ---
 
 ## 📡 Mobile Access via Tailscale
 
-Access Hermes Workspace from anywhere on your devices — no port forwarding, no VPN complexity.
+Access Hermes Studio from anywhere on your devices — no port forwarding, no VPN complexity.
 
 ### Setup
 
@@ -265,7 +268,7 @@ Access Hermes Workspace from anywhere on your devices — no port forwarding, no
    # Example output: 100.x.x.x
    ```
 
-4. **Open Hermes Workspace on your phone:**
+4. **Open Hermes Studio on your phone:**
 
    ```
    http://100.x.x.x:3000
@@ -288,7 +291,7 @@ The desktop app will offer:
 - Auto-launch on startup
 - Deep OS integration (macOS menu bar, Windows taskbar)
 
-**In the meantime:** Install Hermes Workspace as a PWA (see above) for a near-native desktop experience — it works great.
+**In the meantime:** Install Hermes Studio as a PWA (see above) for a near-native desktop experience — it works great.
 
 ---
 
@@ -296,7 +299,7 @@ The desktop app will offer:
 
 > **Status: Coming Soon**
 
-A fully managed cloud version of Hermes Workspace is in development:
+A fully managed cloud version of Hermes Studio is in development:
 
 - **One-click deploy** — No self-hosting required
 - **Multi-device sync** — Access your agents from any device
@@ -332,7 +335,26 @@ Features pending cloud infrastructure:
 
 - Browse 2,000+ skills from the registry
 - View skill details, categories, and documentation
-- Skill management per session
+- Install, uninstall, and toggle skills directly from the browser
+- clawhub CLI fallback with inline install instructions when gateway doesn't support native install
+- Loading spinners and success toasts on all skill actions
+
+### ✅ Execution Approvals
+
+- Real-time approval banner when agent requests dangerous commands
+- Approve once, approve for session, or always-allow with a single click
+- Deny to block the action
+- Dual-strategy resolution: native gateway endpoint → chat command fallback
+- Session-persistent approval state survives page refresh
+
+### ⏰ Cron Job Manager
+
+- View all scheduled Hermes tasks with status indicators
+- Create jobs with schedule presets (every 15m, 30m, 1h, 6h, daily, weekly) or custom cron expressions
+- Edit existing jobs — update schedule, prompt, delivery channels, skills, repeat count
+- Pause, resume, trigger-now, and delete jobs from the UI
+- Expand any job card to view recent run outputs inline
+- Real-time auto-refresh every 30 seconds
 
 ### 📁 Files
 
@@ -356,9 +378,10 @@ Features pending cloud infrastructure:
 
 - Auth middleware on all API routes
 - CSP headers via meta tags
-- Path traversal prevention on file/memory routes
+- Path traversal prevention on file, memory, and skill uninstall routes
 - Rate limiting on endpoints
 - Optional password protection for web UI
+- Execution approvals — dangerous commands require explicit user sign-off
 
 ---
 
@@ -443,9 +466,10 @@ If using Docker Compose and getting auth errors:
 
 5. **Check workspace logs for gateway status:**
    ```bash
-   docker compose logs hermes-workspace
+   docker compose logs hermes-studio
    ```
    Look for: `[gateway] http://hermes-agent:8642 mode=...` — if it shows `mode=disconnected`, the agent isn't running correctly.
+   Also check workspace logs with `docker compose logs hermes-studio`.
 
 ### Docker: "hermes webapi command not found"
 
@@ -461,25 +485,28 @@ The Docker setup uses `hermes --gateway` automatically — no action needed if u
 
 ## 🗺️ Roadmap
 
-| Feature                       | Status            |
-| ----------------------------- | ----------------- |
-| Chat + SSE Streaming          | ✅ Shipped        |
-| Files + Terminal              | ✅ Shipped        |
-| Memory Browser                | ✅ Shipped        |
-| Skills Browser                | ✅ Shipped        |
-| Mobile PWA + Tailscale        | ✅ Shipped        |
-| 8-Theme System                | ✅ Shipped        |
-| Native Desktop App (Electron) | 🔨 In Development |
-| Model Switching & Config      | 🔨 In Development |
-| Chat Abort / Cancel           | 🔨 In Development |
-| Cloud / Hosted Version        | 🔜 Coming Soon    |
-| Team Collaboration            | 🔜 Coming Soon    |
+| Feature                         | Status            |
+| ------------------------------- | ----------------- |
+| Chat + SSE Streaming            | ✅ Shipped        |
+| Files + Terminal                | ✅ Shipped        |
+| Memory Browser                  | ✅ Shipped        |
+| Skills Browser                  | ✅ Shipped        |
+| Mobile PWA + Tailscale          | ✅ Shipped        |
+| 8-Theme System                  | ✅ Shipped        |
+| Execution Approvals UI          | ✅ Shipped v1.1.0 |
+| Skill Install / Toggle UI       | ✅ Shipped v1.2.0 |
+| Cron Job Manager UI             | ✅ Shipped v1.3.0 |
+| Permissions & Sandbox Config    | 🔜 Planned v1.4.0 |
+| Session Persistence (Redis)     | 🔜 Planned v1.5.0 |
+| Multi-Agent Orchestration       | 🔜 Planned v1.6.0 |
+| Native Desktop App (Electron)   | 🔨 In Development |
+| Cloud / Hosted Version          | 🔜 Coming Soon    |
 
 ---
 
 ## ⭐ Star History
 
-## [![Star History Chart](https://api.star-history.com/svg?repos=outsourc-e/hermes-workspace&type=date&logscale&legend=top-left)](https://www.star-history.com/#outsourc-e/hermes-workspace&type=date&logscale&legend=top-left)
+## [![Star History Chart](https://api.star-history.com/svg?repos=JPeetz/Hermes-Studio&type=date&logscale&legend=top-left)](https://www.star-history.com/#JPeetz/Hermes-Studio&type=date&logscale&legend=top-left)
 
 ## 💛 Support the Project
 
