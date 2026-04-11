@@ -92,7 +92,7 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 
 |                  Skills                  |                   Settings                   |
 | :--------------------------------------: | :------------------------------------------: |
-| ![Skills](./docs/screenshots/skills.png) | (<img width="1048" height="1216" alt="image" src="https://github.com/user-attachments/assets/f62d3378-ad68-4516-81ff-eceb952d2e7d" />
+| ![Skills](./docs/screenshots/skills.png) | <img width="1048" height="1216" alt="image" src="https://github.com/user-attachments/assets/f62d3378-ad68-4516-81ff-eceb952d2e7d" />
 ) |
 
 ---
