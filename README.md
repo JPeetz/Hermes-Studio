@@ -482,6 +482,7 @@ hermes --gateway   # Starts the FastAPI gateway server
 The Docker setup uses `hermes --gateway` automatically — no action needed if using `docker compose up`.
 
 ---
+<img width="1000" height="1000" alt="Gemini_Generated_Image_f7o6t6f7o6t6f7o6-ezremove" src="https://github.com/user-attachments/assets/3ce75b5f-e421-4323-a8f3-c3118fac3a15" />
 
 ## 🗺️ Roadmap
 
