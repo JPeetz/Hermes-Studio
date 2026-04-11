@@ -1,15 +1,11 @@
-import { execFile } from 'node:child_process'
-import os from 'node:os'
-import path from 'node:path'
-import { promisify } from 'node:util'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
 import { BEARER_TOKEN, HERMES_API } from '../../../server/gateway-capabilities'
 
-const execFileAsync = promisify(execFile)
+export type HubSkillSource = 'skills-sh' | 'installed-fallback'
 
-type HubSkill = {
+export type HubSkill = {
   id: string
   name: string
   description: string
@@ -18,141 +14,170 @@ type HubSkill = {
   tags: Array<string>
   downloads?: number
   stars?: number
-  source: 'clawhub' | 'installed-fallback'
+  source: HubSkillSource
   installCommand?: string
   homepage?: string
   installed: boolean
+  /** Full GitHub repo path for the skill directory (used by install handler) */
+  githubPath?: string
 }
 
-function authHeaders(): Record<string, string> {
+// ── In-memory cache for the skills.sh GitHub tree ──────────────────────────
+
+type TreeEntry = { path: string; type: string }
+
+let treeCache: { entries: TreeEntry[]; fetchedAt: number } | null = null
+const TREE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+function githubHeaders(): HeadersInit {
+  const token = process.env.GITHUB_TOKEN
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  }
+  if (token) headers.Authorization = `Bearer ${token}`
+  return headers
+}
+
+function hermesAuthHeaders(): Record<string, string> {
   return BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
 }
 
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+function asRecord(v: unknown): Record<string, unknown> {
+  return v && typeof v === 'object' && !Array.isArray(v)
+    ? (v as Record<string, unknown>)
     : {}
 }
 
-function readString(value: unknown): string {
-  return typeof value === 'string' ? value.trim() : ''
+function readString(v: unknown): string {
+  return typeof v === 'string' ? v.trim() : ''
 }
 
-function normalizeInstalledId(value: unknown): string {
-  const record = asRecord(value)
-  return (
-    readString(record.id) ||
-    readString(record.slug) ||
-    readString(record.name)
-  ).toLowerCase()
+function slugToTitle(slug: string): string {
+  return slug
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
-async function fetchInstalledSkills(): Promise<Array<Record<string, unknown>>> {
-  const response = await fetch(`${HERMES_API}/api/skills`, {
-    headers: authHeaders(),
-    signal: AbortSignal.timeout(5000),
-  })
-  if (!response.ok)
-    throw new Error(`Hermes skills request failed (${response.status})`)
-  const payload = (await response.json()) as unknown
-  if (Array.isArray(payload)) return payload.map((entry) => asRecord(entry))
-  const record = asRecord(payload)
-  const items = Array.isArray(record.items)
-    ? record.items
-    : Array.isArray(record.skills)
-      ? record.skills
-      : []
-  return items.map((entry) => asRecord(entry))
-}
+// ── GitHub tree fetch (cached) ───────────────────────────────────────────────
 
-function matchesQuery(skill: HubSkill, query: string): boolean {
-  const q = query.trim().toLowerCase()
-  if (!q) return true
-  return [
-    skill.id,
-    skill.name,
-    skill.description,
-    skill.author,
-    skill.category,
-    ...skill.tags,
-  ]
-    .join('\n')
-    .toLowerCase()
-    .includes(q)
-}
-
-function fallbackToInstalledSearch(
-  installedSkills: Array<Record<string, unknown>>,
-  query: string,
-  limit: number,
-): Array<HubSkill> {
-  const mapped: Array<HubSkill> = []
-  for (const skill of installedSkills) {
-    const id =
-      readString(skill.id) || readString(skill.slug) || readString(skill.name)
-    if (!id) continue
-    mapped.push({
-      id,
-      name: readString(skill.name) || id,
-      description: readString(skill.description),
-      author: readString(skill.author) || 'Unknown',
-      category: readString(skill.category) || 'installed',
-      tags: Array.isArray(skill.tags) ? skill.tags.map((t) => String(t)) : [],
-      source: 'installed-fallback',
-      installCommand: `clawhub install ${id} --workdir ~/.hermes --dir skills`,
-      homepage: undefined,
-      installed: true,
-    })
+async function getSkillsShTree(): Promise<TreeEntry[]> {
+  const now = Date.now()
+  if (treeCache && now - treeCache.fetchedAt < TREE_CACHE_TTL_MS) {
+    return treeCache.entries
   }
-  return mapped.filter((entry) => matchesQuery(entry, query)).slice(0, limit)
+  const res = await fetch(
+    'https://api.github.com/repos/vercel-labs/skills/git/trees/main?recursive=1',
+    { headers: githubHeaders(), signal: AbortSignal.timeout(10_000) },
+  )
+  if (!res.ok) throw new Error(`GitHub API returned ${res.status}`)
+  const data = asRecord(await res.json())
+  const tree = Array.isArray(data.tree) ? (data.tree as unknown[]) : []
+  const entries: TreeEntry[] = tree
+    .map((e) => asRecord(e))
+    .filter((e) => readString(e.path) && readString(e.type))
+    .map((e) => ({ path: readString(e.path), type: readString(e.type) }))
+  treeCache = { entries, fetchedAt: now }
+  return entries
 }
 
-async function searchSkillHub(
+// ── skills.sh search ─────────────────────────────────────────────────────────
+
+/**
+ * Search the vercel-labs/skills GitHub repo by filtering SKILL.md paths.
+ * No individual file fetches needed — name and category are derived from the path.
+ * raw.githubusercontent.com is used only at install time.
+ */
+async function searchSkillsDotSh(
   query: string,
   limit: number,
   installedIds: Set<string>,
-): Promise<Array<HubSkill>> {
-  const { stdout } = await execFileAsync(
-    'clawhub',
-    ['search', query, '--limit', String(limit)],
-    {
-      cwd: os.homedir(),
-      timeout: 20000,
-      maxBuffer: 1024 * 1024,
-    },
+): Promise<HubSkill[]> {
+  const tree = await getSkillsShTree()
+
+  // Collect all SKILL.md blob entries
+  const skillFiles = tree.filter(
+    (e) => e.type === 'blob' && e.path.endsWith('SKILL.md'),
   )
 
-  const lines = stdout
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .filter((line) => !line.startsWith('- Searching'))
+  // Filter by query against the full path (contains category + slug)
+  const q = query.trim().toLowerCase()
+  const matching = q
+    ? skillFiles.filter((e) => e.path.toLowerCase().includes(q))
+    : skillFiles
 
-  const results: Array<HubSkill> = []
-  for (const line of lines) {
-    const match = line.match(
-      /^([a-z0-9._-]+)\s{2,}(.+?)(?:\s{2,}\(([0-9.]+)\))?$/i,
+  const results: HubSkill[] = []
+
+  for (const file of matching) {
+    if (results.length >= limit) break
+
+    const parts = file.path.split('/')
+    // Typical structure: "skills/<category>/<slug>/SKILL.md"
+    // But we handle any depth: last segment is SKILL.md, second-last is slug dir,
+    // third-last is category dir (or root).
+    const dirParts = parts.slice(0, -1) // remove "SKILL.md"
+    const slug = dirParts[dirParts.length - 1] ?? 'unknown'
+    const categorySlug = dirParts.length >= 2 ? dirParts[dirParts.length - 2] : 'general'
+
+    // Local install path: strip the leading "skills" segment if present
+    const localId =
+      dirParts[0] === 'skills' ? dirParts.slice(1).join('/') : dirParts.join('/')
+
+    // Full GitHub directory path (for install handler)
+    const githubPath = dirParts.join('/')
+
+    const category = slugToTitle(
+      categorySlug === 'skills' ? 'general' : categorySlug,
     )
-    if (!match) continue
-    const slug = match[1]
-    const title = match[2]?.trim() || slug
-    const score = match[3] ? Number(match[3]) : undefined
+
     results.push({
-      id: slug,
-      name: title,
+      id: localId || slug,
+      name: slugToTitle(slug),
       description: '',
-      author: 'Skills Hub',
-      category: 'marketplace',
-      tags: [],
-      stars: Number.isFinite(score) ? score : undefined,
-      source: 'clawhub',
-      installCommand: `clawhub install ${slug} --workdir ~/.hermes --dir skills`,
-      homepage: `https://clawhub.ai/skills/${slug}`,
-      installed: installedIds.has(slug.toLowerCase()),
+      author: 'skills.sh',
+      category,
+      tags: [categorySlug],
+      source: 'skills-sh',
+      homepage: `https://skills.sh`,
+      installed: installedIds.has((localId || slug).toLowerCase()),
+      githubPath,
     })
   }
+
   return results
 }
+
+// ── Installed IDs from Hermes gateway ────────────────────────────────────────
+
+async function fetchInstalledIds(): Promise<Set<string>> {
+  try {
+    const res = await fetch(`${HERMES_API}/api/skills`, {
+      headers: hermesAuthHeaders(),
+      signal: AbortSignal.timeout(5_000),
+    })
+    if (!res.ok) return new Set()
+    const data = asRecord(await res.json())
+    const items = Array.isArray(data.skills)
+      ? (data.skills as unknown[])
+      : Array.isArray(data)
+        ? (data as unknown[])
+        : []
+    return new Set(
+      items
+        .map((e) => {
+          const r = asRecord(e)
+          return (readString(r.id) || readString(r.slug)).toLowerCase()
+        })
+        .filter(Boolean),
+    )
+  } catch {
+    return new Set()
+  }
+}
+
+// ── Route ────────────────────────────────────────────────────────────────────
 
 export const Route = createFileRoute('/api/skills/hub-search')({
   server: {
@@ -168,37 +193,31 @@ export const Route = createFileRoute('/api/skills/hub-search')({
             50,
             Math.max(1, Number(url.searchParams.get('limit') || '20')),
           )
+
           if (!query) return json({ results: [], source: 'idle' })
 
-          const installedSkills = await fetchInstalledSkills().catch(() => [])
-          const installedIds = new Set(
-            installedSkills
-              .map((skill) => normalizeInstalledId(skill))
-              .filter(Boolean),
-          )
+          // Fetch installed IDs and search in parallel
+          const [installedIds, results] = await Promise.all([
+            fetchInstalledIds(),
+            searchSkillsDotSh(query, limit, new Set()),
+          ])
 
-          let results: Array<HubSkill> = []
-          let source = 'clawhub'
-          try {
-            results = await searchSkillHub(query, limit, installedIds)
-          } catch {
-            results = []
-          }
+          // Annotate installed status
+          const enriched = results.map((skill) => ({
+            ...skill,
+            installed: installedIds.has(skill.id.toLowerCase()),
+          }))
 
-          if (results.length === 0) {
-            results = fallbackToInstalledSearch(installedSkills, query, limit)
-            source = 'installed-fallback'
-          }
-
-          return json({ results, source })
+          return json({
+            results: enriched,
+            source: enriched.length > 0 ? 'skills-sh' : 'empty',
+          })
         } catch (error) {
           return json(
             {
               ok: false,
               error:
-                error instanceof Error
-                  ? error.message
-                  : 'Failed to search skills hub',
+                error instanceof Error ? error.message : 'Search failed',
               results: [],
               source: 'error',
             },

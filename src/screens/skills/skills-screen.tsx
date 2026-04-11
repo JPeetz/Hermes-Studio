@@ -68,10 +68,12 @@ type HubSkill = {
   tags: Array<string>
   downloads?: number
   stars?: number
-  source: 'clawhub' | 'official' | 'github'
+  source: 'skills-sh' | 'official' | 'github' | 'installed-fallback'
   installCommand?: string
   homepage?: string
   installed: boolean
+  /** Full GitHub dir path used by install handler (skills.sh only) */
+  githubPath?: string
 }
 
 type HubSearchResponse = {
@@ -251,12 +253,14 @@ export function SkillsScreen() {
               ? '🐙'
               : skill.source === 'official'
                 ? '✅'
-                : '🧩',
+                : skill.source === 'skills-sh'
+                  ? '⚡'
+                  : '🧩',
           content: [skill.description, skill.installCommand]
             .filter(Boolean)
             .join('\n\n'),
           fileCount: 0,
-          sourcePath: skill.installCommand || skill.homepage || skill.source,
+          sourcePath: skill.homepage || skill.source,
           installed: skill.installed,
           enabled: skill.installed,
           featuredGroup: undefined,
@@ -293,10 +297,10 @@ export function SkillsScreen() {
       skillId: string
       enabled?: boolean
       source?: HubSkill['source']
+      githubPath?: string
     },
   ) {
     setActionError(null)
-    setClawhubHint(null)
     setActionSkillId(payload.skillId)
     setActionType(action)
 
@@ -316,24 +320,14 @@ export function SkillsScreen() {
           skillId: payload.skillId,
           enabled: payload.enabled,
           source: payload.source,
+          githubPath: payload.githubPath,
         }),
       })
 
       const data = (await response.json()) as {
         error?: string
         command?: string
-        installClawhub?: string
         ok?: boolean
-      }
-
-      if (!response.ok && data.installClawhub) {
-        if (data.command) {
-          await copyCommandAndToast(
-            data.command,
-            data.error || 'Manual install required.',
-          )
-        }
-        return
       }
 
       if (!response.ok) {
@@ -344,13 +338,6 @@ export function SkillsScreen() {
         (action === 'install' || action === 'uninstall') &&
         data.ok === false
       ) {
-        if (data.command) {
-          await copyCommandAndToast(
-            data.command,
-            data.error || 'Gateway action unavailable.',
-          )
-          return
-        }
         throw new Error(data.error || 'Action failed')
       }
 
@@ -539,7 +526,13 @@ export function SkillsScreen() {
                   className="h-10 w-full rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none transition-colors focus:border-primary"
                 />
                 <div className="text-xs text-primary-500 sm:text-right">
-                  {hubQuery.data?.source === 'installed-fallback' ? 'Source: local ~/.hermes/skills' : hubQuery.data?.source === 'clawhub' ? 'Source: Skills Hub' : 'Source: local'}
+                  {hubQuery.data?.source === 'skills-sh'
+                    ? 'Source: skills.sh (vercel-labs)'
+                    : hubQuery.data?.source === 'installed-fallback'
+                      ? 'Source: local ~/.hermes/skills'
+                      : hubQuery.data?.source && hubQuery.data.source !== 'idle' && hubQuery.data.source !== 'empty' && hubQuery.data.source !== 'error'
+                        ? `Source: ${hubQuery.data.source}`
+                        : ''}
                 </div>
               </div>
 
@@ -572,6 +565,7 @@ export function SkillsScreen() {
                   runSkillAction('install', {
                     skillId,
                     source: skill?.source,
+                    githubPath: skill?.githubPath,
                   })
                 }}
                 onUninstall={(skillId) =>
