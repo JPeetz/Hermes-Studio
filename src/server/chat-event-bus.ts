@@ -1,8 +1,11 @@
 import { hasActiveSendRun } from './send-run-tracker'
+import { appendEvent } from './event-store'
 
 export interface ChatSSEEvent {
   event: string
   data: Record<string, unknown>
+  /** Sequence number from the event store; undefined when store is unavailable. */
+  seq?: number
 }
 
 type ChatSSESubscriber = (event: ChatSSEEvent) => void
@@ -26,9 +29,13 @@ function getBus(): BusState {
   return (globalThis as any)[BUS_KEY]
 }
 
-function broadcast(event: string, data: Record<string, unknown>): void {
+function broadcast(
+  event: string,
+  data: Record<string, unknown>,
+  seq?: number,
+): void {
   const bus = getBus()
-  const evt: ChatSSEEvent = { event, data }
+  const evt: ChatSSEEvent = { event, data, seq }
   for (const sub of bus.subscribers) {
     try {
       sub(evt)
@@ -44,7 +51,15 @@ export function publishChatEvent(
 ): void {
   const runId = typeof data.runId === 'string' ? data.runId : undefined
   if (hasActiveSendRun(runId)) return
-  broadcast(event, data)
+
+  // Persist before broadcasting so the seq is available to subscribers for
+  // the SSE id: field. Only events that pass the guard above are stored —
+  // dropped events are never delivered and should not be in the replay log.
+  const sessionKey =
+    typeof data.sessionKey === 'string' ? data.sessionKey : 'all'
+  const seq = appendEvent(sessionKey, runId, event, data) ?? undefined
+
+  broadcast(event, data, seq)
 }
 
 export async function ensureBusStarted(): Promise<void> {

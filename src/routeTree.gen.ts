@@ -76,6 +76,7 @@ import { Route as ApiKnowledgeListRouteImport } from './routes/api/knowledge/lis
 import { Route as ApiKnowledgeGraphRouteImport } from './routes/api/knowledge/graph'
 import { Route as ApiHermesProxySplatRouteImport } from './routes/api/hermes-proxy/$'
 import { Route as ApiHermesJobsJobIdRouteImport } from './routes/api/hermes-jobs.$jobId'
+import { Route as ApiEventsReplayRouteImport } from './routes/api/events/replay'
 import { Route as ApiSessionsSessionKeyStatusRouteImport } from './routes/api/sessions/$sessionKey.status'
 import { Route as ApiSessionsSessionKeyActiveRunRouteImport } from './routes/api/sessions/$sessionKey.active-run'
 import { Route as ApiApprovalsApprovalIdDenyRouteImport } from './routes/api/approvals.$approvalId.deny'
@@ -416,6 +417,11 @@ const ApiHermesJobsJobIdRoute = ApiHermesJobsJobIdRouteImport.update({
   path: '/$jobId',
   getParentRoute: () => ApiHermesJobsRoute,
 } as any)
+const ApiEventsReplayRoute = ApiEventsReplayRouteImport.update({
+  id: '/replay',
+  path: '/replay',
+  getParentRoute: () => ApiEventsRoute,
+} as any)
 const ApiSessionsSessionKeyStatusRoute =
   ApiSessionsSessionKeyStatusRouteImport.update({
     id: '/$sessionKey/status',
@@ -457,7 +463,7 @@ export interface FileRoutesByFullPath {
   '/api/chat-events': typeof ApiChatEventsRoute
   '/api/connection-status': typeof ApiConnectionStatusRoute
   '/api/context-usage': typeof ApiContextUsageRoute
-  '/api/events': typeof ApiEventsRoute
+  '/api/events': typeof ApiEventsRouteWithChildren
   '/api/files': typeof ApiFilesRoute
   '/api/gateway-status': typeof ApiGatewayStatusRoute
   '/api/hermes-config': typeof ApiHermesConfigRoute
@@ -484,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/settings/providers': typeof SettingsProvidersRoute
   '/chat/': typeof ChatIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/api/events/replay': typeof ApiEventsReplayRoute
   '/api/hermes-jobs/$jobId': typeof ApiHermesJobsJobIdRoute
   '/api/hermes-proxy/$': typeof ApiHermesProxySplatRoute
   '/api/knowledge/graph': typeof ApiKnowledgeGraphRoute
@@ -529,7 +536,7 @@ export interface FileRoutesByTo {
   '/api/chat-events': typeof ApiChatEventsRoute
   '/api/connection-status': typeof ApiConnectionStatusRoute
   '/api/context-usage': typeof ApiContextUsageRoute
-  '/api/events': typeof ApiEventsRoute
+  '/api/events': typeof ApiEventsRouteWithChildren
   '/api/files': typeof ApiFilesRoute
   '/api/gateway-status': typeof ApiGatewayStatusRoute
   '/api/hermes-config': typeof ApiHermesConfigRoute
@@ -556,6 +563,7 @@ export interface FileRoutesByTo {
   '/settings/providers': typeof SettingsProvidersRoute
   '/chat': typeof ChatIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/api/events/replay': typeof ApiEventsReplayRoute
   '/api/hermes-jobs/$jobId': typeof ApiHermesJobsJobIdRoute
   '/api/hermes-proxy/$': typeof ApiHermesProxySplatRoute
   '/api/knowledge/graph': typeof ApiKnowledgeGraphRoute
@@ -603,7 +611,7 @@ export interface FileRoutesById {
   '/api/chat-events': typeof ApiChatEventsRoute
   '/api/connection-status': typeof ApiConnectionStatusRoute
   '/api/context-usage': typeof ApiContextUsageRoute
-  '/api/events': typeof ApiEventsRoute
+  '/api/events': typeof ApiEventsRouteWithChildren
   '/api/files': typeof ApiFilesRoute
   '/api/gateway-status': typeof ApiGatewayStatusRoute
   '/api/hermes-config': typeof ApiHermesConfigRoute
@@ -630,6 +638,7 @@ export interface FileRoutesById {
   '/settings/providers': typeof SettingsProvidersRoute
   '/chat/': typeof ChatIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/api/events/replay': typeof ApiEventsReplayRoute
   '/api/hermes-jobs/$jobId': typeof ApiHermesJobsJobIdRoute
   '/api/hermes-proxy/$': typeof ApiHermesProxySplatRoute
   '/api/knowledge/graph': typeof ApiKnowledgeGraphRoute
@@ -705,6 +714,7 @@ export interface FileRouteTypes {
     | '/settings/providers'
     | '/chat/'
     | '/settings/'
+    | '/api/events/replay'
     | '/api/hermes-jobs/$jobId'
     | '/api/hermes-proxy/$'
     | '/api/knowledge/graph'
@@ -777,6 +787,7 @@ export interface FileRouteTypes {
     | '/settings/providers'
     | '/chat'
     | '/settings'
+    | '/api/events/replay'
     | '/api/hermes-jobs/$jobId'
     | '/api/hermes-proxy/$'
     | '/api/knowledge/graph'
@@ -850,6 +861,7 @@ export interface FileRouteTypes {
     | '/settings/providers'
     | '/chat/'
     | '/settings/'
+    | '/api/events/replay'
     | '/api/hermes-jobs/$jobId'
     | '/api/hermes-proxy/$'
     | '/api/knowledge/graph'
@@ -897,7 +909,7 @@ export interface RootRouteChildren {
   ApiChatEventsRoute: typeof ApiChatEventsRoute
   ApiConnectionStatusRoute: typeof ApiConnectionStatusRoute
   ApiContextUsageRoute: typeof ApiContextUsageRoute
-  ApiEventsRoute: typeof ApiEventsRoute
+  ApiEventsRoute: typeof ApiEventsRouteWithChildren
   ApiFilesRoute: typeof ApiFilesRoute
   ApiGatewayStatusRoute: typeof ApiGatewayStatusRoute
   ApiHermesConfigRoute: typeof ApiHermesConfigRoute
@@ -1411,6 +1423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHermesJobsJobIdRouteImport
       parentRoute: typeof ApiHermesJobsRoute
     }
+    '/api/events/replay': {
+      id: '/api/events/replay'
+      path: '/replay'
+      fullPath: '/api/events/replay'
+      preLoaderRoute: typeof ApiEventsReplayRouteImport
+      parentRoute: typeof ApiEventsRoute
+    }
     '/api/sessions/$sessionKey/status': {
       id: '/api/sessions/$sessionKey/status'
       path: '/$sessionKey/status'
@@ -1456,6 +1475,18 @@ const SettingsRouteChildren: SettingsRouteChildren = {
 
 const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
   SettingsRouteChildren,
+)
+
+interface ApiEventsRouteChildren {
+  ApiEventsReplayRoute: typeof ApiEventsReplayRoute
+}
+
+const ApiEventsRouteChildren: ApiEventsRouteChildren = {
+  ApiEventsReplayRoute: ApiEventsReplayRoute,
+}
+
+const ApiEventsRouteWithChildren = ApiEventsRoute._addFileChildren(
+  ApiEventsRouteChildren,
 )
 
 interface ApiHermesJobsRouteChildren {
@@ -1538,7 +1569,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatEventsRoute: ApiChatEventsRoute,
   ApiConnectionStatusRoute: ApiConnectionStatusRoute,
   ApiContextUsageRoute: ApiContextUsageRoute,
-  ApiEventsRoute: ApiEventsRoute,
+  ApiEventsRoute: ApiEventsRouteWithChildren,
   ApiFilesRoute: ApiFilesRoute,
   ApiGatewayStatusRoute: ApiGatewayStatusRoute,
   ApiHermesConfigRoute: ApiHermesConfigRoute,
