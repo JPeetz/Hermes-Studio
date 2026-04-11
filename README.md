@@ -530,6 +530,8 @@ PRs are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
+<img width="1520" height="648" alt="Gemini_Generated_Image_dhk6kdhk6kdhk6kd-ezremove" src="https://github.com/user-attachments/assets/2e86734f-b189-49b7-9f4d-1048fd75dbd5" />
+
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE) for details.
