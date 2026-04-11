@@ -2,6 +2,23 @@ import { createServer } from 'node:http'
 import { readFile, stat } from 'node:fs/promises'
 import { join, extname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+// Load .env before anything else
+try {
+  const { readFileSync } = await import('node:fs')
+  const envPath = new URL('.env', import.meta.url).pathname
+  const lines = readFileSync(envPath, 'utf8').split('\n')
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eq = trimmed.indexOf('=')
+    if (eq === -1) continue
+    const key = trimmed.slice(0, eq).trim()
+    const val = trimmed.slice(eq + 1).trim()
+    if (key && !(key in process.env)) process.env[key] = val
+  }
+} catch { /* .env is optional */ }
+
 import server from './dist/server/server.js'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))

@@ -14,7 +14,7 @@ import {
 
 const execFileAsync = promisify(execFile)
 
-// ── GitHub helpers ────────────────────────────────────────────────────────────
+// ── GitHub download helpers ───────────────────────────────────────────────────
 
 function githubHeaders(): HeadersInit {
   const token = process.env.GITHUB_TOKEN
@@ -37,27 +37,52 @@ function readString(v: unknown): string {
 }
 
 /**
- * Download all files under a GitHub directory from vercel-labs/skills and
- * write them to the local skills directory.
- *
- * githubDirPath: e.g. "skills/web/fetch-url"
- * localInstallPath: e.g. "/home/user/.hermes/skills/web/fetch-url"
+ * Parse a GitHub tree URL into its components.
+ * e.g. https://github.com/owner/repo/tree/main/path/to/dir
+ * → { owner, repo, branch, dirPath }
  */
-async function installFromGitHub(
-  githubDirPath: string,
+function parseGithubUrl(githubUrl: string): {
+  owner: string
+  repo: string
+  branch: string
+  dirPath: string
+} | null {
+  try {
+    const u = new URL(githubUrl)
+    // pathname: /owner/repo/tree/branch/path/to/dir
+    const parts = u.pathname.replace(/^\//, '').split('/')
+    if (parts.length < 4 || parts[2] !== 'tree') return null
+    const [owner, repo, , branch, ...rest] = parts
+    return { owner, repo, branch, dirPath: rest.join('/') }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Download all files under a GitHub directory and write them to localInstallPath.
+ */
+async function installFromGithubUrl(
+  githubUrl: string,
   localInstallPath: string,
 ): Promise<void> {
-  // Fetch the recursive tree for this repo
+  const parsed = parseGithubUrl(githubUrl)
+  if (!parsed) throw new Error(`Cannot parse GitHub URL: ${githubUrl}`)
+  const { owner, repo, branch, dirPath } = parsed
+
+  // Fetch recursive tree for the repo
   const treeRes = await fetch(
-    'https://api.github.com/repos/vercel-labs/skills/git/trees/main?recursive=1',
-    { headers: githubHeaders(), signal: AbortSignal.timeout(10_000) },
+    `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`,
+    { headers: githubHeaders(), signal: AbortSignal.timeout(12_000) },
   )
-  if (!treeRes.ok) throw new Error(`GitHub tree API returned ${treeRes.status}`)
+  if (!treeRes.ok) {
+    throw new Error(`GitHub tree API returned ${treeRes.status} for ${owner}/${repo}`)
+  }
   const treeData = asRecord(await treeRes.json())
   const tree = Array.isArray(treeData.tree) ? (treeData.tree as unknown[]) : []
 
-  // Find all blob files under the target directory
-  const prefix = githubDirPath.endsWith('/') ? githubDirPath : `${githubDirPath}/`
+  // Find all blob files under the skill directory
+  const prefix = dirPath.endsWith('/') ? dirPath : `${dirPath}/`
   const skillFiles = tree
     .map((e) => asRecord(e))
     .filter(
@@ -66,20 +91,39 @@ async function installFromGitHub(
         readString(e.path).startsWith(prefix),
     )
 
-  if (skillFiles.length === 0) {
-    throw new Error(
-      `No files found under "${githubDirPath}" in vercel-labs/skills`,
+  // Also include the SKILL.md at the root of the dir (no trailing slash match)
+  const rootFile = tree
+    .map((e) => asRecord(e))
+    .find(
+      (e) =>
+        readString(e.type) === 'blob' &&
+        readString(e.path) === `${dirPath}/SKILL.md`,
     )
+  if (rootFile && !skillFiles.includes(rootFile)) {
+    skillFiles.push(rootFile)
+  }
+
+  if (skillFiles.length === 0) {
+    // No files with prefix — try downloading SKILL.md directly
+    const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${dirPath}/SKILL.md`
+    const res = await fetch(rawUrl, { signal: AbortSignal.timeout(10_000) })
+    if (!res.ok) throw new Error(`Skill not found at ${githubUrl}`)
+    const content = await res.text()
+    fs.mkdirSync(localInstallPath, { recursive: true })
+    fs.writeFileSync(path.join(localInstallPath, 'SKILL.md'), content, 'utf8')
+    return
   }
 
   // Download all files in parallel
   await Promise.all(
     skillFiles.map(async (entry) => {
       const filePath = readString(entry.path)
-      const relativePath = filePath.slice(prefix.length)
+      const relativePath = filePath.startsWith(prefix)
+        ? filePath.slice(prefix.length)
+        : path.basename(filePath)
       const localFilePath = path.join(localInstallPath, ...relativePath.split('/'))
 
-      const rawUrl = `https://raw.githubusercontent.com/vercel-labs/skills/main/${filePath}`
+      const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${filePath}`
       const res = await fetch(rawUrl, { signal: AbortSignal.timeout(10_000) })
       if (!res.ok) throw new Error(`Failed to download ${filePath}: ${res.status}`)
 
@@ -118,7 +162,7 @@ export const Route = createFileRoute('/api/skills/install')({
           const body = (await request.json()) as {
             skillId?: string
             source?: string
-            githubPath?: string
+            githubUrl?: string
           }
           const skillId = (body.skillId || '').trim()
           if (!skillId) {
@@ -128,25 +172,33 @@ export const Route = createFileRoute('/api/skills/install')({
           const source = (body.source || '').trim()
           const skillsBase = path.join(os.homedir(), '.hermes', 'skills')
 
-          // ── Strategy 1: skills.sh — download directly from GitHub ──────────
-          if (source === 'skills-sh') {
-            // githubPath comes from the hub-search result (e.g. "skills/web/fetch-url")
-            // Fall back to "skills/<skillId>" if not provided
-            const githubPath =
-              (body.githubPath || '').trim() ||
-              `skills/${skillId}`
+          // ── Strategy 1: skillsmp / skills-sh — download from GitHub ─────────
+          if (source === 'skillsmp' || source === 'skills-sh') {
+            const githubUrl = (body.githubUrl || '').trim()
+            if (!githubUrl) {
+              return json(
+                { ok: false, error: 'githubUrl required for marketplace skills' },
+                { status: 400 },
+              )
+            }
 
-            // Validate no path traversal
-            const localInstallPath = path.resolve(skillsBase, ...skillId.split('/').filter(Boolean))
-            if (!localInstallPath.startsWith(skillsBase + path.sep) && localInstallPath !== skillsBase) {
+            // Validate local install path (no traversal)
+            const localInstallPath = path.resolve(
+              skillsBase,
+              ...skillId.split('/').filter(Boolean),
+            )
+            if (
+              !localInstallPath.startsWith(skillsBase + path.sep) &&
+              localInstallPath !== skillsBase
+            ) {
               return json({ ok: false, error: 'Invalid skillId' }, { status: 400 })
             }
 
-            await installFromGitHub(githubPath, localInstallPath)
+            await installFromGithubUrl(githubUrl, localInstallPath)
             return json({ ok: true, installed: true, skillId, method: 'github' })
           }
 
-          // ── Strategy 2: Hermes gateway native install ───────────────────────
+          // ── Strategy 2: Hermes gateway native install ─────────────────────
           await ensureGatewayProbed()
           if (getCapabilities().skills) {
             try {
@@ -160,11 +212,11 @@ export const Route = createFileRoute('/api/skills/install')({
                 return json({ ok: true, installed: true, skillId, method: 'gateway' })
               }
             } catch {
-              // fall through to clawhub
+              // fall through
             }
           }
 
-          // ── Strategy 3: clawhub CLI ─────────────────────────────────────────
+          // ── Strategy 3: clawhub CLI ───────────────────────────────────────
           const clawhubAvailable = await isBinaryAvailable('clawhub')
           if (clawhubAvailable) {
             const hermesHome = path.join(os.homedir(), '.hermes')
@@ -180,12 +232,8 @@ export const Route = createFileRoute('/api/skills/install')({
             return json({ ok: true, installed: true, skillId, method: 'clawhub' })
           }
 
-          // ── Strategy 4: nothing available ──────────────────────────────────
           return json(
-            {
-              ok: false,
-              error: 'No install method available. Try searching from the Skills Browser.',
-            },
+            { ok: false, error: 'No install method available.' },
             { status: 503 },
           )
         } catch (error) {

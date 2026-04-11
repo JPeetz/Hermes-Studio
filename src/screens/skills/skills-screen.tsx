@@ -68,12 +68,12 @@ type HubSkill = {
   tags: Array<string>
   downloads?: number
   stars?: number
-  source: 'skills-sh' | 'official' | 'github' | 'installed-fallback'
+  source: 'skillsmp' | 'skills-sh' | 'official' | 'github' | 'installed-fallback'
   installCommand?: string
   homepage?: string
   installed: boolean
-  /** Full GitHub dir path used by install handler (skills.sh only) */
-  githubPath?: string
+  /** GitHub tree URL used by install handler to download skill files */
+  githubUrl?: string
 }
 
 type HubSearchResponse = {
@@ -249,12 +249,12 @@ export function SkillsScreen() {
           homepage: skill.homepage || null,
           category: skill.category || 'Productivity',
           icon:
-            skill.source === 'github'
-              ? '🐙'
-              : skill.source === 'official'
-                ? '✅'
-                : skill.source === 'skills-sh'
-                  ? '⚡'
+            skill.source === 'skillsmp'
+              ? '🛒'
+              : skill.source === 'github'
+                ? '🐙'
+                : skill.source === 'official'
+                  ? '✅'
                   : '🧩',
           content: [skill.description, skill.installCommand]
             .filter(Boolean)
@@ -297,7 +297,7 @@ export function SkillsScreen() {
       skillId: string
       enabled?: boolean
       source?: HubSkill['source']
-      githubPath?: string
+      githubUrl?: string
     },
   ) {
     setActionError(null)
@@ -320,7 +320,7 @@ export function SkillsScreen() {
           skillId: payload.skillId,
           enabled: payload.enabled,
           source: payload.source,
-          githubPath: payload.githubPath,
+          githubUrl: payload.githubUrl,
         }),
       })
 
@@ -526,13 +526,11 @@ export function SkillsScreen() {
                   className="h-10 w-full rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none transition-colors focus:border-primary"
                 />
                 <div className="text-xs text-primary-500 sm:text-right">
-                  {hubQuery.data?.source === 'skills-sh'
-                    ? 'Source: skills.sh (vercel-labs)'
+                  {hubQuery.data?.source === 'skillsmp'
+                    ? 'Source: skillsmp.com'
                     : hubQuery.data?.source === 'installed-fallback'
                       ? 'Source: local ~/.hermes/skills'
-                      : hubQuery.data?.source && hubQuery.data.source !== 'idle' && hubQuery.data.source !== 'empty' && hubQuery.data.source !== 'error'
-                        ? `Source: ${hubQuery.data.source}`
-                        : ''}
+                      : ''}
                 </div>
               </div>
 
@@ -565,7 +563,7 @@ export function SkillsScreen() {
                   runSkillAction('install', {
                     skillId,
                     source: skill?.source,
-                    githubPath: skill?.githubPath,
+                    githubUrl: skill?.githubUrl,
                   })
                 }}
                 onUninstall={(skillId) =>
