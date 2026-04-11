@@ -1560,7 +1560,7 @@ function ChatComposerComponent({
   const handleSelectSlashCommand = useCallback(
     function handleSelectSlashCommand(command: SlashCommandDefinition) {
       if (command.command === '/fast') {
-        setIsSlashMenuDismissed(false)
+        setIsSlashMenuDismissed(true)
         setFastMode((previous) => !previous)
         setValue('')
         persistDraft('')
@@ -1568,13 +1568,17 @@ function ChatComposerComponent({
         return
       }
 
-      const nextValue = `${command.command} `
-      setIsSlashMenuDismissed(false)
-      setValue(nextValue)
-      persistDraft(nextValue)
-      focusPrompt()
+      // Execute immediately — don't stage text, just submit the command
+      setIsSlashMenuDismissed(true)
+      setValue('')
+      persistDraft('')
+      onSubmit(command.command, [], false, {
+        reset,
+        setValue: setComposerValue,
+        setAttachments: setComposerAttachments,
+      })
     },
-    [focusPrompt, persistDraft],
+    [focusPrompt, onSubmit, persistDraft, reset, setComposerAttachments, setComposerValue],
   )
 
   const handleDismissSlashMenu = useCallback(() => {
