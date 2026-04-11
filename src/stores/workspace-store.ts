@@ -64,7 +64,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
     {
       name: 'hermes-workspace-v1',
       partialize: (state) => ({
-        sidebarCollapsed: state.sidebarCollapsed,
+        // sidebarCollapsed intentionally NOT persisted — sidebar always opens fresh.
+        // Persisting collapsed=true led to users getting stuck with no way back.
         fileExplorerCollapsed: state.fileExplorerCollapsed,
         chatPanelOpen: state.chatPanelOpen,
         chatPanelSessionKey: state.chatPanelSessionKey,

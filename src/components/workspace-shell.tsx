@@ -204,11 +204,12 @@ export function WorkspaceShell() {
     }
   }, [isElectron])
 
-  // Keep mobile sidebar state closed after resize and route changes.
+  // On mobile, close the sidebar after every navigation (drawer behaviour).
+  // Only update state when actually needed to avoid spurious store writes.
   useEffect(() => {
     if (!isMobile) return
-    setSidebarCollapsed(true)
-  }, [isMobile, pathname, setSidebarCollapsed])
+    if (!sidebarCollapsed) setSidebarCollapsed(true)
+  }, [isMobile, pathname, sidebarCollapsed, setSidebarCollapsed])
 
   // Slide transitions on mobile tab navigation
   useEffect(() => {
