@@ -262,6 +262,7 @@ type SettingsSectionId =
   | 'voice'
   | 'display'
   | 'notifications'
+  | 'integrations'
   | 'advanced'
 
 type SettingsNavItem = {
@@ -280,6 +281,7 @@ const SETTINGS_NAV_ITEMS: Array<SettingsNavItem> = [
   { id: 'appearance', label: 'Appearance' },
   { id: 'chat', label: 'Chat' },
   { id: 'notifications', label: 'Notifications' },
+  { id: 'integrations', label: 'Integrations' },
   { id: 'mcp', label: 'MCP Servers', to: '/settings/mcp' },
 ]
 
@@ -629,6 +631,9 @@ function SettingsRoute() {
             </>
           )}
 
+          {/* ── Integrations ────────────────────────────────────── */}
+          {activeSection === 'integrations' && <IntegrationsSection />}
+
           <footer className="mt-auto pt-4">
             <div className="flex items-center gap-2 rounded-2xl border border-primary-200 bg-primary-50/70 p-3 text-sm text-primary-600 backdrop-blur-sm">
               <HugeiconsIcon
@@ -644,6 +649,167 @@ function SettingsRoute() {
         </div>
       </main>
     </div>
+  )
+}
+
+// ── Integrations Section ─────────────────────────────────────────────────────
+
+function IntegrationsSection() {
+  const [apiKey, setApiKey] = useState('')
+  const [status, setStatus] = useState<{
+    keySet: boolean
+    keyMasked: string
+    fromEnv: boolean
+  } | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState<string | null>(null)
+  const [showKey, setShowKey] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/skills/settings')
+      .then((r) => r.json())
+      .then((d: { skillsmpApiKeySet?: boolean; skillsmpApiKeyMasked?: string; skillsmpApiKeyFromEnv?: boolean }) => {
+        setStatus({
+          keySet: Boolean(d.skillsmpApiKeySet),
+          keyMasked: d.skillsmpApiKeyMasked || '',
+          fromEnv: Boolean(d.skillsmpApiKeyFromEnv),
+        })
+      })
+      .catch(() => {})
+  }, [])
+
+  async function handleSave() {
+    setSaving(true)
+    setSaveMsg(null)
+    try {
+      const res = await fetch('/api/skills/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skillsmpApiKey: apiKey }),
+      })
+      const d = await res.json() as { ok?: boolean; skillsmpApiKeySet?: boolean; skillsmpApiKeyMasked?: string; skillsmpApiKeyFromEnv?: boolean; error?: string }
+      if (!res.ok || !d.ok) throw new Error(d.error || 'Failed to save')
+      setStatus({
+        keySet: Boolean(d.skillsmpApiKeySet),
+        keyMasked: d.skillsmpApiKeyMasked || '',
+        fromEnv: Boolean(d.skillsmpApiKeyFromEnv),
+      })
+      setApiKey('')
+      setShowKey(false)
+      setSaveMsg('API key saved.')
+    } catch (err) {
+      setSaveMsg(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleClear() {
+    setSaving(true)
+    setSaveMsg(null)
+    try {
+      const res = await fetch('/api/skills/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skillsmpApiKey: '' }),
+      })
+      const d = await res.json() as { ok?: boolean; skillsmpApiKeySet?: boolean; skillsmpApiKeyMasked?: string; skillsmpApiKeyFromEnv?: boolean; error?: string }
+      if (!res.ok || !d.ok) throw new Error(d.error || 'Failed to clear')
+      setStatus({
+        keySet: Boolean(d.skillsmpApiKeySet),
+        keyMasked: d.skillsmpApiKeyMasked || '',
+        fromEnv: Boolean(d.skillsmpApiKeyFromEnv),
+      })
+      setApiKey('')
+      setSaveMsg('API key removed.')
+    } catch (err) {
+      setSaveMsg(err instanceof Error ? err.message : 'Failed to clear')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <SettingsSection
+      title="Integrations"
+      description="Connect external services used by Hermes Studio features."
+      icon={SparklesIcon}
+    >
+      <SettingsRow
+        label="skillsmp.com API key"
+        description={
+          <span>
+            Required for Skills marketplace search.{' '}
+            <a
+              href="https://skillsmp.com/docs/api"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-2 hover:opacity-80"
+            >
+              Get your key at skillsmp.com/docs/api →
+            </a>
+          </span>
+        }
+      >
+        <div className="flex w-full flex-col gap-2 md:max-w-sm">
+          {status?.fromEnv ? (
+            <p className="text-xs text-primary-500">
+              Key is set via <code className="inline-code">SKILLSMP_API_KEY</code>{' '}
+              environment variable and cannot be changed here.
+            </p>
+          ) : (
+            <>
+              {status?.keySet && (
+                <div className="flex items-center gap-2 rounded-lg border border-primary-200 bg-primary-100/60 px-3 py-2 text-sm">
+                  <CheckmarkCircle02Icon className="h-4 w-4 shrink-0 text-green-600" />
+                  <span className="font-mono text-xs text-primary-700 flex-1 truncate">
+                    {status.keyMasked}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    disabled={saving}
+                    className="text-xs text-primary-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  type={showKey ? 'text' : 'password'}
+                  placeholder={status?.keySet ? 'Enter new key to replace…' : 'sk_live_…'}
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="flex-1 font-mono text-xs"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && apiKey.trim()) void handleSave()
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKey((v) => !v)}
+                  className="px-2 text-xs text-primary-500 hover:text-primary-700 transition-colors"
+                  aria-label={showKey ? 'Hide key' : 'Show key'}
+                >
+                  {showKey ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              <Button
+                size="sm"
+                disabled={saving || !apiKey.trim()}
+                onClick={() => void handleSave()}
+              >
+                {saving ? 'Saving…' : 'Save key'}
+              </Button>
+              {saveMsg && (
+                <p className="text-xs text-primary-500">{saveMsg}</p>
+              )}
+            </>
+          )}
+        </div>
+      </SettingsRow>
+    </SettingsSection>
   )
 }
 

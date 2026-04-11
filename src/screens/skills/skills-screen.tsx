@@ -534,7 +534,26 @@ export function SkillsScreen() {
                 </div>
               </div>
 
-              {hubQuery.error ? (
+              {hubQuery.data?.source === 'no-api-key' ? (
+                <div className="rounded-xl border border-primary-200 bg-primary-50/80 px-4 py-4 text-sm text-primary-700">
+                  <p className="font-medium mb-1">skillsmp.com API key not configured</p>
+                  <p className="text-primary-500 text-pretty">
+                    To search the Skills marketplace, add your API key in{' '}
+                    <a href="/settings" className="underline underline-offset-2 hover:opacity-80">
+                      Settings → Integrations
+                    </a>
+                    .{' '}
+                    <a
+                      href="https://skillsmp.com/docs/api"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2 hover:opacity-80"
+                    >
+                      Get your key at skillsmp.com →
+                    </a>
+                  </p>
+                </div>
+              ) : hubQuery.error ? (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {hubQuery.error instanceof Error
                     ? hubQuery.error.message
@@ -544,7 +563,7 @@ export function SkillsScreen() {
 
               <SkillsGrid
                 skills={marketplaceSkills}
-                loading={hubQuery.isPending}
+                loading={hubQuery.isPending && hubQuery.data?.source !== 'no-api-key'}
                 actionSkillId={actionSkillId}
                 tab="marketplace"
                 emptyState={{

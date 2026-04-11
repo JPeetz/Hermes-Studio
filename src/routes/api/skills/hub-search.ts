@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
 import { BEARER_TOKEN, HERMES_API } from '../../../server/gateway-capabilities'
+import { readSkillsSettings } from './settings'
 
 export type HubSkillSource = 'skillsmp' | 'installed-fallback'
 
@@ -22,9 +23,14 @@ export type HubSkill = {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+function getSkillsmpKey(): string {
+  // Env var takes precedence; fall back to user-configured key in settings file
+  return process.env.SKILLSMP_API_KEY || readSkillsSettings().skillsmpApiKey || ''
+}
+
 function skillsmpHeaders(): HeadersInit {
-  const key = process.env.SKILLSMP_API_KEY
-  if (!key) throw new Error('SKILLSMP_API_KEY not configured')
+  const key = getSkillsmpKey()
+  if (!key) throw new Error('SKILLSMP_API_KEY not configured. Add your key in Settings → Integrations.')
   return {
     Authorization: `Bearer ${key}`,
     'Content-Type': 'application/json',
@@ -160,6 +166,11 @@ export const Route = createFileRoute('/api/skills/hub-search')({
           )
 
           if (!query) return json({ results: [], source: 'idle' })
+
+          // Return early with a clear signal if no API key is configured
+          if (!getSkillsmpKey()) {
+            return json({ results: [], source: 'no-api-key' })
+          }
 
           const [installedIds, results] = await Promise.all([
             fetchInstalledIds(),
