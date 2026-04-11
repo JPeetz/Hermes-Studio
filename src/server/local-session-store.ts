@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { getRedisClient, getRedisClientSync } from './redis-client'
 
 const DATA_DIR = join(process.cwd(), '.runtime')
 const SESSIONS_FILE = join(DATA_DIR, 'local-sessions.json')
@@ -63,8 +64,6 @@ function saveToDisk(): void {
 
 // ─── Redis backend (optional) ────────────────────────────────────────────────
 // Activated when REDIS_URL env var is set. Falls back to file store silently.
-
-let redis: import('ioredis').Redis | null = null
 
 async function loadFromRedis(client: import('ioredis').Redis): Promise<void> {
   try {
@@ -145,32 +144,13 @@ async function deleteSessionFromRedis(
   }
 }
 
-async function tryInitRedis(): Promise<void> {
-  const url = process.env.REDIS_URL
-  if (!url) return
-  try {
-    const { default: Redis } = await import('ioredis')
-    const client = new Redis(url, {
-      lazyConnect: true,
-      connectTimeout: 3000,
-      maxRetriesPerRequest: 1,
-      enableOfflineQueue: false,
-    })
-    await client.connect()
-    await client.ping()
-    redis = client
-    await loadFromRedis(client)
-    console.log('[session-store] Redis connected — using Redis backend')
-  } catch (err) {
-    redis = null
-    const msg = err instanceof Error ? err.message : String(err)
-    console.log(`[session-store] Redis unavailable (${msg}), using file store`)
-  }
-}
-
-// Bootstrap: load from file immediately, then try Redis upgrade in background
+// Bootstrap: load from file immediately, then connect shared Redis client
 loadFromDisk()
-void tryInitRedis()
+void getRedisClient().then((client) => {
+  if (client) void loadFromRedis(client).then(() => {
+    console.log('[session-store] Redis backend active')
+  })
+})
 
 // ─── Deferred write scheduler ───────────────────────────────────────────────
 
@@ -209,7 +189,7 @@ export function ensureLocalSession(
     }
     store.messages[sessionId] = []
     saveToDisk()
-    if (redis) void saveSessionToRedis(redis, store.sessions[sessionId])
+    if (getRedisClientSync()) void saveSessionToRedis(getRedisClientSync()!, store.sessions[sessionId])
   }
   return store.sessions[sessionId]
 }
@@ -223,7 +203,7 @@ export function updateLocalSessionTitle(
     session.title = title
     session.updatedAt = Date.now()
     saveToDisk()
-    if (redis) void saveSessionToRedis(redis, session)
+    if (getRedisClientSync()) void saveSessionToRedis(getRedisClientSync()!, session)
   }
 }
 
@@ -236,7 +216,7 @@ export function deleteLocalSession(sessionId: string): void {
   delete store.sessions[sessionId]
   delete store.messages[sessionId]
   saveToDisk()
-  if (redis) void deleteSessionFromRedis(redis, sessionId)
+  if (getRedisClientSync()) void deleteSessionFromRedis(getRedisClientSync()!, sessionId)
 }
 
 export function getLocalMessages(sessionId: string): Array<LocalMessage> {
@@ -261,7 +241,7 @@ export function appendLocalMessage(
     session.updatedAt = Date.now()
   }
   scheduleSave()
-  if (redis) void appendMessageToRedis(redis, sessionId, message)
+  if (getRedisClientSync()) void appendMessageToRedis(getRedisClientSync()!, sessionId, message)
 }
 
 // ─── Client-format adapters ──────────────────────────────────────────────────

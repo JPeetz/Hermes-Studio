@@ -52,6 +52,7 @@ import { Route as ApiChatEventsRouteImport } from './routes/api/chat-events'
 import { Route as ApiAuthCheckRouteImport } from './routes/api/auth-check'
 import { Route as ApiAuthRouteImport } from './routes/api/auth'
 import { Route as ApiSkillsUninstallRouteImport } from './routes/api/skills/uninstall'
+import { Route as ApiSkillsSettingsRouteImport } from './routes/api/skills/settings'
 import { Route as ApiSkillsInstallRouteImport } from './routes/api/skills/install'
 import { Route as ApiSkillsHubSearchRouteImport } from './routes/api/skills/hub-search'
 import { Route as ApiSessionsSendRouteImport } from './routes/api/sessions/send'
@@ -295,6 +296,11 @@ const ApiSkillsUninstallRoute = ApiSkillsUninstallRouteImport.update({
   path: '/uninstall',
   getParentRoute: () => ApiSkillsRoute,
 } as any)
+const ApiSkillsSettingsRoute = ApiSkillsSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => ApiSkillsRoute,
+} as any)
 const ApiSkillsInstallRoute = ApiSkillsInstallRouteImport.update({
   id: '/install',
   path: '/install',
@@ -501,6 +507,7 @@ export interface FileRoutesByFullPath {
   '/api/sessions/send': typeof ApiSessionsSendRoute
   '/api/skills/hub-search': typeof ApiSkillsHubSearchRoute
   '/api/skills/install': typeof ApiSkillsInstallRoute
+  '/api/skills/settings': typeof ApiSkillsSettingsRoute
   '/api/skills/uninstall': typeof ApiSkillsUninstallRoute
   '/api/approvals/$approvalId/approve': typeof ApiApprovalsApprovalIdApproveRoute
   '/api/approvals/$approvalId/deny': typeof ApiApprovalsApprovalIdDenyRoute
@@ -572,6 +579,7 @@ export interface FileRoutesByTo {
   '/api/sessions/send': typeof ApiSessionsSendRoute
   '/api/skills/hub-search': typeof ApiSkillsHubSearchRoute
   '/api/skills/install': typeof ApiSkillsInstallRoute
+  '/api/skills/settings': typeof ApiSkillsSettingsRoute
   '/api/skills/uninstall': typeof ApiSkillsUninstallRoute
   '/api/approvals/$approvalId/approve': typeof ApiApprovalsApprovalIdApproveRoute
   '/api/approvals/$approvalId/deny': typeof ApiApprovalsApprovalIdDenyRoute
@@ -645,6 +653,7 @@ export interface FileRoutesById {
   '/api/sessions/send': typeof ApiSessionsSendRoute
   '/api/skills/hub-search': typeof ApiSkillsHubSearchRoute
   '/api/skills/install': typeof ApiSkillsInstallRoute
+  '/api/skills/settings': typeof ApiSkillsSettingsRoute
   '/api/skills/uninstall': typeof ApiSkillsUninstallRoute
   '/api/approvals/$approvalId/approve': typeof ApiApprovalsApprovalIdApproveRoute
   '/api/approvals/$approvalId/deny': typeof ApiApprovalsApprovalIdDenyRoute
@@ -719,6 +728,7 @@ export interface FileRouteTypes {
     | '/api/sessions/send'
     | '/api/skills/hub-search'
     | '/api/skills/install'
+    | '/api/skills/settings'
     | '/api/skills/uninstall'
     | '/api/approvals/$approvalId/approve'
     | '/api/approvals/$approvalId/deny'
@@ -790,6 +800,7 @@ export interface FileRouteTypes {
     | '/api/sessions/send'
     | '/api/skills/hub-search'
     | '/api/skills/install'
+    | '/api/skills/settings'
     | '/api/skills/uninstall'
     | '/api/approvals/$approvalId/approve'
     | '/api/approvals/$approvalId/deny'
@@ -862,6 +873,7 @@ export interface FileRouteTypes {
     | '/api/sessions/send'
     | '/api/skills/hub-search'
     | '/api/skills/install'
+    | '/api/skills/settings'
     | '/api/skills/uninstall'
     | '/api/approvals/$approvalId/approve'
     | '/api/approvals/$approvalId/deny'
@@ -1231,6 +1243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSkillsUninstallRouteImport
       parentRoute: typeof ApiSkillsRoute
     }
+    '/api/skills/settings': {
+      id: '/api/skills/settings'
+      path: '/settings'
+      fullPath: '/api/skills/settings'
+      preLoaderRoute: typeof ApiSkillsSettingsRouteImport
+      parentRoute: typeof ApiSkillsRoute
+    }
     '/api/skills/install': {
       id: '/api/skills/install'
       path: '/install'
@@ -1488,12 +1507,14 @@ const ApiSessionsRouteWithChildren = ApiSessionsRoute._addFileChildren(
 interface ApiSkillsRouteChildren {
   ApiSkillsHubSearchRoute: typeof ApiSkillsHubSearchRoute
   ApiSkillsInstallRoute: typeof ApiSkillsInstallRoute
+  ApiSkillsSettingsRoute: typeof ApiSkillsSettingsRoute
   ApiSkillsUninstallRoute: typeof ApiSkillsUninstallRoute
 }
 
 const ApiSkillsRouteChildren: ApiSkillsRouteChildren = {
   ApiSkillsHubSearchRoute: ApiSkillsHubSearchRoute,
   ApiSkillsInstallRoute: ApiSkillsInstallRoute,
+  ApiSkillsSettingsRoute: ApiSkillsSettingsRoute,
   ApiSkillsUninstallRoute: ApiSkillsUninstallRoute,
 }
 
