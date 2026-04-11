@@ -1833,7 +1833,7 @@ export function SettingsDialog({
                 Settings
               </DialogTitle>
               <DialogDescription className="sr-only">
-                Configure Hermes Workspace
+                Configure Hermes Studio
               </DialogDescription>
             </div>
             <DialogClose

@@ -2,7 +2,7 @@
  * Hermes FastAPI Client
  *
  * HTTP client for the Hermes FastAPI backend (default: http://127.0.0.1:8642).
- * Replaces legacy WebSocket connection for the Hermes Workspace fork.
+ * Replaces legacy WebSocket connection for the Hermes Studio fork.
  */
 
 import {

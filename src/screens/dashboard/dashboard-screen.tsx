@@ -660,7 +660,7 @@ export function DashboardScreen() {
           className="size-12 md:size-14 rounded-xl shadow-md shadow-indigo-500/10 border border-[var(--theme-border)]"
         />
         <h1 className="text-sm font-semibold text-ink tracking-wide">
-          Hermes Workspace
+          Hermes Studio
         </h1>
         <div className="mt-1 grid w-full max-w-2xl grid-cols-2 gap-2 sm:grid-cols-4">
           <QuickAction

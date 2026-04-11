@@ -90,7 +90,7 @@ import { useResearchCard } from '@/hooks/use-research-card'
 // MOBILE_TAB_BAR_OFFSET removed — tab bar always hidden in chat
 import { useTapDebug } from '@/hooks/use-tap-debug'
 import { useChatMode } from '@/hooks/use-chat-mode'
-// Activity store removed — not used in Hermes Workspace
+// Activity store removed — not used in Hermes Studio
 const _noopSetActivity = (_s: string) => {}
 
 type ChatScreenProps = {
