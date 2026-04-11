@@ -12,10 +12,6 @@ import {
 } from 'recharts'
 import type { ReactNode } from 'react'
 import type { HermesSession } from '@/server/hermes-api'
-import { chatQueryKeys } from '@/screens/chat/chat-queries'
-import { getCapabilities } from '@/server/gateway-capabilities'
-import { getUnavailableReason } from '@/lib/feature-gates'
-import { useFeatureAvailable } from '@/hooks/use-feature-available'
 import { cn } from '@/lib/utils'
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -330,8 +326,6 @@ function ActivityChart({ sessions }: { sessions: Array<HermesSession> }) {
 // ── Model Card ───────────────────────────────────────────────────
 
 function ModelCard() {
-  const sessionsAvailable = useFeatureAvailable('sessions')
-  const configAvailable = useFeatureAvailable('config')
   const configQuery = useQuery({
     queryKey: ['hermes-config'],
     queryFn: async () => {
@@ -340,7 +334,15 @@ function ModelCard() {
       return res.json() as Promise<Record<string, unknown>>
     },
     staleTime: 30_000,
-    enabled: configAvailable,
+  })
+  const connectionQuery = useQuery({
+    queryKey: ['hermes', 'connection-status'],
+    queryFn: async () => {
+      const res = await fetch('/api/connection-status', { signal: AbortSignal.timeout(5000) })
+      if (!res.ok) return null
+      return res.json() as Promise<{ status: string; chatReady: boolean }>
+    },
+    staleTime: 15_000,
   })
   const config = configQuery.data as Record<string, unknown> | undefined
   const modelName = (config?.activeModel ?? '—') as string
@@ -350,20 +352,11 @@ function ModelCard() {
   const baseUrl = (modelBlock?.base_url ??
     configBlock?.base_url ??
     '') as string
-  const connected = sessionsAvailable
+  const connected = connectionQuery.data?.chatReady ?? false
   const fallbackBlock = config?.fallback_model as
     | Record<string, unknown>
     | undefined
   const fallbackModel = fallbackBlock?.model as string | undefined
-
-  if (!configAvailable) {
-    return (
-      <UnavailableWidget
-        title="Model"
-        description={getUnavailableReason('config')}
-      />
-    )
-  }
 
   return (
     <GlassCard
@@ -427,7 +420,6 @@ function ModelCard() {
 // ── Skills Widget ────────────────────────────────────────────────
 
 function SkillsWidget() {
-  const skillsAvailable = useFeatureAvailable('skills')
   const skillsQuery = useQuery({
     queryKey: ['hermes-skills'],
     queryFn: async () => {
@@ -439,19 +431,9 @@ function SkillsWidget() {
       return (data?.skills ?? []) as Array<Record<string, unknown>>
     },
     staleTime: 30_000,
-    enabled: skillsAvailable,
   })
 
   const skills = skillsQuery.data ?? []
-
-  if (!skillsAvailable) {
-    return (
-      <UnavailableWidget
-        title="Skills"
-        description={getUnavailableReason('skills')}
-      />
-    )
-  }
 
   return (
     <GlassCard
@@ -603,8 +585,6 @@ function SessionRow({
 
 export function DashboardScreen() {
   const navigate = useNavigate()
-  const sessionsAvailable = useFeatureAvailable('sessions')
-  const skillsAvailable = useFeatureAvailable('skills')
   const sessionsQuery = useQuery({
     // Use a dedicated query key — NOT chatQueryKeys.sessions — to avoid
     // cache collisions with the chat sidebar which fetches fewer sessions
@@ -630,15 +610,9 @@ export function DashboardScreen() {
     },
     staleTime: 10_000,
     refetchInterval: 30_000,
-    enabled: sessionsAvailable,
   })
 
   const sessions = (sessionsQuery.data ?? [])
-  const caps = {
-    ...getCapabilities(),
-    sessions: sessionsAvailable,
-    skills: skillsAvailable,
-  }
 
   const stats = useMemo(() => {
     let totalMessages = 0,
@@ -711,8 +685,6 @@ export function DashboardScreen() {
             icon="🧩"
             accentColor="#f59e0b"
             onClick={() => navigate({ to: '/skills' })}
-            disabled={!skillsAvailable}
-            badge={!skillsAvailable ? 'Enhanced' : undefined}
           />
           <QuickAction
             label="Settings"
@@ -724,52 +696,38 @@ export function DashboardScreen() {
       </div>
 
       {/* ── Metrics Row ── */}
-      {sessionsAvailable ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <MetricTile
-            label="Sessions"
-            value={formatNumber(stats.totalSessions)}
-            icon="💬"
-            accentColor="#6366f1"
-          />
-          <MetricTile
-            label="Messages"
-            value={formatNumber(stats.totalMessages)}
-            icon="✉️"
-            accentColor="#22c55e"
-          />
-          <MetricTile
-            label="Tool Calls"
-            value={formatNumber(stats.totalToolCalls)}
-            icon="🔧"
-            accentColor="#f59e0b"
-          />
-          <MetricTile
-            label="Tokens"
-            value={formatNumber(stats.totalTokens)}
-            sub={costEstimate}
-            icon="⚡"
-            accentColor="#a855f7"
-          />
-        </div>
-      ) : (
-        <UnavailableWidget
-          title="Workspace Analytics"
-          description={getUnavailableReason('sessions')}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <MetricTile
+          label="Sessions"
+          value={formatNumber(stats.totalSessions)}
+          icon="💬"
+          accentColor="#6366f1"
         />
-      )}
+        <MetricTile
+          label="Messages"
+          value={formatNumber(stats.totalMessages)}
+          icon="✉️"
+          accentColor="#22c55e"
+        />
+        <MetricTile
+          label="Tool Calls"
+          value={formatNumber(stats.totalToolCalls)}
+          icon="🔧"
+          accentColor="#f59e0b"
+        />
+        <MetricTile
+          label="Tokens"
+          value={formatNumber(stats.totalTokens)}
+          sub={costEstimate}
+          icon="⚡"
+          accentColor="#a855f7"
+        />
+      </div>
 
       {/* ── Charts + Model + Skills ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
         <div className="lg:col-span-5">
-          {sessionsAvailable ? (
-            <ActivityChart sessions={sessions} />
-          ) : (
-            <UnavailableWidget
-              title="Activity"
-              description={getUnavailableReason('sessions')}
-            />
-          )}
+          <ActivityChart sessions={sessions} />
         </div>
         <div className="lg:col-span-4">
           <ModelCard />
@@ -780,54 +738,47 @@ export function DashboardScreen() {
       </div>
 
       {/* ── Recent Sessions (minimal) ── */}
-      {sessionsAvailable ? (
-        <GlassCard
-          title="Recent Sessions"
-          titleRight={
-            <button
-              type="button"
-              className="text-[10px] text-muted hover:text-neutral-300 transition-colors"
-              onClick={() =>
-                navigate({
-                  to: '/chat/$sessionKey',
-                  params: { sessionKey: 'main' },
-                })
-              }
-            >
-              View all →
-            </button>
-          }
-          accentColor="#6366f1"
-          noPadding
-        >
-          <div className="py-1">
-            {recentSessions.length === 0 ? (
-              <div className="text-xs text-neutral-400 py-8 text-center">
-                No sessions yet — start a chat!
-              </div>
-            ) : (
-              recentSessions.map((s) => (
-                <SessionRow
-                  key={s.id}
-                  session={s}
-                  maxTokens={maxTokens}
-                  onClick={() =>
-                    navigate({
-                      to: '/chat/$sessionKey',
-                      params: { sessionKey: s.id },
-                    })
-                  }
-                />
-              ))
-            )}
-          </div>
-        </GlassCard>
-      ) : (
-        <UnavailableWidget
-          title="Recent Sessions"
-          description={getUnavailableReason('sessions')}
-        />
-      )}
+      <GlassCard
+        title="Recent Sessions"
+        titleRight={
+          <button
+            type="button"
+            className="text-[10px] text-muted hover:text-neutral-300 transition-colors"
+            onClick={() =>
+              navigate({
+                to: '/chat/$sessionKey',
+                params: { sessionKey: 'main' },
+              })
+            }
+          >
+            View all →
+          </button>
+        }
+        accentColor="#6366f1"
+        noPadding
+      >
+        <div className="py-1">
+          {recentSessions.length === 0 ? (
+            <div className="text-xs text-neutral-400 py-8 text-center">
+              No sessions yet — start a chat!
+            </div>
+          ) : (
+            recentSessions.map((s) => (
+              <SessionRow
+                key={s.id}
+                session={s}
+                maxTokens={maxTokens}
+                onClick={() =>
+                  navigate({
+                    to: '/chat/$sessionKey',
+                    params: { sessionKey: s.id },
+                  })
+                }
+              />
+            ))
+          )}
+        </div>
+      </GlassCard>
     </div>
   )
 }
