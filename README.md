@@ -14,6 +14,21 @@
 > Not a chat wrapper. A complete studio — orchestrate agents, approve actions, browse memory, manage skills, and schedule recurring tasks, all from one interface. Built for power users running Hermes Agent locally.
 
 </div>
+---
+
+## ✨ Features
+
+- 🤖 **Hermes Agent Integration** — Direct gateway connection with real-time SSE streaming
+- 🎨 **8-Theme System** — Official, Classic, Slate, Mono — each with light and dark variants
+- 🔒 **Security Hardened** — Auth middleware on all API routes, CSP headers, path traversal guards, exec approval prompts
+- 📱 **Mobile-First PWA** — Full feature parity on any device via Tailscale
+- ⚡ **Live SSE Streaming** — Real-time agent output with tool call rendering
+- 🧠 **Memory & Skills** — Browse, search, and edit agent memory; explore 2,000+ skills
+- ✅ **Execution Approvals** — Approve, deny, or always-allow agent shell commands from the UI; resolved receipts shown inline
+- 📦 **Skill Installation** — Install/uninstall/toggle skills directly from the browser
+- ⏰ **Cron Job Manager** — The only agent UI with a full scheduler: create, edit, pause, trigger, and monitor jobs; run history inline
+- 🔐 **Permissions & Toolsets** — Configure approvals, command allowlist, toolsets, security scanner, code limits, and reasoning from Settings UI
+- 💾 **Session Persistence** — Auth tokens, sessions, and active runs survive server restarts via Redis (auto-connects, graceful fallback)
 
 ---
 
@@ -61,22 +76,6 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 - ✅ **Chat Platform Tokens** — set Telegram, Discord, Slack, and Signal bot tokens from the Integrations settings page (no `.env` editing required)
 - ✅ **Session Persistence** — chat history survives server restarts; Redis backend auto-connects to `localhost:6379` and falls back to file store gracefully
 - 🔜 **Multi-Agent Orchestration** — crew status dashboard for coordinating multiple agents
-
----
-
-## ✨ Features
-
-- 🤖 **Hermes Agent Integration** — Direct gateway connection with real-time SSE streaming
-- 🎨 **8-Theme System** — Official, Classic, Slate, Mono — each with light and dark variants
-- 🔒 **Security Hardened** — Auth middleware on all API routes, CSP headers, path traversal guards, exec approval prompts
-- 📱 **Mobile-First PWA** — Full feature parity on any device via Tailscale
-- ⚡ **Live SSE Streaming** — Real-time agent output with tool call rendering
-- 🧠 **Memory & Skills** — Browse, search, and edit agent memory; explore 2,000+ skills
-- ✅ **Execution Approvals** — Approve, deny, or always-allow agent shell commands from the UI; resolved receipts shown inline
-- 📦 **Skill Installation** — Install/uninstall/toggle skills directly from the browser
-- ⏰ **Cron Job Manager** — The only agent UI with a full scheduler: create, edit, pause, trigger, and monitor jobs; run history inline
-- 🔐 **Permissions & Toolsets** — Configure approvals, command allowlist, toolsets, security scanner, code limits, and reasoning from Settings UI
-- 💾 **Session Persistence** — Auth tokens, sessions, and active runs survive server restarts via Redis (auto-connects, graceful fallback)
 
 ---
 
