@@ -304,7 +304,7 @@ function ServerDialog(props: {
                       value={draft.envText}
                       rows={4}
                       placeholder={'API_KEY=${MCP_API_KEY}\nLOG_LEVEL=debug'}
-                      className="min-h-[108px] w-full rounded-lg border border-primary-200 bg-surface px-3 py-2 text-sm text-primary-900 outline-none placeholder:text-primary-500"
+                      className="min-h-[108px] w-full rounded-lg border border-primary-200 bg-surface px-3 py-2 text-sm text-ink outline-none placeholder:text-primary-500"
                       onChange={(event) =>
                         setDraft((current) => ({
                           ...current,
@@ -340,7 +340,7 @@ function ServerDialog(props: {
                       placeholder={
                         'Authorization=Bearer ${GITHUB_TOKEN}\nX-Workspace=hermes'
                       }
-                      className="min-h-[108px] w-full rounded-lg border border-primary-200 bg-surface px-3 py-2 text-sm text-primary-900 outline-none placeholder:text-primary-500"
+                      className="min-h-[108px] w-full rounded-lg border border-primary-200 bg-surface px-3 py-2 text-sm text-ink outline-none placeholder:text-primary-500"
                       onChange={(event) =>
                         setDraft((current) => ({
                           ...current,
@@ -521,7 +521,7 @@ export function McpSettingsScreen() {
 
   return (
     <div className="min-h-full bg-surface">
-      <main className="mx-auto w-full max-w-5xl px-4 py-6 text-primary-900 md:px-6 md:py-8">
+      <main className="mx-auto w-full max-w-5xl px-4 py-6 text-ink md:px-6 md:py-8">
         <div className="space-y-5">
           <header className="rounded-2xl border border-primary-200 bg-primary-50/80 p-5 shadow-sm">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -542,13 +542,13 @@ export function McpSettingsScreen() {
                   }
                 />
                 <div>
-                  <h1 className="text-lg font-semibold text-primary-900">
+                  <h1 className="text-lg font-semibold text-ink">
                     MCP Servers
                   </h1>
                   <p className="mt-1 text-sm text-primary-600">
                     Review configured MCP servers, draft changes locally, and
                     copy the YAML into
-                    <code className="mx-1 rounded bg-white px-1.5 py-0.5 font-mono text-xs">
+                    <code className="mx-1 rounded bg-primary-200/60 px-1.5 py-0.5 font-mono text-xs text-ink">
                       config.yaml
                     </code>
                     until gateway config writes land.
@@ -563,7 +563,7 @@ export function McpSettingsScreen() {
           </header>
 
           {notice ? (
-            <div className="rounded-2xl border border-primary-200 bg-white px-4 py-3 text-sm text-primary-600 shadow-sm">
+            <div className="rounded-2xl border border-primary-200 bg-primary-50/80 px-4 py-3 text-sm text-primary-600 shadow-sm">
               {notice}
             </div>
           ) : null}
@@ -582,7 +582,7 @@ export function McpSettingsScreen() {
           <section className="rounded-2xl border border-primary-200 bg-primary-50/80 p-4 shadow-sm md:p-5">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="text-base font-medium text-primary-900">
+                <h2 className="text-base font-medium text-ink">
                   Configured Servers
                 </h2>
                 <p className="mt-1 text-xs text-primary-600">
@@ -615,13 +615,13 @@ export function McpSettingsScreen() {
             </div>
 
             {loading ? (
-              <div className="rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm text-primary-600">
+              <div className="rounded-xl border border-primary-200 bg-primary-100/40 px-4 py-3 text-sm text-primary-600">
                 Loading MCP servers...
               </div>
             ) : null}
 
             {!loading && servers.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-primary-300 bg-white px-4 py-8 text-center text-sm text-primary-600">
+              <div className="rounded-xl border border-dashed border-primary-300 bg-primary-100/30 px-4 py-8 text-center text-sm text-primary-600">
                 No MCP servers found yet. Add one to generate a starter config
                 snippet.
               </div>
@@ -632,7 +632,7 @@ export function McpSettingsScreen() {
                 {servers.map((server) => (
                   <article
                     key={server.name}
-                    className="rounded-2xl border border-primary-200 bg-white p-4 shadow-sm"
+                    className="rounded-2xl border border-primary-200 bg-surface p-4 shadow-sm"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div className="min-w-0 space-y-2">
@@ -640,7 +640,7 @@ export function McpSettingsScreen() {
                           <span className="text-lg">
                             {server.transport === 'http' ? '🌐' : '📡'}
                           </span>
-                          <h3 className="text-sm font-semibold text-primary-900">
+                          <h3 className="text-sm font-semibold text-ink">
                             {server.name}
                           </h3>
                           <span className="rounded-full border border-primary-200 bg-primary-50 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary-700">
@@ -710,16 +710,16 @@ export function McpSettingsScreen() {
           <section className="rounded-2xl border border-primary-200 bg-primary-50/80 p-4 shadow-sm md:p-5">
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>
-                <h2 className="text-base font-medium text-primary-900">
+                <h2 className="text-base font-medium text-ink">
                   Generated YAML
                 </h2>
                 <p className="mt-1 text-sm text-primary-600">
                   Add this to your{' '}
-                  <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">
+                  <code className="rounded bg-primary-200/60 px-1.5 py-0.5 font-mono text-xs text-ink">
                     config.yaml
                   </code>{' '}
                   under{' '}
-                  <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">
+                  <code className="rounded bg-primary-200/60 px-1.5 py-0.5 font-mono text-xs text-ink">
                     mcp_servers
                   </code>
                   .
@@ -731,7 +731,7 @@ export function McpSettingsScreen() {
               </Button>
             </div>
 
-            <pre className="mt-4 overflow-x-auto rounded-2xl border border-primary-200 bg-white p-4 text-xs leading-6 text-primary-800">
+            <pre className="mt-4 overflow-x-auto rounded-2xl border border-primary-200 bg-primary-100/50 p-4 text-xs leading-6 text-ink">
               <code>{yamlSnippet}</code>
             </pre>
           </section>
