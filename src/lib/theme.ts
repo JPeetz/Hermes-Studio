@@ -1,4 +1,5 @@
 export type ThemeId =
+  | 'hermes-os'
   | 'hermes-official'
   | 'hermes-official-light'
   | 'hermes-classic'
@@ -14,6 +15,12 @@ export const THEMES: Array<{
   description: string
   icon: string
 }> = [
+  {
+    id: 'hermes-os',
+    label: 'Hermes OS',
+    description: 'Electric blue cinematic agent OS theme',
+    icon: '◈',
+  },
   {
     id: 'hermes-official',
     label: 'Hermes Official',
@@ -65,12 +72,13 @@ export const THEMES: Array<{
 ]
 
 const STORAGE_KEY = 'hermes-theme'
-const DEFAULT_THEME: ThemeId = 'hermes-official'
+const DEFAULT_THEME: ThemeId = 'hermes-os'
 const THEME_SET = new Set<ThemeId>(THEMES.map((theme) => theme.id))
 const LIGHT_THEME_MAP: Record<
   Exclude<ThemeId, `${string}-light`>,
   Extract<ThemeId, `${string}-light`>
 > = {
+  'hermes-os': 'hermes-official-light',
   'hermes-official': 'hermes-official-light',
   'hermes-classic': 'hermes-classic-light',
   'hermes-slate': 'hermes-slate-light',

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=EB+Garamond:opsz,wght@8..120,400..800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=EB+Garamond:opsz,wght@8..120,400..800&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 :root {
@@ -139,6 +139,7 @@
   padding: 0.2rem 0.45rem;
 }
 
+[data-theme='hermes-os'] .kpi-card:hover,
 [data-theme='ops-dark'] .kpi-card:hover,
 [data-theme='premium-dark'] .kpi-card:hover,
 [data-theme='sunset-brand'] .kpi-card:hover {
@@ -695,7 +696,104 @@ code {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* ── Glassmorphism & Glow Utilities ── */
+.glass {
+  background: var(--theme-glass, rgba(10, 14, 26, 0.88));
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+}
+.glass-border {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.glow-accent {
+  box-shadow: 0 0 18px color-mix(in srgb, var(--theme-accent) 20%, transparent),
+    0 0 36px color-mix(in srgb, var(--theme-accent) 10%, transparent);
+}
+.luminous-border {
+  border-color: var(--theme-accent-border, rgba(99, 102, 241, 0.3));
+}
+.font-grotesk {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+}
+.font-mono-display {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Agent Status Strip — visible only in hermes-os theme */
+.agent-status-strip {
+  display: none;
+  height: 0;
+  overflow: hidden;
+}
+[data-theme='hermes-os'] .agent-status-strip {
+  display: flex;
+  height: 30px;
+  align-items: center;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #060b16 0%, #070d1a 60%, #060b16 100%);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.18);
+  box-shadow: 0 1px 12px rgba(56, 189, 248, 0.06), 0 0 0 0 transparent;
+  padding: 0 1rem;
+  gap: 1rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: rgba(103, 232, 249, 0.7);
+  z-index: 50;
+  position: relative;
+}
+
 /* ── Hermes Workspace Themes ── */
+[data-theme='hermes-os'] {
+  --statusbar-h: 30px;
+  --theme-bg: #080c14;
+  --theme-sidebar: #050911;
+  --theme-panel: #0b1220;
+  --theme-card: #0f1828;
+  --theme-card2: #121e30;
+  --theme-border: #18263c;
+  --theme-border-subtle: #101c30;
+  --theme-text: #e4edff;
+  --theme-muted: #5a7898;
+  --theme-shadow-1: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 6px rgba(56, 189, 248, 0.03);
+  --theme-shadow-2: 0 4px 16px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.05);
+  --theme-shadow-3: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 40px rgba(129, 140, 248, 0.07);
+  --theme-glass: rgba(8, 12, 20, 0.82);
+  --theme-focus: #38bdf8;
+  --theme-accent: #38bdf8;
+  --theme-accent-secondary: #818cf8;
+  --theme-accent-subtle: rgba(56, 189, 248, 0.08);
+  --theme-accent-border: rgba(56, 189, 248, 0.22);
+  --theme-active: #67e8f9;
+  --theme-link: #38bdf8;
+  --theme-success: #22d3ee;
+  --theme-warning: #fbbf24;
+  --theme-danger: #f87171;
+  --theme-stripe: rgba(24, 38, 60, 0.5);
+  --theme-header-bg: #050911;
+  --theme-header-border: #18263c;
+  --chat-user-bg: #0c1828;
+  --chat-user-border: #1a3050;
+  --chat-user-foreground: #e4edff;
+  --chat-assistant-bg: #080d1c;
+  --chat-assistant-border: #111c30;
+  --chat-assistant-foreground: #e4edff;
+  --composer-bg: #07091a;
+  --composer-border: #162540;
+  --composer-placeholder: #3d5470;
+  --tool-card-bg: #080e1c;
+  --tool-card-border: #152030;
+  --tool-card-title: #ccd6f6;
+  --tool-card-muted: #4a6080;
+  --code-bg: #050810;
+  --code-border: #121d2c;
+  --code-foreground: #b8ccee;
+  --theme-input: #090e1e;
+  --glow-blue: 0 0 18px rgba(56, 189, 248, 0.18), 0 0 36px rgba(56, 189, 248, 0.08);
+  --glow-violet: 0 0 18px rgba(129, 140, 248, 0.18), 0 0 36px rgba(129, 140, 248, 0.08);
+  --glow-cyan: 0 0 18px rgba(103, 232, 249, 0.18), 0 0 36px rgba(103, 232, 249, 0.08);
+}
+
 [data-theme='hermes-official'] {
   --theme-bg: #0a0e1a;
   --theme-sidebar: #0d1220;
@@ -1065,6 +1163,10 @@ code {
   --theme-input: #ffffff;
 }
 
+[data-theme='hermes-os'] html,
+[data-theme='hermes-os'] body,
+[data-theme='hermes-os'] #root,
+[data-theme='hermes-os'] .dark,
 [data-theme='hermes-official'] html,
 [data-theme='hermes-official'] body,
 [data-theme='hermes-official'] #root,
@@ -1110,6 +1212,7 @@ code {
    to theme-appropriate values so ALL existing Tailwind classes work.
    Dark: 50=darkest surface, 950=lightest text (already set above) */
 
+[data-theme='hermes-os'],
 [data-theme='hermes-official'],
 [data-theme='hermes-classic'],
 [data-theme='hermes-slate'],
@@ -1191,6 +1294,81 @@ code {
 }
 [data-demo='true'] * {
   transition-duration: 0.05s !important;
+}
+
+/* ── Hermes OS Theme Overrides ──────────────────────────────────────────
+   Premium cinematic overrides for the hermes-os theme.
+   All rules below only apply when [data-theme='hermes-os'] is active.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* Sidebar: glassmorphism + luminous left border on active items */
+[data-theme='hermes-os'] aside {
+  border-right-color: rgba(56, 189, 248, 0.1) !important;
+}
+
+/* Active nav item: electric blue accent bar */
+[data-theme='hermes-os'] .bg-accent-500\/10 {
+  background: rgba(56, 189, 248, 0.07) !important;
+  border-left: 2px solid rgba(56, 189, 248, 0.7);
+  color: #38bdf8 !important;
+}
+
+/* Nav icon color for active items */
+[data-theme='hermes-os'] .bg-accent-500\/10 svg {
+  color: #38bdf8 !important;
+  opacity: 1;
+}
+
+/* Accent color remaps for hermes-os */
+[data-theme='hermes-os'] .text-accent-500 {
+  color: #38bdf8 !important;
+}
+[data-theme='hermes-os'] .bg-accent-500 {
+  background-color: #38bdf8 !important;
+}
+[data-theme='hermes-os'] .hover\:bg-accent-600:hover {
+  background-color: #0ea5e9 !important;
+}
+
+/* Composer: terminal-style look */
+[data-theme='hermes-os'] .composer-input {
+  background: var(--composer-bg) !important;
+  border-color: rgba(56, 189, 248, 0.15) !important;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.875rem;
+}
+[data-theme='hermes-os'] .composer-input:focus-within {
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.2),
+    0 0 20px rgba(56, 189, 248, 0.08),
+    0 0 40px rgba(56, 189, 248, 0.04) !important;
+}
+
+/* Card / panel: subtle glass effect */
+[data-theme='hermes-os'] .kpi-card {
+  background: var(--theme-card);
+  border-color: rgba(56, 189, 248, 0.1);
+}
+[data-theme='hermes-os'] .kpi-card:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow:
+    var(--theme-shadow-2),
+    0 0 24px rgba(56, 189, 248, 0.1);
+}
+
+/* Scrollbars: tinted cyan in hermes-os */
+[data-theme='hermes-os'] *:hover {
+  scrollbar-color: rgba(56, 189, 248, 0.2) transparent;
+}
+[data-theme='hermes-os'] *:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(56, 189, 248, 0.2);
+}
+
+/* Header branding in sidebar: upgrade to Space Grotesk */
+[data-theme='hermes-os'] aside .font-semibold {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 /* Mobile nav drawer — push content right + dim when open */

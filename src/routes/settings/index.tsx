@@ -90,6 +90,13 @@ const THEME_PREVIEWS: Record<
   ThemeId,
   { bg: string; panel: string; border: string; accent: string; text: string }
 > = {
+  'hermes-os': {
+    bg: '#080c14',
+    panel: '#0f1828',
+    border: '#18263c',
+    accent: '#38bdf8',
+    text: '#e4edff',
+  },
   'hermes-official': {
     bg: '#0A0E1A',
     panel: '#11182A',

@@ -30,8 +30,9 @@ const APP_CSP = [
 ].join('; ')
 
 const THEME_STORAGE_KEY = 'hermes-theme'
-const DEFAULT_THEME = 'hermes-official'
+const DEFAULT_THEME = 'hermes-os'
 const VALID_THEMES = [
+  'hermes-os',
   'hermes-official',
   'hermes-official-light',
   'hermes-classic',
@@ -51,6 +52,7 @@ const themeScript = `
     const storedTheme = localStorage.getItem('${THEME_STORAGE_KEY}')
     const theme = ${JSON.stringify(VALID_THEMES)}.includes(storedTheme) ? storedTheme : '${DEFAULT_THEME}'
     const lightThemes = ['hermes-official-light', 'hermes-classic-light', 'hermes-slate-light', 'hermes-mono-light']
+    // hermes-os is a dark theme (not in lightThemes)
     const isDark = !lightThemes.includes(theme)
     root.classList.remove('light', 'dark', 'system')
     root.classList.add(isDark ? 'dark' : 'light')
@@ -73,6 +75,7 @@ const themeColorScript = `
     const root = document.documentElement
     const theme = root.getAttribute('data-theme') || '${DEFAULT_THEME}'
     const colors = {
+      'hermes-os': '#080c14',
       'hermes-official': '#0A0E1A',
       'hermes-official-light': '#F6F8FC',
       'hermes-classic': '#0d0f12',
@@ -84,6 +87,7 @@ const themeColorScript = `
     }
     const nextColor = colors[theme] || colors['${DEFAULT_THEME}']
     const isDark = !['hermes-official-light', 'hermes-classic-light', 'hermes-slate-light', 'hermes-mono-light'].includes(String(theme))
+    // hermes-os is always dark
 
     let meta = document.querySelector('meta[name="theme-color"]')
     if (!meta) {

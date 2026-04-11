@@ -37,6 +37,7 @@ import { useMobileKeyboard } from '@/hooks/use-mobile-keyboard'
 import { ErrorBoundary } from '@/components/error-boundary'
 // System metrics footer removed — not used in Hermes Workspace
 import { CommandPalette } from '@/components/command-palette'
+import { AgentStatusStrip } from '@/components/agent-status-strip'
 import { useSettings } from '@/hooks/use-settings'
 // ActivityTicker moved to dashboard-only (too noisy for global header)
 
@@ -258,9 +259,10 @@ export function WorkspaceShell() {
   return (
     <>
       <div
-        className="relative overflow-hidden theme-bg theme-text"
+        className="relative overflow-hidden theme-bg theme-text flex flex-col"
         style={shellStyle}
       >
+        <AgentStatusStrip />
         <HermesReconnectBanner enabled={authState.checked} />
         {/* Electron: native-style title bar (absolute over the padding) */}
         {isElectron && (
@@ -290,7 +292,7 @@ export function WorkspaceShell() {
         )}
         <div
           className={cn(
-            'grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden',
+            'grid flex-1 min-h-0 grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden',
             hideChatSidebar ? 'md:grid-cols-1' : 'md:grid-cols-[auto_1fr]',
           )}
         >
