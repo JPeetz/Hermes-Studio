@@ -107,3 +107,33 @@ export async function fetchJobOutput(
   if (!res.ok) throw new Error(`Failed to fetch output: ${res.status}`)
   return (await res.json()).outputs ?? []
 }
+
+export type RunEvent = {
+  event: string
+  run_id: string
+  timestamp: number
+  // tool events
+  name?: string
+  input?: string
+  output?: string
+  // message events
+  delta?: string
+  // run completion
+  error?: string
+  usage?: { input_tokens: number; output_tokens: number; total_tokens: number }
+}
+
+/**
+ * Start an ad-hoc agent run via /v1/runs.
+ * Returns the run_id to subscribe to events at /api/hermes-runs/:runId/events.
+ */
+export async function startRun(prompt: string): Promise<string> {
+  const res = await fetch('/api/hermes-runs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ input: prompt }),
+  })
+  if (!res.ok) throw new Error(`Failed to start run: ${res.status}`)
+  const data = await res.json()
+  return data.run_id as string
+}

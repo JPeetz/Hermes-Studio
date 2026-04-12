@@ -49,6 +49,7 @@ import { useAutoSessionTitle } from './hooks/use-auto-session-title'
 import { useRenameSession } from './hooks/use-rename-session'
 import { useContextAlert } from './hooks/use-context-alert'
 import { ContextBar } from './components/context-bar'
+import { ApprovalCard } from './components/approval-card'
 import {
   CHAT_OPEN_SETTINGS_EVENT,
   CHAT_PENDING_COMMAND_STORAGE_KEY,
@@ -66,13 +67,14 @@ import type { ChatRunCommandDetail } from './chat-events'
 import {
   addApproval,
   loadApprovals,
-  saveApprovals,
+  respondToApproval,
 } from '@/lib/approvals-store'
 import { stripQueuedWrapper } from '@/lib/strip-queued-wrapper'
 import { cn } from '@/lib/utils'
 import { toast } from '@/components/ui/toast'
 import { hapticTap } from '@/lib/haptics'
 import { FileExplorerSidebar } from '@/components/file-explorer'
+import { useActiveProfile } from '@/hooks/use-active-profile'
 import { SEARCH_MODAL_EVENTS } from '@/hooks/use-search-modal'
 import { SIDEBAR_TOGGLE_EVENT } from '@/hooks/use-global-shortcuts'
 import { useWorkspaceStore } from '@/stores/workspace-store'
@@ -92,6 +94,9 @@ import { useTapDebug } from '@/hooks/use-tap-debug'
 import { useChatMode } from '@/hooks/use-chat-mode'
 // Activity store removed — not used in Hermes Studio
 const _noopSetActivity = (_s: string) => {}
+
+/** How long a resolved approval receipt stays visible before the card is removed. */
+const APPROVAL_APPROVAL_RECEIPT_TTL_MS = 2500
 
 type ChatScreenProps = {
   activeFriendlyId: string
@@ -470,7 +475,9 @@ export function ChatScreen({
   const retriedQueuedMessageKeysRef = useRef(new Set<string>())
   const hasSeenDisconnectRef = useRef(false)
   const hadErrorRef = useRef(false)
-  const [pendingApprovals, setPendingApprovals] = useState<
+  // displayApprovals includes pending AND recently-resolved approvals (for receipt display).
+  // Resolved entries are removed automatically after APPROVAL_APPROVAL_RECEIPT_TTL_MS.
+  const [displayApprovals, setDisplayApprovals] = useState<
     Array<ApprovalRequest>
   >([])
   const [isCompacting, setIsCompacting] = useState(false)
@@ -502,6 +509,7 @@ export function ChatScreen({
     const stored = localStorage.getItem('hermes-file-explorer-collapsed')
     return stored === null ? true : stored === 'true'
   })
+  const activeProfile = useActiveProfile()
   const { isMobile } = useChatMobile(queryClient)
   const mobileKeyboardInset = useWorkspaceStore((s) => s.mobileKeyboardInset)
   const mobileComposerFocused = useWorkspaceStore(
@@ -561,27 +569,20 @@ export function ChatScreen({
             ? payload.approvalId
             : ''
 
-      const currentApprovals = loadApprovals()
-      if (
-        approvalId &&
-        currentApprovals.some((entry) => {
-          return entry.status === 'pending' && entry.approvalId === approvalId
-        })
-      ) {
-        setPendingApprovals(
-          currentApprovals.filter((entry) => entry.status === 'pending'),
-        )
-        return
-      }
-
       addApproval({
         ...payload,
         approvalId: approvalId || undefined,
         source: 'hermes',
       })
-      setPendingApprovals(
-        loadApprovals().filter((entry) => entry.status === 'pending'),
-      )
+
+      // Merge newly pending approvals into displayApprovals without touching resolved ones
+      setDisplayApprovals((prev) => {
+        const existingIds = new Set(prev.map((a) => a.id))
+        const newPending = loadApprovals().filter(
+          (e) => e.status === 'pending' && !existingIds.has(e.id),
+        )
+        return newPending.length > 0 ? [...prev, ...newPending] : prev
+      })
     },
     [],
   )
@@ -680,13 +681,20 @@ export function ChatScreen({
     clearCompletedStreaming()
   }, [clearCompletedStreaming, waitingForResponse])
 
+  // Periodically sync newly-pending approvals from the store into displayApprovals.
+  // Does not remove resolved entries — those self-expire via the TTL in resolvePendingApproval.
   useEffect(() => {
-    function checkApprovals() {
-      const all = loadApprovals()
-      setPendingApprovals(all.filter((entry) => entry.status === 'pending'))
+    function syncPending() {
+      setDisplayApprovals((prev) => {
+        const existingIds = new Set(prev.map((a) => a.id))
+        const newPending = loadApprovals().filter(
+          (e) => e.status === 'pending' && !existingIds.has(e.id),
+        )
+        return newPending.length > 0 ? [...prev, ...newPending] : prev
+      })
     }
-    checkApprovals()
-    const id = window.setInterval(checkApprovals, 2000)
+    syncPending()
+    const id = window.setInterval(syncPending, 2000)
     return () => window.clearInterval(id)
   }, [])
 
@@ -696,25 +704,32 @@ export function ChatScreen({
       status: 'approved' | 'denied' | 'always-allowed',
       scope?: 'once' | 'session' | 'always',
     ) => {
-      const nextApprovals = loadApprovals().map((entry) => {
-        if (entry.id !== approval.id) return entry
-        return {
-          ...entry,
-          status,
-          resolvedAt: Date.now(),
-        }
-      })
-      saveApprovals(nextApprovals)
-      setPendingApprovals(
-        nextApprovals.filter((entry) => entry.status === 'pending'),
+      // 1. Update the store
+      respondToApproval(
+        approval.id,
+        status === 'always-allowed' ? 'always-allowed' : status,
       )
-      if (!approval.approvalId) return
 
+      // 2. Update local display state — mark as resolved so the card shows receipt
+      setDisplayApprovals((prev) =>
+        prev.map((a) =>
+          a.id === approval.id ? { ...a, status, resolvedAt: Date.now() } : a,
+        ),
+      )
+
+      // 3. Remove from display after receipt TTL
+      window.setTimeout(() => {
+        setDisplayApprovals((prev) => prev.filter((a) => a.id !== approval.id))
+      }, APPROVAL_RECEIPT_TTL_MS)
+
+      // 4. Notify the gateway
+      if (!approval.approvalId) return
       const isDeny = status === 'denied'
       const endpoint = isDeny
         ? `/api/approvals/${approval.approvalId}/deny`
         : `/api/approvals/${approval.approvalId}/approve`
-      const resolvedScope = status === 'always-allowed' ? 'always' : (scope ?? 'once')
+      const resolvedScope =
+        status === 'always-allowed' ? 'always' : (scope ?? 'once')
       try {
         await fetch(endpoint, {
           method: 'POST',
@@ -2424,6 +2439,7 @@ export function ChatScreen({
             collapsed={fileExplorerCollapsed}
             onToggle={handleToggleFileExplorer}
             onInsertReference={handleInsertFileReference}
+            profileName={activeProfile !== 'default' ? activeProfile : undefined}
           />
         )}
 
@@ -2477,60 +2493,15 @@ export function ChatScreen({
           {errorNotice && (
             <div className="sticky top-0 z-20 px-4 py-2">{errorNotice}</div>
           )}
-          {pendingApprovals.length > 0 && (
-            <div className="mx-4 mb-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800/50 dark:bg-amber-900/15">
-              <div className="space-y-2">
-                {pendingApprovals.map((approval) => (
-                  <div
-                    key={approval.id}
-                    className="flex items-center justify-between gap-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
-                        {'\uD83D\uDD10'} Approval Required -{' '}
-                        {approval.agentName || 'Agent'}
-                      </p>
-                      <p className="mt-0.5 truncate text-xs text-amber-600 dark:text-amber-500">
-                        {approval.action}
-                      </p>
-                      {approval.context ? (
-                        <p className="mt-0.5 truncate text-[10px] font-mono text-amber-500 dark:text-amber-600">
-                          {approval.context.slice(0, 100)}
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void resolvePendingApproval(approval, 'approved', 'once')
-                        }}
-                        className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void resolvePendingApproval(approval, 'always-allowed', 'always')
-                        }}
-                        className="rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-600"
-                      >
-                        Always Allow
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void resolvePendingApproval(approval, 'denied')
-                        }}
-                        className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:border-red-800/50 dark:bg-red-900/10 dark:text-red-400"
-                      >
-                        Deny
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {displayApprovals.length > 0 && (
+            <div className="mx-4 mb-2 space-y-2">
+              {displayApprovals.map((approval) => (
+                <ApprovalCard
+                  key={approval.id}
+                  approval={approval}
+                  onResolve={resolvePendingApproval}
+                />
+              ))}
             </div>
           )}
 

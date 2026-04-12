@@ -11,7 +11,7 @@ import {
   Search01Icon,
 } from '@hugeicons/core-free-icons'
 import { useQuery } from '@tanstack/react-query'
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Markdown } from '@/components/prompt-kit/markdown'
 import {
   DialogContent,
@@ -183,6 +183,74 @@ function buildKnowledgeTree(pages: Array<WikiPageMeta>): TreeNode {
   return root
 }
 
+// ─── Force-directed graph canvas ──────────────────────────────────────────────
+
+const GW = 900
+const GH = 540
+
+type SimNode = KnowledgeGraphNode & { x: number; y: number; vx: number; vy: number }
+
+const NODE_TYPE_PALETTE: Record<string, { fill: string; stroke: string }> = {
+  guide:     { fill: 'rgba(99, 102, 241, 0.18)',  stroke: 'rgba(99, 102, 241, 0.75)'  },
+  project:   { fill: 'rgba(16, 185, 129, 0.18)',  stroke: 'rgba(16, 185, 129, 0.75)'  },
+  reference: { fill: 'rgba(245, 158, 11, 0.18)',  stroke: 'rgba(245, 158, 11, 0.75)'  },
+  concept:   { fill: 'rgba(239, 68, 68, 0.18)',   stroke: 'rgba(239, 68, 68, 0.75)'   },
+  note:      { fill: 'rgba(168, 85, 247, 0.18)',  stroke: 'rgba(168, 85, 247, 0.75)'  },
+  default:   { fill: 'rgba(59, 130, 246, 0.15)',  stroke: 'rgba(59, 130, 246, 0.65)'  },
+}
+
+function getNodePalette(type?: string) {
+  const key = (type ?? '').toLowerCase()
+  return NODE_TYPE_PALETTE[key] ?? NODE_TYPE_PALETTE.default
+}
+
+function runForce(sim: SimNode[], edgeList: KnowledgeGraphEdge[], iters = 280) {
+  const idx = new Map(sim.map((n, i) => [n.id, i]))
+  const REPEL = 5000
+  const ATTRACT = 0.045
+  const DAMP = 0.72
+  const MIN_D = 28
+
+  for (let it = 0; it < iters; it++) {
+    // Repulsion between all pairs
+    for (let i = 0; i < sim.length; i++) {
+      for (let j = i + 1; j < sim.length; j++) {
+        const dx = sim[j].x - sim[i].x
+        const dy = sim[j].y - sim[i].y
+        const dist = Math.max(Math.sqrt(dx * dx + dy * dy), MIN_D)
+        const f = REPEL / (dist * dist)
+        const fx = (dx / dist) * f
+        const fy = (dy / dist) * f
+        sim[i].vx -= fx; sim[i].vy -= fy
+        sim[j].vx += fx; sim[j].vy += fy
+      }
+    }
+    // Edge attraction
+    for (const e of edgeList) {
+      const si = idx.get(e.source); const ti = idx.get(e.target)
+      if (si === undefined || ti === undefined) continue
+      const s = sim[si]; const t = sim[ti]
+      const dx = t.x - s.x; const dy = t.y - s.y
+      s.vx += dx * ATTRACT; s.vy += dy * ATTRACT
+      t.vx -= dx * ATTRACT; t.vy -= dy * ATTRACT
+    }
+    // Weak center gravity
+    let cx = 0; let cy = 0
+    for (const n of sim) { cx += n.x; cy += n.y }
+    cx /= sim.length; cy /= sim.length
+    for (const n of sim) {
+      n.vx += (GW / 2 - cx) * 0.01
+      n.vy += (GH / 2 - cy) * 0.01
+    }
+    // Integrate
+    for (const n of sim) {
+      n.x = Math.max(36, Math.min(GW - 36, n.x + n.vx))
+      n.y = Math.max(36, Math.min(GH - 36, n.y + n.vy))
+      n.vx *= DAMP; n.vy *= DAMP
+    }
+  }
+}
+
 function GraphCanvas({
   nodes,
   edges,
@@ -192,74 +260,264 @@ function GraphCanvas({
   edges: Array<KnowledgeGraphEdge>
   onSelect: (path: string) => void
 }) {
-  const layout = useMemo(() => {
+  // Compute stable force-directed positions once per nodes/edges change
+  const simNodes = useMemo<SimNode[]>(() => {
     if (nodes.length === 0) return []
-    const width = 900
-    const height = 520
-    const centerX = width / 2
-    const centerY = height / 2
-    const radius = Math.max(140, Math.min(width, height) / 2 - 72)
-
-    return nodes.map((node, index) => {
-      const angle = (Math.PI * 2 * index) / Math.max(nodes.length, 1)
+    const result: SimNode[] = nodes.map((n, i) => {
+      const angle = (Math.PI * 2 * i) / nodes.length
+      const r = Math.min(GW, GH) * 0.32
       return {
-        ...node,
-        x: centerX + Math.cos(angle) * radius,
-        y: centerY + Math.sin(angle) * radius,
+        ...n,
+        x: GW / 2 + Math.cos(angle) * r + (i % 3) * 5,
+        y: GH / 2 + Math.sin(angle) * r + (i % 2) * 5,
+        vx: 0, vy: 0,
       }
     })
+    runForce(result, edges)
+    return result
+  }, [nodes, edges])
+
+  // Per-node overrides from drag
+  const [dragPos, setDragPos] = useState<Map<string, { x: number; y: number }>>(() => new Map())
+  useEffect(() => { setDragPos(new Map()) }, [simNodes])
+
+  const getPos = (n: SimNode) => dragPos.get(n.id) ?? { x: n.x, y: n.y }
+
+  // Zoom / pan transform (in SVG units)
+  const [tf, setTf] = useState({ tx: 0, ty: 0, k: 1 })
+
+  // Pointer drag state
+  const svgRef = useRef<SVGSVGElement>(null)
+  const drag = useRef<{
+    kind: 'node' | 'pan' | null
+    nodeId: string | null
+    startCx: number; startCy: number
+    origX: number; origY: number
+  }>({ kind: null, nodeId: null, startCx: 0, startCy: 0, origX: 0, origY: 0 })
+
+  // Hover state
+  const [hovered, setHovered] = useState<string | null>(null)
+
+  // Adjacency lookup for highlight
+  const adj = useMemo(() => {
+    const map = new Map<string, Set<string>>()
+    for (const e of edges) {
+      if (!map.has(e.source)) map.set(e.source, new Set())
+      if (!map.has(e.target)) map.set(e.target, new Set())
+      map.get(e.source)!.add(e.target)
+      map.get(e.target)!.add(e.source)
+    }
+    return map
+  }, [edges])
+
+  const hovNeighbors = hovered ? (adj.get(hovered) ?? new Set<string>()) : null
+
+  // Degree → node radius
+  const degree = useMemo(() => {
+    const d = new Map<string, number>()
+    for (const e of edges) {
+      d.set(e.source, (d.get(e.source) ?? 0) + 1)
+      d.set(e.target, (d.get(e.target) ?? 0) + 1)
+    }
+    return d
+  }, [edges])
+
+  const nodeR = (id: string) => Math.min(22, 11 + (degree.get(id) ?? 0) * 1.8)
+
+  // Helper: screen → SVG-unit delta
+  function screenDelta(dcx: number, dcy: number) {
+    const svg = svgRef.current
+    if (!svg) return { dx: 0, dy: 0 }
+    const rect = svg.getBoundingClientRect()
+    return {
+      dx: (dcx / rect.width) * GW,
+      dy: (dcy / rect.height) * GH,
+    }
+  }
+
+  // Non-passive wheel listener so preventDefault() actually blocks page scroll
+  useEffect(() => {
+    const svg = svgRef.current
+    if (!svg) return
+    function onWheel(e: WheelEvent) {
+      e.preventDefault()
+      const factor = e.deltaY < 0 ? 1.12 : 0.89
+      setTf((p) => ({ ...p, k: Math.max(0.25, Math.min(4, p.k * factor)) }))
+    }
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    return () => svg.removeEventListener('wheel', onWheel)
+  }, [])
+
+  function handlePointerDown(e: React.PointerEvent<SVGSVGElement>) {
+    const target = e.target as Element
+    const nodeEl = target.closest('[data-nid]')
+    const nodeId = nodeEl?.getAttribute('data-nid') ?? null
+    if (nodeId) {
+      const node = simNodes.find((n) => n.id === nodeId)!
+      const pos = getPos(node)
+      drag.current = { kind: 'node', nodeId, startCx: e.clientX, startCy: e.clientY, origX: pos.x, origY: pos.y }
+    } else {
+      drag.current = { kind: 'pan', nodeId: null, startCx: e.clientX, startCy: e.clientY, origX: tf.tx, origY: tf.ty }
+    }
+    ;(e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId)
+  }
+
+  function handlePointerMove(e: React.PointerEvent<SVGSVGElement>) {
+    const d = drag.current
+    if (!d.kind) return
+    const { dx, dy } = screenDelta(e.clientX - d.startCx, e.clientY - d.startCy)
+    if (d.kind === 'node' && d.nodeId) {
+      setDragPos((prev) => new Map(prev).set(d.nodeId!, {
+        x: Math.max(16, Math.min(GW - 16, d.origX + dx / tf.k)),
+        y: Math.max(16, Math.min(GH - 16, d.origY + dy / tf.k)),
+      }))
+    } else if (d.kind === 'pan') {
+      setTf((p) => ({ ...p, tx: d.origX + dx, ty: d.origY + dy }))
+    }
+  }
+
+  function handlePointerUp(e: React.PointerEvent<SVGSVGElement>) {
+    drag.current.kind = null
+    ;(e.currentTarget as SVGSVGElement).releasePointerCapture(e.pointerId)
+  }
+
+  const zoomBy = (f: number) => setTf((p) => ({ ...p, k: Math.max(0.25, Math.min(4, p.k * f)) }))
+  const resetView = () => setTf({ tx: 0, ty: 0, k: 1 })
+
+  // Only show legend for types actually present
+  const presentTypes = useMemo(() => {
+    const seen = new Set<string>()
+    for (const n of nodes) if (n.type) seen.add(n.type.toLowerCase())
+    return Array.from(seen).filter((t) => t in NODE_TYPE_PALETTE)
   }, [nodes])
 
-  const byId = useMemo(
-    () => new Map(layout.map((node) => [node.id, node])),
-    [layout],
-  )
-
   return (
-    <div className="overflow-hidden rounded-2xl border border-primary-200 bg-primary-50 dark:border-neutral-800 dark:bg-neutral-950">
-      <svg viewBox="0 0 900 520" className="h-[520px] w-full">
-        {edges.map((edge, index) => {
-          const source = byId.get(edge.source)
-          const target = byId.get(edge.target)
-          if (!source || !target) return null
-          return (
-            <line
-              key={`${edge.source}:${edge.target}:${index}`}
-              x1={source.x}
-              y1={source.y}
-              x2={target.x}
-              y2={target.y}
-              stroke="rgba(148, 163, 184, 0.45)"
-              strokeWidth="1.25"
-            />
-          )
-        })}
-
-        {layout.map((node) => (
-          <g
-            key={node.id}
-            onClick={() => onSelect(node.id)}
-            className="cursor-pointer"
+    <div
+      className="relative overflow-hidden rounded-2xl"
+      style={{ border: '1px solid var(--theme-border)', background: 'var(--theme-card)' }}
+    >
+      {/* Zoom controls */}
+      <div className="absolute right-3 top-3 z-10 flex flex-col gap-1">
+        {[
+          { label: '+', action: () => zoomBy(1.25) },
+          { label: '−', action: () => zoomBy(0.8) },
+          { label: '⊙', action: resetView },
+        ].map(({ label, action }) => (
+          <button
+            key={label}
+            onClick={action}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-xs font-medium transition-colors"
+            style={{
+              border: '1px solid var(--theme-border)',
+              background: 'var(--theme-card2, var(--theme-card))',
+              color: 'var(--theme-text)',
+            }}
           >
-            <circle
-              cx={node.x}
-              cy={node.y}
-              r="16"
-              fill="rgba(59, 130, 246, 0.16)"
-              stroke="rgba(59, 130, 246, 0.65)"
-              strokeWidth="1.5"
-            />
-            <text
-              x={node.x}
-              y={node.y + 34}
-              textAnchor="middle"
-              fontSize="11"
-              fill="currentColor"
-            >
-              {node.title}
-            </text>
-          </g>
+            {label}
+          </button>
         ))}
+      </div>
+
+      {/* Legend */}
+      {presentTypes.length > 0 && (
+        <div className="absolute bottom-8 left-3 z-10 flex flex-col gap-1 rounded-lg px-2 py-1.5"
+          style={{ background: 'var(--theme-card)', border: '1px solid var(--theme-border)' }}>
+          {presentTypes.map((type) => {
+            const c = NODE_TYPE_PALETTE[type]
+            return (
+              <div key={type} className="flex items-center gap-1.5">
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ background: c.stroke }}
+                />
+                <span className="text-[10px] capitalize" style={{ color: 'var(--theme-muted)' }}>
+                  {type}
+                </span>
+              </div>
+            )
+          })}
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block h-2 w-2 rounded-full" style={{ background: NODE_TYPE_PALETTE.default.stroke }} />
+            <span className="text-[10px]" style={{ color: 'var(--theme-muted)' }}>other</span>
+          </div>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div
+        className="absolute bottom-2 right-3 z-10 text-[10px]"
+        style={{ color: 'var(--theme-muted)' }}
+      >
+        {simNodes.length} nodes · {edges.length} edges
+      </div>
+
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${GW} ${GH}`}
+        className="h-[540px] w-full select-none"
+        style={{ cursor: 'grab' }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+      >
+        <g transform={`translate(${tf.tx} ${tf.ty}) scale(${tf.k})`}>
+          {/* Edges */}
+          {edges.map((edge, i) => {
+            const sn = simNodes.find((n) => n.id === edge.source)
+            const tn = simNodes.find((n) => n.id === edge.target)
+            if (!sn || !tn) return null
+            const sp = getPos(sn); const tp = getPos(tn)
+            const lit = !hovered || edge.source === hovered || edge.target === hovered
+            return (
+              <line
+                key={`e-${i}`}
+                x1={sp.x} y1={sp.y} x2={tp.x} y2={tp.y}
+                stroke={lit ? 'rgba(99, 102, 241, 0.55)' : 'rgba(148, 163, 184, 0.12)'}
+                strokeWidth={lit ? 1.5 : 0.8}
+              />
+            )
+          })}
+
+          {/* Nodes */}
+          {simNodes.map((node) => {
+            const pos = getPos(node)
+            const pal = getNodePalette(node.type)
+            const r = nodeR(node.id)
+            const isHov = node.id === hovered
+            const dimmed = hovered !== null && node.id !== hovered && !hovNeighbors?.has(node.id)
+            const label = node.title.length > 20 ? node.title.slice(0, 18) + '…' : node.title
+            return (
+              <g
+                key={node.id}
+                data-nid={node.id}
+                style={{ cursor: 'pointer', opacity: dimmed ? 0.22 : 1, transition: 'opacity 0.15s' }}
+                onClick={() => onSelect(node.id)}
+                onPointerEnter={() => setHovered(node.id)}
+                onPointerLeave={() => setHovered(null)}
+              >
+                {/* Glow on hover */}
+                {isHov && (
+                  <circle cx={pos.x} cy={pos.y} r={r + 6} fill={pal.stroke} opacity={0.18} />
+                )}
+                <circle
+                  cx={pos.x} cy={pos.y} r={r}
+                  fill={pal.fill}
+                  stroke={isHov ? pal.stroke : pal.stroke}
+                  strokeWidth={isHov ? 2 : 1.4}
+                />
+                <text
+                  x={pos.x} y={pos.y + r + 13}
+                  textAnchor="middle"
+                  fontSize={10}
+                  fill="currentColor"
+                  style={{ pointerEvents: 'none', fontFamily: 'inherit' }}
+                >
+                  {label}
+                </text>
+              </g>
+            )
+          })}
+        </g>
       </svg>
     </div>
   )

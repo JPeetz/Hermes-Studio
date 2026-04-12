@@ -730,6 +730,7 @@ function IntegrationsSection() {
   }
 
   return (
+    <>
     <SettingsSection
       title="Integrations"
       description="Connect external services used by Hermes Studio features."
@@ -809,6 +810,240 @@ function IntegrationsSection() {
           )}
         </div>
       </SettingsRow>
+    </SettingsSection>
+    <PlatformsSection />
+    </>
+  )
+}
+
+// ── Platforms Section (chat platform tokens → ~/.hermes/.env) ────────────────
+
+const CHAT_PLATFORMS = [
+  {
+    key: 'telegram',
+    label: 'Telegram',
+    envVar: 'TELEGRAM_BOT_TOKEN',
+    placeholder: '1234567890:AAFxxxxxx',
+    hint: 'Create a bot via @BotFather on Telegram.',
+    allowedUsersVar: 'TELEGRAM_ALLOWED_USERS',
+    allowedUsersPlaceholder: '123456789,987654321',
+  },
+  {
+    key: 'discord',
+    label: 'Discord',
+    envVar: 'DISCORD_BOT_TOKEN',
+    placeholder: 'MTxxxxxxxxxxxxxxx.Gxxxxx.xxxx',
+    hint: 'Create a bot at discord.com/developers.',
+    allowedUsersVar: 'DISCORD_ALLOWED_USERS',
+    allowedUsersPlaceholder: 'username#0000 or user ID',
+  },
+  {
+    key: 'slack',
+    label: 'Slack',
+    envVar: 'SLACK_BOT_TOKEN',
+    placeholder: 'xoxb-…',
+    hint: 'Create a Slack App at api.slack.com.',
+    allowedUsersVar: 'SLACK_ALLOWED_USERS',
+    allowedUsersPlaceholder: 'U01234567',
+  },
+  {
+    key: 'signal',
+    label: 'Signal',
+    envVar: 'SIGNAL_HTTP_URL',
+    placeholder: 'http://localhost:8080',
+    hint: 'Requires signal-cli running as an HTTP daemon.',
+    allowedUsersVar: 'SIGNAL_ACCOUNT',
+    allowedUsersPlaceholder: '+1234567890',
+  },
+] as const
+
+type PlatformKey = (typeof CHAT_PLATFORMS)[number]['key']
+
+function PlatformsSection() {
+  // envVars: current values from ~/.hermes/.env (masked)
+  const [envStatus, setEnvStatus] = useState<Record<string, boolean>>({})
+  const [inputs, setInputs] = useState<Record<string, string>>({})
+  const [saving, setSaving] = useState<Record<string, boolean>>({})
+  const [msgs, setMsgs] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    fetch('/api/hermes-config')
+      .then((r) => r.json())
+      .then((d: { config?: Record<string, unknown> }) => {
+        // The GET returns config but not raw env values (masked).
+        // We can only detect whether the token is configured by checking
+        // the platform section in config.yaml (platforms: { telegram: { enabled } }).
+        // As a proxy, treat any non-empty value in our local inputs as "set".
+        // Reset — presence is inferred from the PATCH response later.
+        void d
+        setEnvStatus({})
+      })
+      .catch(() => {})
+  }, [])
+
+  const setInput = (key: string, value: string) =>
+    setInputs((prev) => ({ ...prev, [key]: value }))
+
+  const saveToken = async (platform: (typeof CHAT_PLATFORMS)[number]) => {
+    const token = (inputs[platform.key] || '').trim()
+    setSaving((prev) => ({ ...prev, [platform.key]: true }))
+    setMsgs((prev) => ({ ...prev, [platform.key]: '' }))
+    try {
+      const res = await fetch('/api/hermes-config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          env: { [platform.envVar]: token },
+        }),
+      })
+      const d = (await res.json()) as { ok?: boolean; message?: string }
+      if (!res.ok) throw new Error(d.message || 'Failed to save')
+      setEnvStatus((prev) => ({ ...prev, [platform.key]: Boolean(token) }))
+      setInputs((prev) => ({ ...prev, [platform.key]: '' }))
+      setMsgs((prev) => ({
+        ...prev,
+        [platform.key]: token
+          ? 'Saved. Restart the gateway to connect.'
+          : 'Token removed.',
+      }))
+    } catch (err) {
+      setMsgs((prev) => ({
+        ...prev,
+        [platform.key]: err instanceof Error ? err.message : 'Failed to save',
+      }))
+    }
+    setSaving((prev) => ({ ...prev, [platform.key]: false }))
+  }
+
+  const saveAllowedUsers = async (
+    platform: (typeof CHAT_PLATFORMS)[number],
+  ) => {
+    const value = (inputs[`${platform.key}_allowed`] || '').trim()
+    setSaving((prev) => ({ ...prev, [`${platform.key}_allowed`]: true }))
+    setMsgs((prev) => ({ ...prev, [`${platform.key}_allowed`]: '' }))
+    try {
+      const res = await fetch('/api/hermes-config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          env: { [platform.allowedUsersVar]: value },
+        }),
+      })
+      if (!res.ok) throw new Error('Failed to save')
+      setMsgs((prev) => ({
+        ...prev,
+        [`${platform.key}_allowed`]: 'Saved.',
+      }))
+      setInputs((prev) => ({ ...prev, [`${platform.key}_allowed`]: '' }))
+    } catch (err) {
+      setMsgs((prev) => ({
+        ...prev,
+        [`${platform.key}_allowed`]: err instanceof Error ? err.message : 'Failed',
+      }))
+    }
+    setSaving((prev) => ({ ...prev, [`${platform.key}_allowed`]: false }))
+  }
+
+  return (
+    <SettingsSection
+      title="Messaging Platforms"
+      description="Connect Hermes to chat platforms. Tokens are saved to ~/.hermes/.env and take effect after restarting the gateway with hermes --gateway."
+      icon={MessageMultiple01Icon}
+    >
+      {CHAT_PLATFORMS.map((platform) => (
+        <div key={platform.key} className="flex flex-col gap-3 border-t border-[var(--theme-border)] pt-4 first:border-0 first:pt-0">
+          <p className="text-sm font-semibold text-[var(--theme-text)]">
+            {platform.label}
+            {envStatus[platform.key] && (
+              <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                configured
+              </span>
+            )}
+          </p>
+          <p className="text-xs text-[var(--theme-muted)]">{platform.hint}</p>
+
+          {/* Token field */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-[var(--theme-text)]">
+              {platform.key === 'signal' ? 'HTTP URL' : 'Bot Token'}
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                value={inputs[platform.key] || ''}
+                onChange={(e) => setInput(platform.key, e.target.value)}
+                placeholder={platform.placeholder}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void saveToken(platform)
+                }}
+                className="flex-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-input)] px-3 py-1.5 font-mono text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-accent)]"
+              />
+              <button
+                type="button"
+                onClick={() => void saveToken(platform)}
+                disabled={saving[platform.key]}
+                className="rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                style={{ background: 'var(--theme-accent)' }}
+              >
+                {saving[platform.key] ? 'Saving…' : 'Save'}
+              </button>
+              {envStatus[platform.key] && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInputs((prev) => ({ ...prev, [platform.key]: ' ' }))
+                    void saveToken({ ...platform })
+                  }}
+                  disabled={saving[platform.key]}
+                  className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-40 dark:border-red-800/50 dark:text-red-400 dark:hover:bg-red-900/20"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            {msgs[platform.key] && (
+              <p className="text-xs text-[var(--theme-muted)]">
+                {msgs[platform.key]}
+              </p>
+            )}
+          </div>
+
+          {/* Allowed users / account field */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-[var(--theme-text)]">
+              {platform.key === 'signal' ? 'Signal Account' : 'Allowed Users'}
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={inputs[`${platform.key}_allowed`] || ''}
+                onChange={(e) =>
+                  setInput(`${platform.key}_allowed`, e.target.value)
+                }
+                placeholder={platform.allowedUsersPlaceholder}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void saveAllowedUsers(platform)
+                }}
+                className="flex-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-input)] px-3 py-1.5 font-mono text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-accent)]"
+              />
+              <button
+                type="button"
+                onClick={() => void saveAllowedUsers(platform)}
+                disabled={saving[`${platform.key}_allowed`]}
+                className="rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                style={{ background: 'var(--theme-accent)' }}
+              >
+                {saving[`${platform.key}_allowed`] ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+            {msgs[`${platform.key}_allowed`] && (
+              <p className="text-xs text-[var(--theme-muted)]">
+                {msgs[`${platform.key}_allowed`]}
+              </p>
+            )}
+          </div>
+        </div>
+      ))}
     </SettingsSection>
   )
 }
@@ -1112,6 +1347,47 @@ type AvailableModelsResponse = {
   providers: Array<{ id: string; label: string; authenticated: boolean }>
 }
 
+const KNOWN_PLATFORMS = [
+  'telegram', 'discord', 'slack', 'whatsapp', 'signal',
+  'homeassistant', 'mattermost', 'matrix', 'bluebubbles',
+  'sms', 'email', 'webhook', 'cli',
+]
+
+function AddPlatformOverride({
+  existing,
+  onAdd,
+}: {
+  existing: Array<string>
+  onAdd: (platform: string) => void
+}) {
+  const [selected, setSelected] = useState('')
+  const available = KNOWN_PLATFORMS.filter((p) => !existing.includes(p))
+  if (available.length === 0) return null
+  return (
+    <div className="flex items-center gap-2">
+      <select
+        value={selected}
+        onChange={(e) => setSelected(e.target.value)}
+        className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-input)] px-2 py-1 text-xs text-[var(--theme-text)] focus:outline-none"
+      >
+        <option value="">add platform…</option>
+        {available.map((p) => (
+          <option key={p} value={p}>{p}</option>
+        ))}
+      </select>
+      {selected && (
+        <button
+          onClick={() => { onAdd(selected); setSelected('') }}
+          className="rounded px-2 py-0.5 text-xs font-medium transition-colors hover:bg-[var(--theme-hover)]"
+          style={{ color: 'var(--theme-accent)' }}
+        >
+          add
+        </button>
+      )}
+    </div>
+  )
+}
+
 function HermesConfigSection({
   activeView = 'hermes',
 }: {
@@ -1127,6 +1403,10 @@ function HermesConfigSection({
   const [providerInput, setProviderInput] = useState('')
   const [baseUrlInput, setBaseUrlInput] = useState('')
   const [newToolset, setNewToolset] = useState('')
+  const [newAllowlistCmd, setNewAllowlistCmd] = useState('')
+  const [newBlocklistDomain, setNewBlocklistDomain] = useState('')
+  const [newQcKey, setNewQcKey] = useState('')
+  const [newQcVal, setNewQcVal] = useState('')
 
   const [availableProviders, setAvailableProviders] = useState<
     Array<{ id: string; label: string; authenticated: boolean }>
@@ -1283,6 +1563,27 @@ function HermesConfigSection({
   const toolsets = Array.isArray(data.config.toolsets)
     ? (data.config.toolsets as Array<string>)
     : []
+  const commandAllowlist = Array.isArray(data.config.command_allowlist)
+    ? (data.config.command_allowlist as Array<string>)
+    : []
+  const blocklistDomains = Array.isArray(websiteBlocklist.domains)
+    ? (websiteBlocklist.domains as Array<string>)
+    : []
+  const quickCommands =
+    data.config.quick_commands &&
+    typeof data.config.quick_commands === 'object' &&
+    !Array.isArray(data.config.quick_commands)
+      ? (data.config.quick_commands as Record<string, string>)
+      : {}
+
+  const sessionResetConfig =
+    (data.config.session_reset as Record<string, unknown>) || {}
+  const platformOverrides =
+    displayConfig.platforms &&
+    typeof displayConfig.platforms === 'object' &&
+    !Array.isArray(displayConfig.platforms)
+      ? (displayConfig.platforms as Record<string, Record<string, string>>)
+      : {}
 
   const ttsProvider = (ttsConfig.provider as string) || 'edge'
   const ttsEdge = (ttsConfig.edge as Record<string, unknown>) || {}
@@ -1689,6 +1990,67 @@ function HermesConfigSection({
           <option value="none">none</option>
         </select>
       </SettingsRow>
+      <SettingsRow
+        label="Session reset mode"
+        description="When to automatically clear conversation context."
+      >
+        <select
+          value={(sessionResetConfig.mode as string) || 'both'}
+          onChange={(e) =>
+            void saveConfig({
+              config: { session_reset: { mode: e.target.value } },
+            })
+          }
+          className={selectClassName}
+        >
+          <option value="none">never</option>
+          <option value="daily">daily (at hour)</option>
+          <option value="idle">idle timeout</option>
+          <option value="both">both</option>
+        </select>
+      </SettingsRow>
+      {['daily', 'both'].includes(
+        (sessionResetConfig.mode as string) || 'both',
+      ) && (
+        <SettingsRow
+          label="Reset hour"
+          description="Hour of day (0–23, local time) for daily session reset."
+        >
+          <Input
+            type="number"
+            min={0}
+            max={23}
+            value={readNumber(sessionResetConfig.at_hour, 4)}
+            onChange={(e) =>
+              saveNumberField('session_reset', 'at_hour', e.target.value, 4)
+            }
+            className="md:w-24"
+          />
+        </SettingsRow>
+      )}
+      {['idle', 'both'].includes(
+        (sessionResetConfig.mode as string) || 'both',
+      ) && (
+        <SettingsRow
+          label="Idle timeout"
+          description="Minutes of inactivity before the session resets."
+        >
+          <Input
+            type="number"
+            min={1}
+            value={readNumber(sessionResetConfig.idle_minutes, 1440)}
+            onChange={(e) =>
+              saveNumberField(
+                'session_reset',
+                'idle_minutes',
+                e.target.value,
+                1440,
+              )
+            }
+            className="md:w-28"
+          />
+        </SettingsRow>
+      )}
     </SettingsSection>
   )
 
@@ -1930,6 +2292,292 @@ function HermesConfigSection({
                 void saveConfig({ config: { agent: { verbose: checked } } })
               }
             />
+          </SettingsRow>
+        </SettingsSection>
+
+        {/* ── Command Allowlist ──────────────────────────────────── */}
+        <SettingsSection
+          title="Command Allowlist"
+          description="Shell commands that bypass the Tirith security scanner and never require approval."
+          icon={LockIcon}
+        >
+          <SettingsRow
+            label="Allowed commands"
+            description="Add exact command names (e.g. git, npm). Wildcards are not supported."
+          >
+            <div className="flex w-full flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
+                {commandAllowlist.length === 0 ? (
+                  <span className="text-xs text-[var(--theme-muted)]">No commands allowlisted</span>
+                ) : (
+                  commandAllowlist.map((cmd) => (
+                    <span
+                      key={cmd}
+                      className="flex items-center gap-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-card)] px-2.5 py-1 font-mono text-xs font-medium text-[var(--theme-text)]"
+                    >
+                      {cmd}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void saveConfig({
+                            config: {
+                              command_allowlist: commandAllowlist.filter(
+                                (c) => c !== cmd,
+                              ),
+                            },
+                          })
+                        }
+                        className="ml-0.5 text-[var(--theme-muted)] hover:text-[var(--theme-danger)] transition-colors"
+                        aria-label={`Remove ${cmd}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={newAllowlistCmd}
+                  onChange={(e) => setNewAllowlistCmd(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      const trimmed = newAllowlistCmd.trim()
+                      if (!trimmed || commandAllowlist.includes(trimmed)) return
+                      void saveConfig({
+                        config: {
+                          command_allowlist: [...commandAllowlist, trimmed],
+                        },
+                      })
+                      setNewAllowlistCmd('')
+                    }
+                  }}
+                  placeholder="git, npm, make…"
+                  className="flex-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-input)] px-3 py-1.5 font-mono text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-accent)] md:max-w-xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const trimmed = newAllowlistCmd.trim()
+                    if (!trimmed || commandAllowlist.includes(trimmed)) return
+                    void saveConfig({
+                      config: {
+                        command_allowlist: [...commandAllowlist, trimmed],
+                      },
+                    })
+                    setNewAllowlistCmd('')
+                  }}
+                  className="rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                  style={{ background: 'var(--theme-accent)' }}
+                  disabled={!newAllowlistCmd.trim()}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </SettingsRow>
+        </SettingsSection>
+
+        {/* ── Website Blocklist Domains ──────────────────────────── */}
+        {readBoolean(websiteBlocklist.enabled, false) && (
+          <SettingsSection
+            title="Blocked Domains"
+            description="Domains the agent cannot browse. Active because the website blocklist is enabled above."
+            icon={LockIcon}
+          >
+            <SettingsRow
+              label="Blocked domains"
+              description="Enter one domain per entry (e.g. example.com). Subdomains are included."
+            >
+              <div className="flex w-full flex-col gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {blocklistDomains.length === 0 ? (
+                    <span className="text-xs text-[var(--theme-muted)]">
+                      No domains blocked yet
+                    </span>
+                  ) : (
+                    blocklistDomains.map((domain) => (
+                      <span
+                        key={domain}
+                        className="flex items-center gap-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-card)] px-2.5 py-1 font-mono text-xs font-medium text-[var(--theme-text)]"
+                      >
+                        {domain}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void saveConfig({
+                              config: {
+                                security: {
+                                  website_blocklist: {
+                                    domains: blocklistDomains.filter(
+                                      (d) => d !== domain,
+                                    ),
+                                  },
+                                },
+                              },
+                            })
+                          }
+                          className="ml-0.5 text-[var(--theme-muted)] hover:text-[var(--theme-danger)] transition-colors"
+                          aria-label={`Remove ${domain}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    value={newBlocklistDomain}
+                    onChange={(e) => setNewBlocklistDomain(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        const trimmed = newBlocklistDomain.trim().toLowerCase()
+                        if (!trimmed || blocklistDomains.includes(trimmed)) return
+                        void saveConfig({
+                          config: {
+                            security: {
+                              website_blocklist: {
+                                domains: [...blocklistDomains, trimmed],
+                              },
+                            },
+                          },
+                        })
+                        setNewBlocklistDomain('')
+                      }
+                    }}
+                    placeholder="example.com"
+                    className="flex-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-input)] px-3 py-1.5 font-mono text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-accent)] md:max-w-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const trimmed = newBlocklistDomain.trim().toLowerCase()
+                      if (!trimmed || blocklistDomains.includes(trimmed)) return
+                      void saveConfig({
+                        config: {
+                          security: {
+                            website_blocklist: {
+                              domains: [...blocklistDomains, trimmed],
+                            },
+                          },
+                        },
+                      })
+                      setNewBlocklistDomain('')
+                    }}
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                    style={{ background: 'var(--theme-accent)' }}
+                    disabled={!newBlocklistDomain.trim()}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </SettingsRow>
+          </SettingsSection>
+        )}
+
+        {/* ── Quick Commands ─────────────────────────────────────── */}
+        <SettingsSection
+          title="Quick Commands"
+          description="Custom slash-command shortcuts. Type /key in chat to expand to the full value."
+          icon={LockIcon}
+        >
+          <SettingsRow
+            label="Shortcuts"
+            description="Key: the slash-command name (no slash). Value: the text it expands to."
+          >
+            <div className="flex w-full flex-col gap-2">
+              {Object.keys(quickCommands).length === 0 ? (
+                <span className="text-xs text-[var(--theme-muted)]">
+                  No quick commands configured
+                </span>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  {Object.entries(quickCommands).map(([key, val]) => (
+                    <div
+                      key={key}
+                      className="flex items-start gap-2 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] px-3 py-2 text-xs"
+                    >
+                      <span className="shrink-0 font-mono font-semibold text-[var(--theme-accent)]">
+                        /{key}
+                      </span>
+                      <span className="min-w-0 flex-1 break-words text-[var(--theme-text)]">
+                        {val}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = { ...quickCommands }
+                          delete next[key]
+                          void saveConfig({ config: { quick_commands: next } })
+                        }}
+                        className="shrink-0 text-[var(--theme-muted)] hover:text-[var(--theme-danger)] transition-colors"
+                        aria-label={`Remove /${key}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Add new quick command */}
+              <div className="flex flex-col gap-1.5 pt-1">
+                <div className="flex gap-2">
+                  <input
+                    value={newQcKey}
+                    onChange={(e) =>
+                      setNewQcKey(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))
+                    }
+                    placeholder="key"
+                    className="w-28 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-input)] px-3 py-1.5 font-mono text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-accent)]"
+                  />
+                  <input
+                    value={newQcVal}
+                    onChange={(e) => setNewQcVal(e.target.value)}
+                    placeholder="expansion text…"
+                    className="flex-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-input)] px-3 py-1.5 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--theme-accent)]"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        const k = newQcKey.trim()
+                        const v = newQcVal.trim()
+                        if (!k || !v) return
+                        void saveConfig({
+                          config: {
+                            quick_commands: { ...quickCommands, [k]: v },
+                          },
+                        })
+                        setNewQcKey('')
+                        setNewQcVal('')
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const k = newQcKey.trim()
+                      const v = newQcVal.trim()
+                      if (!k || !v) return
+                      void saveConfig({
+                        config: {
+                          quick_commands: { ...quickCommands, [k]: v },
+                        },
+                      })
+                      setNewQcKey('')
+                      setNewQcVal('')
+                    }}
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                    style={{ background: 'var(--theme-accent)' }}
+                    disabled={!newQcKey.trim() || !newQcVal.trim()}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
           </SettingsRow>
         </SettingsSection>
       </>
@@ -2215,6 +2863,19 @@ function HermesConfigSection({
         />
       </SettingsRow>
       <SettingsRow
+        label="Status messages"
+        description="Show natural mid-turn assistant status messages while a run is in progress."
+      >
+        <Switch
+          checked={readBoolean(displayConfig.interim_assistant_messages, true)}
+          onCheckedChange={(checked) =>
+            void saveConfig({
+              config: { display: { interim_assistant_messages: checked } },
+            })
+          }
+        />
+      </SettingsRow>
+      <SettingsRow
         label="Show reasoning"
         description="Expose model reasoning blocks in the UI."
       >
@@ -2250,6 +2911,59 @@ function HermesConfigSection({
         >
           {(displayConfig.skin as string) || 'default'}
         </span>
+      </SettingsRow>
+      <SettingsRow
+        label="Per-platform tool progress"
+        description="Override tool progress display for specific messaging platforms."
+      >
+        <div className="flex flex-col gap-2">
+          {Object.entries(platformOverrides).map(([platform, overrides]) => (
+            <div key={platform} className="flex items-center gap-2">
+              <span
+                className="w-24 shrink-0 text-xs font-mono text-[var(--theme-text)]"
+              >
+                {platform}
+              </span>
+              <select
+                value={(overrides.tool_progress as string) || 'all'}
+                onChange={(e) => {
+                  const updated = {
+                    ...platformOverrides,
+                    [platform]: { ...overrides, tool_progress: e.target.value },
+                  }
+                  void saveConfig({ config: { display: { platforms: updated } } })
+                }}
+                className={selectClassName}
+              >
+                <option value="all">all</option>
+                <option value="new">new only</option>
+                <option value="verbose">verbose</option>
+                <option value="off">off</option>
+              </select>
+              <button
+                onClick={() => {
+                  const updated = { ...platformOverrides }
+                  delete updated[platform]
+                  void saveConfig({ config: { display: { platforms: updated } } })
+                }}
+                className="rounded px-2 py-0.5 text-xs transition-colors hover:bg-[var(--theme-hover)]"
+                style={{ color: 'var(--theme-danger)' }}
+              >
+                remove
+              </button>
+            </div>
+          ))}
+          <AddPlatformOverride
+            existing={Object.keys(platformOverrides)}
+            onAdd={(platform) => {
+              const updated = {
+                ...platformOverrides,
+                [platform]: { tool_progress: 'all' },
+              }
+              void saveConfig({ config: { display: { platforms: updated } } })
+            }}
+          />
+        </div>
       </SettingsRow>
     </SettingsSection>
   )

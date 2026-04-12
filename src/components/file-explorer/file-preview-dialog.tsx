@@ -40,12 +40,14 @@ type FilePreviewDialogProps = {
   path: string | null
   onClose: () => void
   onSaved: () => void
+  profileName?: string
 }
 
 export default function FilePreviewDialog({
   path,
   onClose,
   onSaved,
+  profileName,
 }: FilePreviewDialogProps) {
   const [loading, setLoading] = useState(false)
   const [content, setContent] = useState('')
@@ -64,9 +66,9 @@ export default function FilePreviewDialog({
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(
-        `/api/files?action=read&path=${encodeURIComponent(path)}`,
-      )
+      const params = new URLSearchParams({ action: 'read', path })
+      if (profileName) params.set('profile', profileName)
+      const res = await fetch(`/api/files?${params.toString()}`)
       if (!res.ok) throw new Error('Failed to read file')
       const data = (await res.json()) as {
         type: 'text' | 'image'
@@ -85,7 +87,7 @@ export default function FilePreviewDialog({
     } finally {
       setLoading(false)
     }
-  }, [path])
+  }, [path, profileName])
 
   useEffect(() => {
     if (path) void loadFile()
@@ -100,6 +102,7 @@ export default function FilePreviewDialog({
         action: 'write',
         path,
         content,
+        ...(profileName ? { profile: profileName } : {}),
       }),
     })
     setDirty(false)

@@ -43,6 +43,8 @@ type FileExplorerSidebarProps = {
   onInsertReference: (reference: string) => void
   hidden?: boolean
   className?: string
+  /** When set, scopes the file explorer to this profile's workspace directory */
+  profileName?: string
 }
 
 type ContextMenuState = {
@@ -57,7 +59,7 @@ type PromptState = {
   defaultValue?: string
 }
 
-const ROOT_LABEL = 'Workspace'
+const DEFAULT_ROOT_LABEL = 'Workspace'
 
 function isImageFile(fileName: string) {
   const ext = fileName.split('.').pop()?.toLowerCase() || ''
@@ -86,8 +88,10 @@ function buildReference(pathValue: string) {
   return `See file: workspace/${normalized}`
 }
 
-async function fetchFileTree(): Promise<Array<FileEntry>> {
-  const res = await fetch('/api/files?action=list')
+async function fetchFileTree(profileName?: string): Promise<Array<FileEntry>> {
+  const params = new URLSearchParams({ action: 'list' })
+  if (profileName) params.set('profile', profileName)
+  const res = await fetch(`/api/files?${params.toString()}`)
   if (!res.ok) throw new Error('Failed to load files')
   const data = (await res.json()) as { entries?: Array<FileEntry> }
   return Array.isArray(data.entries) ? data.entries : []
@@ -120,7 +124,13 @@ export function FileExplorerSidebar({
   onInsertReference,
   hidden = false,
   className,
+  profileName,
 }: FileExplorerSidebarProps) {
+  const rootLabel =
+    profileName && profileName !== 'default'
+      ? profileName.charAt(0).toUpperCase() + profileName.slice(1)
+      : DEFAULT_ROOT_LABEL
+
   const [entries, setEntries] = useState<Array<FileEntry>>([])
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
   const [loading, setLoading] = useState(false)
@@ -137,14 +147,14 @@ export function FileExplorerSidebar({
     setLoading(true)
     setError(null)
     try {
-      const nextEntries = await fetchFileTree()
+      const nextEntries = await fetchFileTree(profileName)
       setEntries(nextEntries)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [profileName])
 
   useEffect(() => {
     void refresh()
@@ -218,26 +228,36 @@ export function FileExplorerSidebar({
       await fetch('/api/files', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', path: entry.path }),
+        body: JSON.stringify({
+          action: 'delete',
+          path: entry.path,
+          ...(profileName ? { profile: profileName } : {}),
+        }),
       })
       await refresh()
     },
-    [refresh],
+    [refresh, profileName],
   )
 
-  const handleDownload = useCallback(async (entry: FileEntry) => {
-    const res = await fetch(
-      `/api/files?action=download&path=${encodeURIComponent(entry.path)}`,
-    )
-    if (!res.ok) return
-    const blob = await res.blob()
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = entry.name
-    anchor.click()
-    URL.revokeObjectURL(url)
-  }, [])
+  const handleDownload = useCallback(
+    async (entry: FileEntry) => {
+      const params = new URLSearchParams({
+        action: 'download',
+        path: entry.path,
+      })
+      if (profileName) params.set('profile', profileName)
+      const res = await fetch(`/api/files?${params.toString()}`)
+      if (!res.ok) return
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = entry.name
+      anchor.click()
+      URL.revokeObjectURL(url)
+    },
+    [profileName],
+  )
 
   const handleUploadClick = useCallback((targetPath: string) => {
     uploadTargetRef.current = targetPath
@@ -253,18 +273,20 @@ export function FileExplorerSidebar({
         form.append('action', 'upload')
         form.append('path', uploadTargetRef.current || '')
         form.append('file', file)
+        if (profileName) form.append('profile', profileName)
         await fetch('/api/files', { method: 'POST', body: form })
       }
       event.target.value = ''
       await refresh()
     },
-    [refresh],
+    [refresh, profileName],
   )
 
   const handlePromptSubmit = useCallback(async () => {
     if (!promptState) return
     const value = promptValue.trim()
     if (!value) return
+    const profilePayload = profileName ? { profile: profileName } : {}
 
     if (promptState.mode === 'rename') {
       const parent = getParentPath(promptState.targetPath)
@@ -276,6 +298,7 @@ export function FileExplorerSidebar({
           action: 'rename',
           from: promptState.targetPath,
           to: nextPath,
+          ...profilePayload,
         }),
       })
     } else if (promptState.mode === 'new-folder') {
@@ -285,7 +308,7 @@ export function FileExplorerSidebar({
       await fetch('/api/files', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action: 'mkdir', path: nextPath }),
+        body: JSON.stringify({ action: 'mkdir', path: nextPath, ...profilePayload }),
       })
     } else {
       const nextPath = promptState.targetPath
@@ -294,14 +317,19 @@ export function FileExplorerSidebar({
       await fetch('/api/files', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action: 'write', path: nextPath, content: '' }),
+        body: JSON.stringify({
+          action: 'write',
+          path: nextPath,
+          content: '',
+          ...profilePayload,
+        }),
       })
     }
 
     setPromptState(null)
     setPromptValue('')
     await refresh()
-  }, [promptState, promptValue, refresh])
+  }, [promptState, promptValue, refresh, profileName])
 
   const handleFileClick = useCallback(
     (entry: FileEntry) => {
@@ -380,7 +408,7 @@ export function FileExplorerSidebar({
     >
       <div className="flex items-center justify-between h-12 px-3 border-b border-primary-200">
         <div className="text-sm font-semibold text-primary-900">
-          {ROOT_LABEL}
+          {rootLabel}
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -618,6 +646,7 @@ export function FileExplorerSidebar({
         path={previewPath}
         onClose={() => setPreviewPath(null)}
         onSaved={refresh}
+        profileName={profileName}
       />
 
       <button

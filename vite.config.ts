@@ -389,6 +389,7 @@ const config = defineConfig(({ mode, command }) => {
     },
     ssr: {
       external: [
+        'better-sqlite3',
         'playwright',
         'playwright-core',
         'playwright-extra',
@@ -397,6 +398,7 @@ const config = defineConfig(({ mode, command }) => {
     },
     optimizeDeps: {
       exclude: [
+        'better-sqlite3',
         'playwright',
         'playwright-core',
         'playwright-extra',

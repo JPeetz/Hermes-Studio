@@ -4,6 +4,56 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-12 — Session 7
+
+### What was done
+- Hermes gateway updated (399 new commits, v0.8.0 → current; 78 new bundled skills)
+- Compatibility audit against the update — identified 4 gaps
+- Closed all 4 gaps
+
+**Gap 1 — Config migration (v13 → v16)**
+- Ran `hermes config migrate` to apply 3 version bumps:
+  - v13→14: migrated legacy flat `stt.model` to provider-specific section
+  - v14→15: added `display.interim_assistant_messages: true`
+  - v15→16: renamed `display.tool_progress_overrides` → `display.platforms`
+- The `--quiet` flag doesn't exist; migration was invoked via Python directly to work around a skill-config probe crash that exited before the version bump
+
+**Gap 2 — Status messages toggle**
+- Added "Status messages" `Switch` row to Display settings
+- Reads/writes `display.interim_assistant_messages` — controls whether the gateway shows natural mid-turn assistant status messages
+- Slotted between Streaming and Show reasoning rows in `src/routes/settings/index.tsx`
+
+**Gap 3 — Live run streaming in Jobs UI**
+- `POST /api/jobs/{job_id}/run` has no `run_id` return value; `/v1/runs` is a separate parallel runner
+- Used `/v1/runs` as the "Run now" execution path for live feedback; scheduled cron runs still go through job system
+- New Studio server routes:
+  - `src/routes/api/hermes-runs.ts` — POST proxy to `/v1/runs`
+  - `src/routes/api/hermes-runs.$runId.events.ts` — SSE passthrough proxy to `/v1/runs/{runId}/events`
+- `src/lib/jobs-api.ts`: added `startRun(prompt)` → run_id, `RunEvent` type
+- `src/screens/jobs/jobs-screen.tsx`:
+  - `formatRunEventLabel()` maps backend event names to human labels
+  - `JobCard` gains `activeRunId` state, `useEffect` subscribing to `EventSource`, live log + response text accumulator, auto-expand on trigger
+  - "Run now" button calls `startRun()`, falls back to fire-and-forget on failure
+  - Expanded panel switches between "Live run" (pulsing indicator + event log) and "Run history"
+- Both routes registered in `src/routeTree.gen.ts` (7 locations: imports, constants, 3 interfaces, RoutesById, rootRouteChildren)
+
+**Gap 4 — Session reset + per-platform display overrides in Settings**
+- `AddPlatformOverride` component added: dropdown of 13 known platforms, add/remove overrides
+- Agent Behavior section: session reset mode selector (`none`/`daily`/`idle`/`both`) + conditional "Reset hour" and "Idle timeout" inputs
+- Display section: per-platform `tool_progress` overrides editor (all/new only/verbose/off per platform)
+
+**TypeScript:** zero new errors (`npx tsc --noEmit` — only 5 pre-existing errors in unrelated files)
+
+### Repo state
+- Branch: `dev`
+- Version: 1.7.0
+
+### Next session start
+- Task 6 (Feature 1 — Approvals UI): remaining items — "Approve for Session" scope button, resolved-approval receipt in message timeline, global approval badge in sidebar
+- Task 7 (Feature 4 — Permissions & Config UI): `command_allowlist` editor, website blocklist domain editor, `quick_commands` editor, chat platform tokens in Integrations
+
+---
+
 ## 2026-04-10 — Session 6
 
 ### What was done

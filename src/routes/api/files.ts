@@ -16,6 +16,7 @@ import {
   requireJsonContentType,
   safeErrorMessage,
 } from '../../server/rate-limit'
+import { getProfileWorkspaceRoot } from '../../server/profiles-browser'
 
 const execFileAsync = promisify(execFile)
 
@@ -34,21 +35,48 @@ type FileEntry = {
   children?: Array<FileEntry>
 }
 
-function ensureWorkspacePath(input: string) {
+/**
+ * Resolve the effective workspace root for a request.
+ *
+ * If `profileName` is provided (from the ?profile= query param), the root is
+ * scoped to that profile's directory. Falls back to the global WORKSPACE_ROOT.
+ *
+ * Security: `getProfileWorkspaceRoot` validates the name and always returns a
+ * path inside ~/.hermes — no arbitrary path injection is possible.
+ */
+function getEffectiveRoot(profileName?: string | null): string {
+  if (!profileName || profileName === 'default') return WORKSPACE_ROOT
+  try {
+    return getProfileWorkspaceRoot(profileName)
+  } catch {
+    return WORKSPACE_ROOT
+  }
+}
+
+function ensureWorkspacePathFor(input: string, root: string) {
   const raw = input.trim()
-  if (!raw) return WORKSPACE_ROOT
+  if (!raw) return root
   const resolved = path.isAbsolute(raw)
     ? path.resolve(raw)
-    : path.resolve(WORKSPACE_ROOT, raw)
-  if (!resolved.startsWith(WORKSPACE_ROOT)) {
+    : path.resolve(root, raw)
+  if (!resolved.startsWith(root)) {
     throw new Error('Path is outside workspace')
   }
   return resolved
 }
 
-function toRelative(resolvedPath: string) {
-  const relative = path.relative(WORKSPACE_ROOT, resolvedPath)
+/** Legacy single-root version — kept so existing call sites compile */
+function ensureWorkspacePath(input: string) {
+  return ensureWorkspacePathFor(input, WORKSPACE_ROOT)
+}
+
+function toRelativeFor(resolvedPath: string, root: string) {
+  const relative = path.relative(root, resolvedPath)
   return relative || ''
+}
+
+function toRelative(resolvedPath: string) {
+  return toRelativeFor(resolvedPath, WORKSPACE_ROOT)
 }
 
 function sortEntries(entries: Array<FileEntry>) {
@@ -239,21 +267,25 @@ export const Route = createFileRoute('/api/files')({
           const url = new URL(request.url)
           const action = url.searchParams.get('action') || 'list'
           const inputPath = url.searchParams.get('path') || ''
+          const profileName = url.searchParams.get('profile') || undefined
           const maxDepthParam = parseMaxDepth(url.searchParams.get('maxDepth'))
           const maxEntriesParam = parseMaxEntries(
             url.searchParams.get('maxEntries'),
           )
 
+          // Resolve effective root — profile-scoped or global
+          const effectiveRoot = getEffectiveRoot(profileName)
+
           if (action === 'list' && hasGlob(inputPath)) {
             const globListing = await readGlobDirectory(inputPath)
             return json({
               root: globListing.root,
-              base: WORKSPACE_ROOT,
+              base: effectiveRoot,
               entries: globListing.entries,
             })
           }
 
-          const resolvedPath = ensureWorkspacePath(inputPath)
+          const resolvedPath = ensureWorkspacePathFor(inputPath, effectiveRoot)
 
           if (action === 'read') {
             const buffer = await fs.readFile(resolvedPath)
@@ -261,13 +293,13 @@ export const Route = createFileRoute('/api/files')({
               const mime = getMimeType(resolvedPath)
               return json({
                 type: 'image',
-                path: toRelative(resolvedPath),
+                path: toRelativeFor(resolvedPath, effectiveRoot),
                 content: `data:${mime};base64,${buffer.toString('base64')}`,
               })
             }
             return json({
               type: 'text',
-              path: toRelative(resolvedPath),
+              path: toRelativeFor(resolvedPath, effectiveRoot),
               content: buffer.toString('utf8'),
             })
           }
@@ -290,9 +322,10 @@ export const Route = createFileRoute('/api/files')({
             countedEntries: { value: 0 },
           })
           return json({
-            root: toRelative(resolvedPath),
-            base: WORKSPACE_ROOT,
+            root: toRelativeFor(resolvedPath, effectiveRoot),
+            base: effectiveRoot,
             entries: tree,
+            profile: profileName ?? null,
           })
         } catch (err) {
           return json({ error: safeErrorMessage(err) }, { status: 500 })
@@ -321,10 +354,12 @@ export const Route = createFileRoute('/api/files')({
             }
             const file = form.get('file')
             const targetPath = String(form.get('path') || '')
+            const uploadProfile = String(form.get('profile') || '')
             if (!(file instanceof File)) {
               return json({ error: 'Missing file' }, { status: 400 })
             }
-            const resolvedTarget = ensureWorkspacePath(targetPath)
+            const uploadRoot = getEffectiveRoot(uploadProfile || undefined)
+            const resolvedTarget = ensureWorkspacePathFor(targetPath, uploadRoot)
             const isDir = (await fs.stat(resolvedTarget)).isDirectory()
             const destination = isDir
               ? path.join(resolvedTarget, file.name)
@@ -332,7 +367,7 @@ export const Route = createFileRoute('/api/files')({
             await fs.mkdir(path.dirname(destination), { recursive: true })
             const buffer = Buffer.from(await file.arrayBuffer())
             await fs.writeFile(destination, buffer)
-            return json({ ok: true, path: toRelative(destination) })
+            return json({ ok: true, path: toRelativeFor(destination, uploadRoot) })
           }
 
           const body = (await request.json().catch(() => ({}))) as Record<
@@ -340,26 +375,29 @@ export const Route = createFileRoute('/api/files')({
             unknown
           >
           const action = typeof body.action === 'string' ? body.action : 'write'
+          const postProfile =
+            typeof body.profile === 'string' ? body.profile : undefined
+          const postRoot = getEffectiveRoot(postProfile)
 
           if (action === 'mkdir') {
-            const dirPath = ensureWorkspacePath(String(body.path || ''))
+            const dirPath = ensureWorkspacePathFor(String(body.path || ''), postRoot)
             await fs.mkdir(dirPath, { recursive: true })
-            return json({ ok: true, path: toRelative(dirPath) })
+            return json({ ok: true, path: toRelativeFor(dirPath, postRoot) })
           }
 
           if (action === 'rename') {
-            const fromPath = ensureWorkspacePath(String(body.from || ''))
-            const toPath = ensureWorkspacePath(String(body.to || ''))
+            const fromPath = ensureWorkspacePathFor(String(body.from || ''), postRoot)
+            const toPath = ensureWorkspacePathFor(String(body.to || ''), postRoot)
             await fs.mkdir(path.dirname(toPath), { recursive: true })
             await fs.rename(fromPath, toPath)
-            return json({ ok: true, path: toRelative(toPath) })
+            return json({ ok: true, path: toRelativeFor(toPath, postRoot) })
           }
 
           if (action === 'delete') {
             if (!requireLocalOrAuth(request)) {
               return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
             }
-            const targetPath = ensureWorkspacePath(String(body.path || ''))
+            const targetPath = ensureWorkspacePathFor(String(body.path || ''), postRoot)
             try {
               // Try macOS trash command first
               await execFileAsync('trash', [targetPath])
@@ -370,11 +408,11 @@ export const Route = createFileRoute('/api/files')({
             return json({ ok: true })
           }
 
-          const filePath = ensureWorkspacePath(String(body.path || ''))
+          const filePath = ensureWorkspacePathFor(String(body.path || ''), postRoot)
           const content = typeof body.content === 'string' ? body.content : ''
           await fs.mkdir(path.dirname(filePath), { recursive: true })
           await fs.writeFile(filePath, content, 'utf8')
-          return json({ ok: true, path: toRelative(filePath) })
+          return json({ ok: true, path: toRelativeFor(filePath, postRoot) })
         } catch (err) {
           return json({ error: safeErrorMessage(err) }, { status: 500 })
         }

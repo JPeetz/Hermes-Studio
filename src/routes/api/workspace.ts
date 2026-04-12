@@ -8,6 +8,7 @@ import fs from 'node:fs/promises'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../server/auth-middleware'
+import { getProfileWorkspaceRoot } from '../../server/profiles-browser'
 
 function extractFolderName(fullPath: string): string {
   const parts = fullPath.replace(/\\/g, '/').split('/')
@@ -102,6 +103,26 @@ export const Route = createFileRoute('/api/workspace')({
         try {
           const url = new URL(request.url)
           const savedPath = url.searchParams.get('saved') || undefined
+          const profileParam = url.searchParams.get('profile') || undefined
+
+          // If a profile is specified, return that profile's workspace root
+          if (profileParam && profileParam !== 'default') {
+            try {
+              const profileRoot = getProfileWorkspaceRoot(profileParam)
+              // Ensure the directory exists
+              await fs.mkdir(profileRoot, { recursive: true })
+              return json({
+                path: profileRoot,
+                folderName: extractFolderName(profileRoot),
+                source: 'profile',
+                isValid: true,
+                profile: profileParam,
+              })
+            } catch (profileErr) {
+              // Invalid profile name — fall through to default detection
+              void profileErr
+            }
+          }
 
           const result = await detectWorkspace(savedPath)
 

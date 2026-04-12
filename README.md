@@ -4,51 +4,90 @@
 
 # Hermes Studio
 
-**The most complete web UI for Hermes Agent — chat, memory, skills, terminal, approvals, and multi-agent orchestration in one place.**
+**The only Hermes web UI with a built-in cron job manager — schedule, monitor, and control autonomous agent tasks without touching a terminal.**
 
-[![Version](https://img.shields.io/badge/version-1.5.0-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.7.0-6366F1.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366F1.svg)](CONTRIBUTING.md)
 
-> Not a chat wrapper. A complete studio — orchestrate agents, approve actions, browse memory, manage skills, and control everything from one interface. Built for power users running Hermes Agent locally.
-
-### What's different from hermes-workspace
-
-Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/hermes-workspace) extended with:
-
-- ✅ **Execution Approvals UI** — approve, deny, or always-allow dangerous agent actions from the browser (no terminal required)
-- ✅ **Skill Installation** — install, uninstall, and toggle skills from the registry directly in the browser; clawhub fallback with inline instructions
-- ✅ **Cron Job Manager** — full create/edit/delete/pause/resume/trigger UI for scheduled Hermes tasks; run history with output preview
-- ✅ **Permissions & Toolsets** — configure approvals mode, toolsets, security scanner, code execution limits, and reasoning effort from Settings
-- ✅ **Session Persistence** — chat history survives server restarts in portable mode; optional Redis backend for multi-device sync
-- 🔜 **Multi-Agent Orchestration** — crew status dashboard for coordinating multiple agents
+> Not a chat wrapper. A complete studio — orchestrate multi-agent crews, approve actions, browse memory with a visual knowledge graph, manage skills, and schedule recurring tasks, all from one interface. Built for power users running Hermes Agent locally.
 
 </div>
-
----
 
 ## ✨ Features
 
 - 🤖 **Hermes Agent Integration** — Direct gateway connection with real-time SSE streaming
+- 👥 **Multi-Agent Crews** — Create named crews of specialised agents, dispatch tasks to all or specific members, watch live activity feeds
+- 🗂️ **Profile-Scoped Workspaces** — Each agent crew member gets an isolated file system view via per-profile workspace roots
+- 🕸️ **Interactive Knowledge Graph** — Force-directed visual graph of your memory's wiki-link relationships with zoom, pan, node drag, and hover highlights
 - 🎨 **8-Theme System** — Official, Classic, Slate, Mono — each with light and dark variants
 - 🔒 **Security Hardened** — Auth middleware on all API routes, CSP headers, path traversal guards, exec approval prompts
 - 📱 **Mobile-First PWA** — Full feature parity on any device via Tailscale
 - ⚡ **Live SSE Streaming** — Real-time agent output with tool call rendering
 - 🧠 **Memory & Skills** — Browse, search, and edit agent memory; explore 2,000+ skills
-- ✅ **Execution Approvals** — Approve, deny, or always-allow agent shell commands from the UI
+- ✅ **Execution Approvals** — Approve, deny, or always-allow agent shell commands from the UI; resolved receipts shown inline
 - 📦 **Skill Installation** — Install/uninstall/toggle skills directly from the browser
-- ⏰ **Job Scheduler** — Create, edit, pause, trigger, and monitor scheduled Hermes tasks
-- 🔐 **Permissions & Toolsets** — Configure approvals, toolsets, security scanner, code limits, and reasoning from Settings UI
-- 💾 **Session Persistence** — Chat history survives server restarts; optional Redis backend for multi-device sync (`REDIS_URL`)
+- ⏰ **Cron Job Manager** — The only agent UI with a full scheduler: create, edit, pause, trigger, and monitor jobs; manual triggers stream live tool events via SSE directly into the job card
+- 🔐 **Permissions & Toolsets** — Configure approvals, command allowlist, toolsets, security scanner, code limits, and reasoning from Settings UI
+- 💾 **Session Persistence** — Auth tokens, sessions, and active runs survive server restarts via Redis (auto-connects, graceful fallback)
+
+---
+
+## ⏰ Cron Job Manager — a feature no other UI has
+
+Every other Hermes/Claude web interface treats the agent as a request-response tool. You send a message, you get a reply.
+
+Hermes Studio is the only one that lets you **schedule the agent as a background worker** — running prompts on a timer, automatically, while you do something else.
+
+No `crontab -e`. No shell scripts. No babysitting.
+
+From the Jobs tab you can:
+
+- **Create jobs** with a natural-language prompt and a schedule — presets (every 15 min, hourly, daily, weekly) or any custom cron expression
+- **Pick delivery channels** — route job output to Telegram, Discord, Slack, or Signal so you get notified when the run completes
+- **Set skills and repeat counts** — attach specific skills to a job; cap how many times it reruns automatically
+- **Pause / Resume** without deleting — freeze a job during a holiday, unfreeze it Monday morning
+- **Trigger now with live streaming** — run any job immediately and watch real-time tool events, token output, and completion status stream directly into the job card — no polling, no page reload
+- **Edit live** — change the prompt, schedule, or channels without recreating the job
+- **Monitor inline** — expand any job card to see the last N run outputs with timestamps, or watch a live SSE event log while a manual run is in progress
+- **Auto-refresh** — the job list polls every 30 seconds; you never need to reload
+
+### What this unlocks
+
+| Use case | How |
+|---|---|
+| Daily briefing | Schedule a "summarise my emails and calendar" prompt every morning at 7am, delivered to Telegram |
+| Repo health check | Run a code analysis prompt every night; get a Slack message only if issues found |
+| Price / data monitor | Poll an API every 15 minutes; alert on thresholds |
+| Automated reports | Weekly Markdown report generated into your workspace files |
+| Maintenance tasks | Prune old memory entries, rotate logs, sync data — on a schedule, unattended |
+
+The gateway already runs the jobs. Hermes Studio is the control plane that makes them manageable without a terminal.
+
+---
+
+## What's different from hermes-workspace
+
+Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/hermes-workspace) extended with:
+
+- ✅ **Cron Job Manager** — the headline feature above; no other UI has it
+- ✅ **Execution Approvals UI** — approve, deny, or always-allow dangerous agent actions from the browser with expand/context and three approval scopes
+- ✅ **Skill Installation** — install, uninstall, and toggle skills from the skillsmp.com registry directly in the browser
+- ✅ **Permissions & Toolsets** — configure approvals mode, command allowlist, toolsets, website blocklist, code execution limits, and reasoning effort from Settings
+- ✅ **Chat Platform Tokens** — set Telegram, Discord, Slack, and Signal bot tokens from the Integrations settings page (no `.env` editing required)
+- ✅ **Session Persistence** — chat history survives server restarts; Redis backend auto-connects to `localhost:6379` and falls back to file store gracefully
+- ✅ **Multi-Agent Orchestration** — Crews: named groups of persona agents, parallel task dispatch, live SSE activity feed, per-member status tracking
+- ✅ **Profile-Scoped Workspaces** — each agent works inside an isolated directory (`~/.hermes/profiles/<name>/`) so crews don't collide on the file system
+- ✅ **Interactive Knowledge Graph** — force-directed canvas in the Memory screen: zoom, pan, drag nodes, hover to highlight connections, nodes sized by degree
 
 ---
 
 ## 📸 Screenshots
 
-|                 Chat                 |                 Files                  |
+|                 Cron Job                |                 Files                  |
 | :----------------------------------: | :------------------------------------: |
-| ![Chat](./docs/screenshots/chat.png) | ![Files](./docs/screenshots/files.png) |
+| <img width="764" height="972" alt="image" src="https://github.com/user-attachments/assets/f13f35fd-0538-4515-9902-1cbe9fb99d71" />| ![Files](./docs/screenshots/files.png) |
 
 |                   Terminal                   |                  Memory                  |
 | :------------------------------------------: | :--------------------------------------: |
@@ -56,7 +95,7 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 
 |                  Skills                  |                   Settings                   |
 | :--------------------------------------: | :------------------------------------------: |
-| ![Skills](./docs/screenshots/skills.png) | ![Settings](./docs/screenshots/settings.png) |
+| ![Skills](./docs/screenshots/skills.png) | <img width="1048" height="1216" alt="image" src="https://github.com/user-attachments/assets/f62d3378-ad68-4516-81ff-eceb952d2e7d" /> |
 
 ---
 
@@ -116,7 +155,12 @@ ANTHROPIC_API_KEY=your-key-here
 
 # Optional: password-protect the web UI
 # HERMES_PASSWORD=your_password
+
+# Optional: override Redis URL (defaults to redis://localhost:6379)
+# REDIS_URL=redis://localhost:6379
 ```
+
+> **Redis is optional.** Hermes Studio automatically tries to connect to a local Redis instance for session persistence. If Redis isn't running, it silently falls back to file-based storage — no configuration needed.
 
 ---
 
@@ -315,7 +359,7 @@ Features pending cloud infrastructure:
 
 ---
 
-## ✨ Features
+## ✨ Feature Details
 
 ### 💬 Chat
 
@@ -341,20 +385,79 @@ Features pending cloud infrastructure:
 
 ### ✅ Execution Approvals
 
-- Real-time approval banner when agent requests dangerous commands
+- Real-time approval card when agent requests dangerous commands
+- Expand full command and context before deciding
 - Approve once, approve for session, or always-allow with a single click
-- Deny to block the action
+- Deny to block the action immediately
+- Resolved receipt shown inline in chat after every decision
+- Global badge in sidebar when approvals are pending on another screen
 - Dual-strategy resolution: native gateway endpoint → chat command fallback
-- Session-persistent approval state survives page refresh
 
 ### ⏰ Cron Job Manager
 
-- View all scheduled Hermes tasks with status indicators
-- Create jobs with schedule presets (every 15m, 30m, 1h, 6h, daily, weekly) or custom cron expressions
-- Edit existing jobs — update schedule, prompt, delivery channels, skills, repeat count
-- Pause, resume, trigger-now, and delete jobs from the UI
-- Expand any job card to view recent run outputs inline
-- Real-time auto-refresh every 30 seconds
+The only browser-based UI for scheduling Hermes agent tasks. No other Hermes or Claude web interface has this.
+
+- View all scheduled tasks with live status indicators (active, paused, error)
+- Create jobs: natural-language prompt + schedule preset or custom cron expression
+- Delivery channels: route output to Telegram, Discord, Slack, or Signal
+- Assign skills and set repeat limits per job
+- Edit any field on a live job without recreating it
+- Pause and resume without losing configuration
+- Trigger immediately on demand
+- Expand any job card to read recent run output inline
+- Auto-refreshes every 30 seconds
+
+### 👥 Multi-Agent Crews
+
+Coordinate multiple AI agents working in parallel toward a shared goal — all from a single UI.
+
+- **Create crews** — give each crew a name, a goal, and up to 8 agent members
+- **Persona agents** — pick from specialised personas (Roger / Frontend, Sally / Backend, Ada / QA, Kai / General, and more) each with a role label, emoji, and colour
+- **Per-member model** — assign any model to any agent independently
+- **Dispatch tasks** — send a prompt to all agents simultaneously or target a specific member
+- **Live activity feed** — SSE events from all crew members stream into a unified timeline in real time; tool calls, messages, and errors are colour-coded
+- **Status indicators** — idle / running / done / error shown with animated pulse on each member card
+- **"Open chat"** link on every member card navigates directly to that agent's chat session
+- **Persistence** — crews and their member status survive server restarts (file-backed crew store)
+
+### 🗂️ Profile-Scoped Workspaces
+
+Every crew member can be assigned a named profile that scopes their file system access to an isolated directory.
+
+- Each profile resolves to `~/.hermes/profiles/<name>/` — auto-created on first use
+- The File Explorer sidebar shows the profile's workspace root, not the global workspace
+- All file operations (read, write, upload, delete, rename, mkdir) are profile-aware
+- Path traversal is prevented server-side — profile names are validated, `../` is rejected
+- The active profile drives the file explorer in the main chat screen via `useActiveProfile` hook
+
+### 🕸️ Interactive Knowledge Graph
+
+The Memory screen's graph view is now a fully interactive force-directed canvas — not a static circle.
+
+- **Force-directed layout** — nodes spread naturally; hubs cluster, orphans spread to the edges; computed synchronously on load (280 iterations of Coulomb repulsion + Hooke spring attraction)
+- **Node sizing by degree** — highly-connected hubs appear larger; isolated nodes stay small
+- **Node type colours** — guide, project, reference, concept, note each get a distinct palette; legend shown only when typed nodes exist in the data
+- **Hover highlights** — hover any node to illuminate its direct connections and dim everything else to 22% opacity; a glow ring marks the hovered node
+- **Zoom** — mouse wheel (non-passive, doesn't scroll the page) + +/− buttons; 0.25×–4× range
+- **Pan** — drag the background to move the viewport
+- **Node drag** — drag individual nodes to reposition them; position is pinned for the session
+- **Stats counter** — `N nodes · M edges` shown in the bottom-right corner
+
+### 🔐 Permissions & Toolsets
+
+- Approvals mode selector (auto / always / never)
+- Approval timeout control
+- Command allowlist editor — tag-input for shell commands that bypass Tirith
+- Toolset add/remove
+- Website blocklist toggle + domain editor
+- Code execution limits
+- Reasoning effort selector
+- All settings persist live via the config API
+
+### 🔗 Integrations
+
+- skillsmp.com API key for skill marketplace access
+- Chat platform tokens — set Telegram, Discord, Slack, Signal bot tokens directly from the UI without editing `.env`
 
 ### 📁 Files
 
@@ -373,6 +476,14 @@ Features pending cloud infrastructure:
 - 8 themes: Official, Classic, Slate, Mono — each with light and dark variants
 - Theme persists across sessions
 - Full mobile dark mode support
+
+### 💾 Session Persistence
+
+- Chat sessions and message history survive server restarts
+- Auth tokens persist across restarts — no forced re-login
+- Active run dedup state persists — no duplicate runs on restart
+- Redis backend auto-connects to `localhost:6379` on startup; gracefully falls back to file store if Redis is not available
+- Override with `REDIS_URL` for remote or non-default Redis
 
 ### 🔒 Security
 
@@ -469,7 +580,6 @@ If using Docker Compose and getting auth errors:
    docker compose logs hermes-studio
    ```
    Look for: `[gateway] http://hermes-agent:8642 mode=...` — if it shows `mode=disconnected`, the agent isn't running correctly.
-   Also check workspace logs with `docker compose logs hermes-studio`.
 
 ### Docker: "hermes webapi command not found"
 
@@ -482,27 +592,34 @@ hermes --gateway   # Starts the FastAPI gateway server
 The Docker setup uses `hermes --gateway` automatically — no action needed if using `docker compose up`.
 
 ---
-<img width="400" height="400" alt="Gemini_Generated_Image_33fkmx33fkmx33fk-ezremove" src="https://github.com/user-attachments/assets/2b24e3bc-fb37-4fd9-922a-641113e4e3a4" />
 
+<img width="400" height="400" alt="Gemini_Generated_Image_33fkmx33fkmx33fk-ezremove" src="https://github.com/user-attachments/assets/2b24e3bc-fb37-4fd9-922a-641113e4e3a4" />
 
 ## 🗺️ Roadmap
 
-| Feature                         | Status            |
-| ------------------------------- | ----------------- |
-| Chat + SSE Streaming            | ✅ Shipped        |
-| Files + Terminal                | ✅ Shipped        |
-| Memory Browser                  | ✅ Shipped        |
-| Skills Browser                  | ✅ Shipped        |
-| Mobile PWA + Tailscale          | ✅ Shipped        |
-| 8-Theme System                  | ✅ Shipped        |
-| Execution Approvals UI          | ✅ Shipped v1.1.0 |
-| Skill Install / Toggle UI       | ✅ Shipped v1.2.0 |
-| Cron Job Manager UI             | ✅ Shipped v1.3.0 |
-| Permissions & Toolsets Settings | ✅ Shipped v1.4.0 |
-| Session Persistence (Redis)     | ✅ Shipped v1.5.0 |
-| Multi-Agent Orchestration       | 🔜 Planned        |
-| Native Desktop App (Electron)   | 🔨 In Development |
-| Cloud / Hosted Version          | 🔜 Coming Soon    |
+| Feature                              | Status            |
+| ------------------------------------ | ----------------- |
+| Chat + SSE Streaming                 | ✅ Shipped        |
+| Files + Terminal                     | ✅ Shipped        |
+| Memory Browser                       | ✅ Shipped        |
+| Skills Browser                       | ✅ Shipped        |
+| Mobile PWA + Tailscale               | ✅ Shipped        |
+| 8-Theme System                       | ✅ Shipped        |
+| Execution Approvals UI               | ✅ Shipped v1.1.0 |
+| Skill Install / Toggle UI            | ✅ Shipped v1.2.0 |
+| Cron Job Manager UI                  | ✅ Shipped v1.3.0 |
+| Permissions & Toolsets Settings      | ✅ Shipped v1.4.0 |
+| Session Persistence (Redis)          | ✅ Shipped v1.5.0 |
+| Multi-Agent Orchestration (Crews)    | ✅ Shipped v1.6.0 |
+| Profile-Scoped Workspaces            | ✅ Shipped v1.6.0 |
+| Interactive Knowledge Graph          | ✅ Shipped v1.6.0 |
+| Crew/Agent Metrics Dashboard         | 🔜 Planned        |
+| Visual Workflow Builder (DAG editor) | 🔜 Planned        |
+| Crew Templates                       | 🔜 Planned        |
+| MCP Client Protocol                  | 🔜 Planned        |
+| Audit Trail                          | 🔜 Planned        |
+| Native Desktop App (Electron)        | 🔨 In Development |
+| Cloud / Hosted Version               | 🔜 Coming Soon    |
 
 ---
 

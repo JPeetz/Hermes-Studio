@@ -35,6 +35,27 @@ export function getProfilesRoot(): string {
   return path.join(getHermesRoot(), 'profiles')
 }
 
+/**
+ * Resolve the workspace root for a given profile name.
+ *
+ * - 'default' (or empty/undefined) → ~/.hermes
+ * - Any other name → ~/.hermes/profiles/{name}
+ *
+ * The returned path is always a child of ~/.hermes — callers can rely on
+ * this for path-traversal safety without additional checks.
+ *
+ * @throws if profileName contains path-separator characters or '..'
+ */
+export function getProfileWorkspaceRoot(profileName?: string | null): string {
+  const name = (profileName ?? 'default').trim()
+  if (!name || name === 'default') return getHermesRoot()
+  // Strict validation — no path separators, no dots-only segments
+  if (/[/\\]/.test(name) || name === '..' || name === '.') {
+    throw new Error(`Invalid profile name: ${name}`)
+  }
+  return path.join(getProfilesRoot(), name)
+}
+
 function getActiveProfilePath(): string {
   return path.join(getHermesRoot(), 'active_profile')
 }

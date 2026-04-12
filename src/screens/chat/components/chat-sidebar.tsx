@@ -17,6 +17,7 @@ import {
   Settings01Icon,
   Sun02Icon,
   UserGroupIcon,
+  UserMultiple02Icon,
 } from '@hugeicons/core-free-icons'
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
@@ -39,6 +40,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { getPendingApprovals } from '@/lib/approvals-store'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { UserAvatar } from '@/components/avatars'
 import { SEARCH_MODAL_EVENTS, useSearchModal } from '@/hooks/use-search-modal'
@@ -560,6 +562,7 @@ function ChatSidebarComponent({
   const isTerminalActive = pathname === '/terminal'
   const isJobsActive = pathname === '/jobs'
   const isMemoryActive = pathname === '/memory'
+  const isCrewsActive = pathname === '/crews' || pathname.startsWith('/crews/')
   const mainRoutes = ['/chat', '/new', '/files', '/terminal']
   const knowledgeRoutes = ['/memory', '/skills']
   const systemRoutes = ['/settings', '/logs']
@@ -736,7 +739,19 @@ function ChatSidebarComponent({
     }
   }, [handleOpenSettings])
 
-  // ── Nav definitions ─────────────────────────────────────────────────
+  // ── Pending approvals badge ──────────────────────────────────────────
+
+  const [pendingApprovalCount, setPendingApprovalCount] = useState(
+    () => getPendingApprovals().length,
+  )
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setPendingApprovalCount(getPendingApprovals().length)
+    }, 2000)
+    return () => window.clearInterval(id)
+  }, [])
+
+// ── Nav definitions ─────────────────────────────────────────────────
 
   // Search button definition (placed above Studio section)
   const searchItem: NavItemDef = {
@@ -763,6 +778,7 @@ function ChatSidebarComponent({
       icon: MessageMultiple01Icon,
       label: 'Chat',
       active: isChatActive,
+      badge: pendingApprovalCount > 0 ? pendingApprovalCount : undefined,
     },
     {
       kind: 'link',
@@ -784,6 +800,13 @@ function ChatSidebarComponent({
       icon: Clock01Icon,
       label: 'Jobs',
       active: isJobsActive,
+    },
+    {
+      kind: 'link',
+      to: '/crews',
+      icon: UserMultiple02Icon,
+      label: 'Crews',
+      active: isCrewsActive,
     },
   ]
 

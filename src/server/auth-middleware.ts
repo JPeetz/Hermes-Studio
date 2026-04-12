@@ -1,10 +1,28 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto'
+import { getRedisClient, getRedisClientSync } from './redis-client'
+
+const TOKENS_KEY = 'hermes:studio:tokens'
+const TOKEN_TTL_S = 30 * 24 * 60 * 60 // 30 days
 
 /**
- * In-memory session store.
- * For production, consider Redis or a database.
+ * In-memory session store — source of truth for the current process.
+ * Backed by a Redis SET when REDIS_URL is set so tokens survive restarts.
  */
 const validTokens = new Set<string>()
+
+// On startup load persisted tokens from Redis into the in-memory Set
+void getRedisClient().then(async (client) => {
+  if (!client) return
+  try {
+    const tokens = await client.smembers(TOKENS_KEY)
+    for (const t of tokens) validTokens.add(t)
+    if (tokens.length > 0) {
+      console.log(`[auth] Loaded ${tokens.length} session token(s) from Redis`)
+    }
+  } catch {
+    // Redis unavailable — in-memory store continues
+  }
+})
 
 /**
  * Generate a cryptographically secure session token.
@@ -18,6 +36,12 @@ export function generateSessionToken(): string {
  */
 export function storeSessionToken(token: string): void {
   validTokens.add(token)
+  const client = getRedisClientSync()
+  if (client) {
+    void client.sadd(TOKENS_KEY, token).then(() =>
+      client.expire(TOKENS_KEY, TOKEN_TTL_S),
+    )
+  }
 }
 
 /**
@@ -32,6 +56,8 @@ export function isValidSessionToken(token: string): boolean {
  */
 export function revokeSessionToken(token: string): void {
   validTokens.delete(token)
+  const client = getRedisClientSync()
+  if (client) void client.srem(TOKENS_KEY, token)
 }
 
 /**
