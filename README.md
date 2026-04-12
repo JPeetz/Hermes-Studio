@@ -6,7 +6,7 @@
 
 **The only Hermes web UI with a built-in cron job manager — schedule, monitor, and control autonomous agent tasks without touching a terminal.**
 
-[![Version](https://img.shields.io/badge/version-1.6.0-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.7.0-6366F1.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366F1.svg)](CONTRIBUTING.md)
@@ -28,7 +28,7 @@
 - 🧠 **Memory & Skills** — Browse, search, and edit agent memory; explore 2,000+ skills
 - ✅ **Execution Approvals** — Approve, deny, or always-allow agent shell commands from the UI; resolved receipts shown inline
 - 📦 **Skill Installation** — Install/uninstall/toggle skills directly from the browser
-- ⏰ **Cron Job Manager** — The only agent UI with a full scheduler: create, edit, pause, trigger, and monitor jobs; run history inline
+- ⏰ **Cron Job Manager** — The only agent UI with a full scheduler: create, edit, pause, trigger, and monitor jobs; manual triggers stream live tool events via SSE directly into the job card
 - 🔐 **Permissions & Toolsets** — Configure approvals, command allowlist, toolsets, security scanner, code limits, and reasoning from Settings UI
 - 💾 **Session Persistence** — Auth tokens, sessions, and active runs survive server restarts via Redis (auto-connects, graceful fallback)
 
@@ -48,9 +48,9 @@ From the Jobs tab you can:
 - **Pick delivery channels** — route job output to Telegram, Discord, Slack, or Signal so you get notified when the run completes
 - **Set skills and repeat counts** — attach specific skills to a job; cap how many times it reruns automatically
 - **Pause / Resume** without deleting — freeze a job during a holiday, unfreeze it Monday morning
-- **Trigger now** — run any job immediately on demand, outside its schedule, for ad-hoc use
+- **Trigger now with live streaming** — run any job immediately and watch real-time tool events, token output, and completion status stream directly into the job card — no polling, no page reload
 - **Edit live** — change the prompt, schedule, or channels without recreating the job
-- **Monitor inline** — expand any job card to see the last N run outputs with timestamps, without leaving the page
+- **Monitor inline** — expand any job card to see the last N run outputs with timestamps, or watch a live SSE event log while a manual run is in progress
 - **Auto-refresh** — the job list polls every 30 seconds; you never need to reload
 
 ### What this unlocks

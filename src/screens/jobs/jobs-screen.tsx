@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -18,7 +18,7 @@ import {
 } from '@hugeicons/core-free-icons'
 import { CreateJobDialog } from './create-job-dialog'
 import { EditJobDialog } from './edit-job-dialog'
-import type { HermesJob } from '@/lib/jobs-api'
+import type { HermesJob, RunEvent } from '@/lib/jobs-api'
 import { toast } from '@/components/ui/toast'
 import { cn } from '@/lib/utils'
 import {
@@ -28,6 +28,7 @@ import {
   fetchJobs,
   pauseJob,
   resumeJob,
+  startRun,
   triggerJob,
   updateJob,
 } from '@/lib/jobs-api'
@@ -93,6 +94,29 @@ function getLastRunStatus(job: HermesJob): {
   }
 }
 
+function formatRunEventLabel(ev: RunEvent): string {
+  switch (ev.event) {
+    case 'tool.started':
+    case 'tool.calling':
+    case 'tool.pending':
+      return `⚙ ${ev.name ?? 'tool'}…`
+    case 'tool.running':
+      return `⚙ ${ev.name ?? 'tool'} running…`
+    case 'tool.completed':
+      return `✓ ${ev.name ?? 'tool'}`
+    case 'tool.failed':
+      return `✗ ${ev.name ?? 'tool'} failed`
+    case 'reasoning.available':
+      return '💭 reasoning…'
+    case 'run.completed':
+      return '✓ Run complete'
+    case 'run.failed':
+      return `✗ Run failed${ev.error ? `: ${ev.error}` : ''}`
+    default:
+      return ev.event
+  }
+}
+
 function JobCard({
   job,
   onPause,
@@ -100,6 +124,7 @@ function JobCard({
   onTrigger,
   onDelete,
   onEdit,
+  onLiveTrigger,
 }: {
   job: HermesJob
   onPause: (id: string) => void
@@ -107,17 +132,66 @@ function JobCard({
   onTrigger: (id: string) => void
   onDelete: (id: string) => void
   onEdit: (job: HermesJob) => void
+  onLiveTrigger: (job: HermesJob) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [activeRunId, setActiveRunId] = useState<string | null>(null)
+  const [liveLog, setLiveLog] = useState<Array<{ key: string; label: string }>>([])
+  const [liveOutput, setLiveOutput] = useState('')
+  const esRef = useRef<EventSource | null>(null)
+  const liveLogBottomRef = useRef<HTMLDivElement | null>(null)
   const isPaused = job.state === 'paused' || !job.enabled
   const isCompleted = job.state === 'completed'
   const lastRunStatus = getLastRunStatus(job)
   const outputQuery = useQuery({
     queryKey: ['hermes', 'jobs', job.id, 'output'],
     queryFn: () => fetchJobOutput(job.id),
-    enabled: expanded,
+    enabled: expanded && !activeRunId,
     staleTime: 30_000,
   })
+
+  // Subscribe to SSE events when a live run is active
+  useEffect(() => {
+    if (!activeRunId) return
+    const es = new EventSource(`/api/hermes-runs/${activeRunId}/events`)
+    esRef.current = es
+    es.onmessage = (e) => {
+      try {
+        const ev = JSON.parse(e.data as string) as RunEvent
+        if (ev.event === 'message.delta') {
+          setLiveOutput((prev) => prev + (ev.delta ?? ''))
+          return
+        }
+        const label = formatRunEventLabel(ev)
+        setLiveLog((prev) => [
+          ...prev,
+          { key: `${ev.event}-${ev.timestamp}`, label },
+        ])
+        liveLogBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+      } catch {
+        /* ignore malformed events */
+      }
+    }
+    es.onerror = () => {
+      es.close()
+      esRef.current = null
+    }
+    return () => {
+      es.close()
+      esRef.current = null
+    }
+  }, [activeRunId])
+
+  // Clear live run state when run.completed/run.failed appears in log
+  useEffect(() => {
+    const last = liveLog.at(-1)
+    if (last && (last.label.startsWith('✓ Run') || last.label.startsWith('✗ Run'))) {
+      esRef.current?.close()
+      esRef.current = null
+      onLiveTrigger(job) // refresh job list
+      setActiveRunId(null)
+    }
+  }, [liveLog, job, onLiveTrigger])
 
   return (
     <motion.div
@@ -176,9 +250,21 @@ function JobCard({
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <button
-            onClick={() => onTrigger(job.id)}
-            className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
-            title="Run now"
+            onClick={async () => {
+              try {
+                const runId = await startRun(job.prompt)
+                setLiveLog([])
+                setLiveOutput('')
+                setActiveRunId(runId)
+                setExpanded(true)
+              } catch {
+                // Fall back to fire-and-forget trigger
+                onTrigger(job.id)
+              }
+            }}
+            disabled={activeRunId !== null}
+            className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)] disabled:opacity-40"
+            title={activeRunId ? 'Run in progress…' : 'Run now (live)'}
           >
             <HugeiconsIcon
               icon={PlayIcon}
@@ -243,44 +329,83 @@ function JobCard({
             className="overflow-hidden"
           >
             <div className="mt-3 border-t border-[var(--theme-border)] pt-3">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-medium text-[var(--theme-text)]">
-                  Run history
-                </p>
-                <p className="text-[10px] text-[var(--theme-muted)]">
-                  Showing recent outputs
-                </p>
-              </div>
-              {outputQuery.isLoading ? (
-                <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">
-                  Loading outputs...
-                </div>
-              ) : outputQuery.isError ? (
-                <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">
-                  Failed to load outputs.
-                </div>
-              ) : outputQuery.data && outputQuery.data.length > 0 ? (
-                <div className="space-y-2">
-                  {outputQuery.data.map((output) => (
-                    <div
-                      key={`${output.filename}-${output.timestamp}`}
-                      className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3"
-                    >
-                      <div className="mb-1 flex items-center justify-between gap-2 text-[10px] text-[var(--theme-muted)]">
-                        <span>{formatRunTimestamp(output.timestamp)}</span>
-                        <span className="truncate">{output.filename}</span>
-                      </div>
-                      <p className="text-xs leading-5 text-[var(--theme-text)]">
-                        {getOutputPreview(output.content) ||
-                          'No output content'}
-                      </p>
+              {activeRunId ? (
+                <>
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-xs font-medium text-[var(--theme-text)]">
+                      Live run
+                    </p>
+                    <span className="inline-flex items-center gap-1 text-[10px] text-[var(--theme-accent)]">
+                      <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--theme-accent)]" />
+                      in progress
+                    </span>
+                  </div>
+                  <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3">
+                    <div className="space-y-1">
+                      {liveLog.length === 0 && (
+                        <p className="text-[11px] text-[var(--theme-muted)]">
+                          Starting…
+                        </p>
+                      )}
+                      {liveLog.map((entry) => (
+                        <p
+                          key={entry.key}
+                          className="text-[11px] text-[var(--theme-text)]"
+                        >
+                          {entry.label}
+                        </p>
+                      ))}
+                      {liveOutput && (
+                        <p className="mt-2 whitespace-pre-wrap text-[11px] leading-5 text-[var(--theme-text)]">
+                          {liveOutput}
+                        </p>
+                      )}
+                      <div ref={liveLogBottomRef} />
                     </div>
-                  ))}
-                </div>
+                  </div>
+                </>
               ) : (
-                <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">
-                  No run outputs yet.
-                </div>
+                <>
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-xs font-medium text-[var(--theme-text)]">
+                      Run history
+                    </p>
+                    <p className="text-[10px] text-[var(--theme-muted)]">
+                      Showing recent outputs
+                    </p>
+                  </div>
+                  {outputQuery.isLoading ? (
+                    <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">
+                      Loading outputs...
+                    </div>
+                  ) : outputQuery.isError ? (
+                    <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">
+                      Failed to load outputs.
+                    </div>
+                  ) : outputQuery.data && outputQuery.data.length > 0 ? (
+                    <div className="space-y-2">
+                      {outputQuery.data.map((output) => (
+                        <div
+                          key={`${output.filename}-${output.timestamp}`}
+                          className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3"
+                        >
+                          <div className="mb-1 flex items-center justify-between gap-2 text-[10px] text-[var(--theme-muted)]">
+                            <span>{formatRunTimestamp(output.timestamp)}</span>
+                            <span className="truncate">{output.filename}</span>
+                          </div>
+                          <p className="text-xs leading-5 text-[var(--theme-text)]">
+                            {getOutputPreview(output.content) ||
+                              'No output content'}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">
+                      No run outputs yet.
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </motion.div>
@@ -487,6 +612,9 @@ export function JobsScreen() {
                 onResume={(id) => resumeMutation.mutate(id)}
                 onTrigger={(id) => triggerMutation.mutate(id)}
                 onEdit={(job) => setEditingJob(job)}
+                onLiveTrigger={() =>
+                  void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+                }
                 onDelete={(id) => {
                   if (confirm(`Delete job "${job.name}"?`)) {
                     deleteMutation.mutate(id)

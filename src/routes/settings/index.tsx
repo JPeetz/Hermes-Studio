@@ -1347,6 +1347,47 @@ type AvailableModelsResponse = {
   providers: Array<{ id: string; label: string; authenticated: boolean }>
 }
 
+const KNOWN_PLATFORMS = [
+  'telegram', 'discord', 'slack', 'whatsapp', 'signal',
+  'homeassistant', 'mattermost', 'matrix', 'bluebubbles',
+  'sms', 'email', 'webhook', 'cli',
+]
+
+function AddPlatformOverride({
+  existing,
+  onAdd,
+}: {
+  existing: Array<string>
+  onAdd: (platform: string) => void
+}) {
+  const [selected, setSelected] = useState('')
+  const available = KNOWN_PLATFORMS.filter((p) => !existing.includes(p))
+  if (available.length === 0) return null
+  return (
+    <div className="flex items-center gap-2">
+      <select
+        value={selected}
+        onChange={(e) => setSelected(e.target.value)}
+        className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-input)] px-2 py-1 text-xs text-[var(--theme-text)] focus:outline-none"
+      >
+        <option value="">add platform…</option>
+        {available.map((p) => (
+          <option key={p} value={p}>{p}</option>
+        ))}
+      </select>
+      {selected && (
+        <button
+          onClick={() => { onAdd(selected); setSelected('') }}
+          className="rounded px-2 py-0.5 text-xs font-medium transition-colors hover:bg-[var(--theme-hover)]"
+          style={{ color: 'var(--theme-accent)' }}
+        >
+          add
+        </button>
+      )}
+    </div>
+  )
+}
+
 function HermesConfigSection({
   activeView = 'hermes',
 }: {
@@ -1533,6 +1574,15 @@ function HermesConfigSection({
     typeof data.config.quick_commands === 'object' &&
     !Array.isArray(data.config.quick_commands)
       ? (data.config.quick_commands as Record<string, string>)
+      : {}
+
+  const sessionResetConfig =
+    (data.config.session_reset as Record<string, unknown>) || {}
+  const platformOverrides =
+    displayConfig.platforms &&
+    typeof displayConfig.platforms === 'object' &&
+    !Array.isArray(displayConfig.platforms)
+      ? (displayConfig.platforms as Record<string, Record<string, string>>)
       : {}
 
   const ttsProvider = (ttsConfig.provider as string) || 'edge'
@@ -1940,6 +1990,67 @@ function HermesConfigSection({
           <option value="none">none</option>
         </select>
       </SettingsRow>
+      <SettingsRow
+        label="Session reset mode"
+        description="When to automatically clear conversation context."
+      >
+        <select
+          value={(sessionResetConfig.mode as string) || 'both'}
+          onChange={(e) =>
+            void saveConfig({
+              config: { session_reset: { mode: e.target.value } },
+            })
+          }
+          className={selectClassName}
+        >
+          <option value="none">never</option>
+          <option value="daily">daily (at hour)</option>
+          <option value="idle">idle timeout</option>
+          <option value="both">both</option>
+        </select>
+      </SettingsRow>
+      {['daily', 'both'].includes(
+        (sessionResetConfig.mode as string) || 'both',
+      ) && (
+        <SettingsRow
+          label="Reset hour"
+          description="Hour of day (0–23, local time) for daily session reset."
+        >
+          <Input
+            type="number"
+            min={0}
+            max={23}
+            value={readNumber(sessionResetConfig.at_hour, 4)}
+            onChange={(e) =>
+              saveNumberField('session_reset', 'at_hour', e.target.value, 4)
+            }
+            className="md:w-24"
+          />
+        </SettingsRow>
+      )}
+      {['idle', 'both'].includes(
+        (sessionResetConfig.mode as string) || 'both',
+      ) && (
+        <SettingsRow
+          label="Idle timeout"
+          description="Minutes of inactivity before the session resets."
+        >
+          <Input
+            type="number"
+            min={1}
+            value={readNumber(sessionResetConfig.idle_minutes, 1440)}
+            onChange={(e) =>
+              saveNumberField(
+                'session_reset',
+                'idle_minutes',
+                e.target.value,
+                1440,
+              )
+            }
+            className="md:w-28"
+          />
+        </SettingsRow>
+      )}
     </SettingsSection>
   )
 
@@ -2752,6 +2863,19 @@ function HermesConfigSection({
         />
       </SettingsRow>
       <SettingsRow
+        label="Status messages"
+        description="Show natural mid-turn assistant status messages while a run is in progress."
+      >
+        <Switch
+          checked={readBoolean(displayConfig.interim_assistant_messages, true)}
+          onCheckedChange={(checked) =>
+            void saveConfig({
+              config: { display: { interim_assistant_messages: checked } },
+            })
+          }
+        />
+      </SettingsRow>
+      <SettingsRow
         label="Show reasoning"
         description="Expose model reasoning blocks in the UI."
       >
@@ -2787,6 +2911,59 @@ function HermesConfigSection({
         >
           {(displayConfig.skin as string) || 'default'}
         </span>
+      </SettingsRow>
+      <SettingsRow
+        label="Per-platform tool progress"
+        description="Override tool progress display for specific messaging platforms."
+      >
+        <div className="flex flex-col gap-2">
+          {Object.entries(platformOverrides).map(([platform, overrides]) => (
+            <div key={platform} className="flex items-center gap-2">
+              <span
+                className="w-24 shrink-0 text-xs font-mono text-[var(--theme-text)]"
+              >
+                {platform}
+              </span>
+              <select
+                value={(overrides.tool_progress as string) || 'all'}
+                onChange={(e) => {
+                  const updated = {
+                    ...platformOverrides,
+                    [platform]: { ...overrides, tool_progress: e.target.value },
+                  }
+                  void saveConfig({ config: { display: { platforms: updated } } })
+                }}
+                className={selectClassName}
+              >
+                <option value="all">all</option>
+                <option value="new">new only</option>
+                <option value="verbose">verbose</option>
+                <option value="off">off</option>
+              </select>
+              <button
+                onClick={() => {
+                  const updated = { ...platformOverrides }
+                  delete updated[platform]
+                  void saveConfig({ config: { display: { platforms: updated } } })
+                }}
+                className="rounded px-2 py-0.5 text-xs transition-colors hover:bg-[var(--theme-hover)]"
+                style={{ color: 'var(--theme-danger)' }}
+              >
+                remove
+              </button>
+            </div>
+          ))}
+          <AddPlatformOverride
+            existing={Object.keys(platformOverrides)}
+            onAdd={(platform) => {
+              const updated = {
+                ...platformOverrides,
+                [platform]: { tool_progress: 'all' },
+              }
+              void saveConfig({ config: { display: { platforms: updated } } })
+            }}
+          />
+        </div>
       </SettingsRow>
     </SettingsSection>
   )

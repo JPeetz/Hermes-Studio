@@ -86,6 +86,8 @@ import { Route as ApiSessionsSessionKeyActiveRunRouteImport } from './routes/api
 import { Route as ApiCrewsCrewIdDispatchRouteImport } from './routes/api/crews/$crewId.dispatch'
 import { Route as ApiApprovalsApprovalIdDenyRouteImport } from './routes/api/approvals.$approvalId.deny'
 import { Route as ApiApprovalsApprovalIdApproveRouteImport } from './routes/api/approvals.$approvalId.approve'
+import { Route as ApiHermesRunsRouteImport } from './routes/api/hermes-runs'
+import { Route as ApiHermesRunsRunIdEventsRouteImport } from './routes/api/hermes-runs.$runId.events'
 
 const TerminalRoute = TerminalRouteImport.update({
   id: '/terminal',
@@ -476,6 +478,17 @@ const ApiApprovalsApprovalIdApproveRoute =
     path: '/api/approvals/$approvalId/approve',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiHermesRunsRoute = ApiHermesRunsRouteImport.update({
+  id: '/api/hermes-runs',
+  path: '/api/hermes-runs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHermesRunsRunIdEventsRoute =
+  ApiHermesRunsRunIdEventsRouteImport.update({
+    id: '/api/hermes-runs/$runId/events',
+    path: '/api/hermes-runs/$runId/events',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -555,6 +568,8 @@ export interface FileRoutesByFullPath {
   '/api/crews/$crewId/dispatch': typeof ApiCrewsCrewIdDispatchRoute
   '/api/sessions/$sessionKey/active-run': typeof ApiSessionsSessionKeyActiveRunRoute
   '/api/sessions/$sessionKey/status': typeof ApiSessionsSessionKeyStatusRoute
+  '/api/hermes-runs': typeof ApiHermesRunsRoute
+  '/api/hermes-runs/$runId/events': typeof ApiHermesRunsRunIdEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -633,6 +648,8 @@ export interface FileRoutesByTo {
   '/api/crews/$crewId/dispatch': typeof ApiCrewsCrewIdDispatchRoute
   '/api/sessions/$sessionKey/active-run': typeof ApiSessionsSessionKeyActiveRunRoute
   '/api/sessions/$sessionKey/status': typeof ApiSessionsSessionKeyStatusRoute
+  '/api/hermes-runs': typeof ApiHermesRunsRoute
+  '/api/hermes-runs/$runId/events': typeof ApiHermesRunsRunIdEventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -713,6 +730,8 @@ export interface FileRoutesById {
   '/api/crews/$crewId/dispatch': typeof ApiCrewsCrewIdDispatchRoute
   '/api/sessions/$sessionKey/active-run': typeof ApiSessionsSessionKeyActiveRunRoute
   '/api/sessions/$sessionKey/status': typeof ApiSessionsSessionKeyStatusRoute
+  '/api/hermes-runs': typeof ApiHermesRunsRoute
+  '/api/hermes-runs/$runId/events': typeof ApiHermesRunsRunIdEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -794,6 +813,8 @@ export interface FileRouteTypes {
     | '/api/crews/$crewId/dispatch'
     | '/api/sessions/$sessionKey/active-run'
     | '/api/sessions/$sessionKey/status'
+    | '/api/hermes-runs'
+    | '/api/hermes-runs/$runId/events'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -872,6 +893,8 @@ export interface FileRouteTypes {
     | '/api/crews/$crewId/dispatch'
     | '/api/sessions/$sessionKey/active-run'
     | '/api/sessions/$sessionKey/status'
+    | '/api/hermes-runs'
+    | '/api/hermes-runs/$runId/events'
   id:
     | '__root__'
     | '/'
@@ -951,6 +974,8 @@ export interface FileRouteTypes {
     | '/api/crews/$crewId/dispatch'
     | '/api/sessions/$sessionKey/active-run'
     | '/api/sessions/$sessionKey/status'
+    | '/api/hermes-runs'
+    | '/api/hermes-runs/$runId/events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1014,6 +1039,8 @@ export interface RootRouteChildren {
   ApiCrewsIndexRoute: typeof ApiCrewsIndexRoute
   ApiApprovalsApprovalIdApproveRoute: typeof ApiApprovalsApprovalIdApproveRoute
   ApiApprovalsApprovalIdDenyRoute: typeof ApiApprovalsApprovalIdDenyRoute
+  ApiHermesRunsRoute: typeof ApiHermesRunsRoute
+  ApiHermesRunsRunIdEventsRoute: typeof ApiHermesRunsRunIdEventsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1557,6 +1584,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiApprovalsApprovalIdApproveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/hermes-runs': {
+      id: '/api/hermes-runs'
+      path: '/api/hermes-runs'
+      fullPath: '/api/hermes-runs'
+      preLoaderRoute: typeof ApiHermesRunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/hermes-runs/$runId/events': {
+      id: '/api/hermes-runs/$runId/events'
+      path: '/api/hermes-runs/$runId/events'
+      fullPath: '/api/hermes-runs/$runId/events'
+      preLoaderRoute: typeof ApiHermesRunsRunIdEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1725,6 +1766,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCrewsIndexRoute: ApiCrewsIndexRoute,
   ApiApprovalsApprovalIdApproveRoute: ApiApprovalsApprovalIdApproveRoute,
   ApiApprovalsApprovalIdDenyRoute: ApiApprovalsApprovalIdDenyRoute,
+  ApiHermesRunsRoute: ApiHermesRunsRoute,
+  ApiHermesRunsRunIdEventsRoute: ApiHermesRunsRunIdEventsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
