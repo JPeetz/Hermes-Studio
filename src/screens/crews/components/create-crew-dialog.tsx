@@ -31,6 +31,9 @@ type Props = {
   isSubmitting?: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (input: CreateCrewInput) => void | Promise<void>
+  initialName?: string
+  initialGoal?: string
+  initialMembers?: Array<{ persona: string; role: CrewMemberRole }>
 }
 
 export function CreateCrewDialog({
@@ -38,16 +41,21 @@ export function CreateCrewDialog({
   isSubmitting = false,
   onOpenChange,
   onSubmit,
+  initialName,
+  initialGoal,
+  initialMembers,
 }: Props) {
-  const [name, setName] = useState('')
-  const [goal, setGoal] = useState('')
-  const [members, setMembers] = useState<MemberDraft[]>(getInitialMembers)
+  const [name, setName] = useState(initialName ?? '')
+  const [goal, setGoal] = useState(initialGoal ?? '')
+  const [members, setMembers] = useState<MemberDraft[]>(
+    initialMembers ?? getInitialMembers(),
+  )
 
   useEffect(() => {
     if (!open) {
-      setName('')
-      setGoal('')
-      setMembers(getInitialMembers())
+      setName(initialName ?? '')
+      setGoal(initialGoal ?? '')
+      setMembers(initialMembers ?? getInitialMembers())
       return
     }
     const prev = document.body.style.overflow
@@ -60,7 +68,7 @@ export function CreateCrewDialog({
       document.body.style.overflow = prev
       window.removeEventListener('keydown', onKey)
     }
-  }, [open, onOpenChange])
+  }, [open, onOpenChange, initialName, initialGoal, initialMembers])
 
   if (!open) return null
 

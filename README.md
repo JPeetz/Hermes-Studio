@@ -6,7 +6,7 @@
 
 **The only Hermes web UI with a built-in cron job manager — schedule, monitor, and control autonomous agent tasks without touching a terminal.**
 
-[![Version](https://img.shields.io/badge/version-1.8.0-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.9.0-6366F1.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366F1.svg)](CONTRIBUTING.md)
@@ -32,6 +32,7 @@
 - 🔐 **Permissions & Toolsets** — Configure approvals, command allowlist, toolsets, security scanner, code limits, and reasoning from Settings UI
 - 💾 **Session Persistence** — Auth tokens, sessions, and active runs survive server restarts via Redis (auto-connects, graceful fallback)
 - 🔀 **Visual Workflow Builder** — Build and run DAG-structured task pipelines for your crews; tasks run in topological order with live per-node status
+- 📋 **Crew Templates** — 7 built-in pre-configured crew templates (Research, Engineering, Creative, Operations) plus save and manage your own custom templates
 
 ---
 
@@ -82,6 +83,29 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 - ✅ **Profile-Scoped Workspaces** — each agent works inside an isolated directory (`~/.hermes/profiles/<name>/`) so crews don't collide on the file system
 - ✅ **Interactive Knowledge Graph** — force-directed canvas in the Memory screen: zoom, pan, drag nodes, hover to highlight connections, nodes sized by degree
 - ✅ **Visual Workflow Builder** — DAG editor for orchestrating sequential and parallel agent task pipelines; nodes, bezier edges, auto-layout, and live execution with SSE status updates per node
+- ✅ **Crew Templates** — 7 built-in templates across 4 categories (Research Team, Deep Dive, Full-Stack Squad, Code Review Crew, Content Studio, Ops Team, Sprint Team); save your own templates; one-click pre-fill of the create-crew dialog
+
+---
+
+### 📋 Crew Templates
+
+Launching a new crew from scratch every time gets repetitive. Templates let you jump-start with a proven composition:
+
+**Built-in templates (7 total, 4 categories):**
+
+| Category | Template | Composition |
+|---|---|---|
+| Research | Research Team | Luna (analyst), Ada (reviewer), Kai (coordinator) |
+| Research | Deep Dive | Luna + Roger (analysts), Kai (coordinator) |
+| Engineering | Full-Stack Squad | Kai (coordinator), Roger (frontend), Sally (backend), Max (DevOps), Ada (QA) |
+| Engineering | Code Review Crew | Ada (executor), Luna (reviewer), Nova (security) |
+| Creative | Content Studio | Bill (coordinator), Luna (writer), Roger (reviewer) |
+| Operations | Ops Team | Max (coordinator), Sally + Kai (executors) |
+| Operations | Sprint Team | Kai (coordinator), Roger + Sally (executors), Ada (reviewer) |
+
+Clicking **Templates** in the Crews header opens a filterable gallery. Selecting a template closes the gallery and pre-fills the New Crew dialog with the template's name, goal, and member roster — edit anything before confirming.
+
+User-created templates are saved to `.runtime/templates.json` and persist across restarts. Delete them at any time from the gallery (built-ins are protected).
 
 ---
 

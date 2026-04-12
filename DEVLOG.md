@@ -4,6 +4,48 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-12 — Session 9
+
+### What was done
+
+**Task #15 — Agent/crew templates**
+
+Pre-built crew configurations that let you jump-start any crew with a known-good composition. A Templates button opens a filterable gallery; selecting a template pre-fills the New Crew dialog and closes the gallery.
+
+**New files:**
+- `src/types/template.ts` — `CrewTemplate`, `CrewTemplateMember`, `CrewTemplateCategory` types
+- `src/server/template-store.ts` — 7 hardcoded built-in templates + file-backed user templates in `.runtime/templates.json`; same in-memory/sync-write pattern as `crew-store.ts`
+- `src/routes/api/crews/templates/index.ts` — `GET /api/crews/templates` (list), `POST /api/crews/templates` (create user template) with full validation
+- `src/routes/api/crews/templates/$id.ts` — `DELETE /api/crews/templates/:id` with built-in protection (403 on attempts to delete built-ins)
+- `src/lib/templates-api.ts` — `fetchTemplates()`, `createUserTemplate()`, `deleteUserTemplate()` client helpers
+- `src/screens/crews/components/templates-gallery.tsx` — modal gallery with category filter tabs (All / Research / Engineering / Creative / Operations), template cards with persona chip row, "Use Template" and (for user templates) trash-icon delete buttons; TanStack Query `['crew-templates']` key
+
+**Modified files:**
+- `src/screens/crews/components/create-crew-dialog.tsx` — added `initialName?`, `initialGoal?`, `initialMembers?` props; `useEffect` reset now uses initial values so the dialog reflects the template on open
+- `src/screens/crews/crews-screen.tsx` — added `galleryOpen`, `prefilledName/Goal/Members` state; `handleSelectTemplate()` chains gallery close → prefill → dialog open; **Templates** button added to header (uses `GridViewIcon`); `clearPrefill()` called on dialog close and after successful create
+
+**Built-in templates (7):**
+
+| id | name | category | members |
+|---|---|---|---|
+| `builtin-research-team` | Research Team | research | Luna (executor), Ada (reviewer), Kai (coordinator) |
+| `builtin-deep-dive` | Deep Dive | research | Luna (executor), Roger (executor), Kai (coordinator) |
+| `builtin-fullstack-squad` | Full-Stack Squad | engineering | Kai (coordinator), Roger, Sally, Max, Ada |
+| `builtin-code-review` | Code Review Crew | engineering | Ada (executor), Luna (reviewer), Nova (specialist) |
+| `builtin-content-studio` | Content Studio | creative | Bill (coordinator), Luna (executor), Roger (reviewer) |
+| `builtin-ops-team` | Ops Team | operations | Max (coordinator), Sally, Kai (executors) |
+| `builtin-sprint-team` | Sprint Team | operations | Kai (coordinator), Roger, Sally (executors), Ada (reviewer) |
+
+### Gotchas encountered
+
+- **`GridViewIcon`** — confirmed to exist in `@hugeicons/core-free-icons` CJS bundle before using; many similarly-named icons don't exist
+- **`useEffect` dependency array in `CreateCrewDialog`** — `initialMembers` added to deps so resetting works correctly when the same dialog re-opens with a new template; the parent stores prefill in state (not computed inline) to avoid re-render loops
+- **`clearPrefill()` called in two places** — `onOpenChange(false)` handler and `createMutation.onSuccess`; both paths are needed because users can close the dialog without submitting
+
+### Version bump: 1.8.0 → 1.9.0
+
+---
+
 ## 2026-04-12 — Session 8
 
 ### What was done

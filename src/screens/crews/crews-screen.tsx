@@ -8,18 +8,22 @@ import {
   Add01Icon,
   CheckmarkCircle02Icon,
   Delete01Icon,
+  GridViewIcon,
   PauseIcon,
   UserMultiple02Icon,
   ActivitySparkIcon,
 } from '@hugeicons/core-free-icons'
 import { useMemo } from 'react'
 import { CreateCrewDialog } from './components/create-crew-dialog'
+import { TemplatesGallery } from './components/templates-gallery'
 import type { Crew } from '@/lib/crews-api'
+import type { CrewMemberRole } from '@/lib/crews-api'
 import {
   createCrew,
   deleteCrew,
   fetchCrews,
 } from '@/lib/crews-api'
+import type { CrewTemplate } from '@/lib/templates-api'
 import { toast } from '@/components/ui/toast'
 import { cn } from '@/lib/utils'
 
@@ -283,6 +287,26 @@ function CrewCard({
 export function CrewsScreen() {
   const queryClient = useQueryClient()
   const [createOpen, setCreateOpen] = useState(false)
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [prefilledName, setPrefilledName] = useState('')
+  const [prefilledGoal, setPrefilledGoal] = useState('')
+  const [prefilledMembers, setPrefilledMembers] = useState<
+    Array<{ persona: string; role: CrewMemberRole }> | undefined
+  >(undefined)
+
+  function handleSelectTemplate(template: CrewTemplate) {
+    setGalleryOpen(false)
+    setPrefilledName(template.name)
+    setPrefilledGoal(template.defaultGoal)
+    setPrefilledMembers(template.defaultMembers)
+    setCreateOpen(true)
+  }
+
+  function clearPrefill() {
+    setPrefilledName('')
+    setPrefilledGoal('')
+    setPrefilledMembers(undefined)
+  }
 
   const crewsQuery = useQuery({
     queryKey: QUERY_KEY,
@@ -295,6 +319,7 @@ export function CrewsScreen() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       setCreateOpen(false)
+      clearPrefill()
       toast('Crew created')
     },
     onError: (err) => {
@@ -336,13 +361,22 @@ export function CrewsScreen() {
             </span>
           )}
         </div>
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-[var(--theme-accent)] px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
-        >
-          <HugeiconsIcon icon={Add01Icon} size={14} />
-          New Crew
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setGalleryOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--theme-border)] px-3 py-1.5 text-xs font-medium text-[var(--theme-muted)] transition-colors hover:border-[var(--theme-accent)] hover:text-[var(--theme-text)]"
+          >
+            <HugeiconsIcon icon={GridViewIcon} size={14} />
+            Templates
+          </button>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-[var(--theme-accent)] px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <HugeiconsIcon icon={Add01Icon} size={14} />
+            New Crew
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -391,11 +425,23 @@ export function CrewsScreen() {
         )}
       </div>
 
+      <TemplatesGallery
+        open={galleryOpen}
+        onOpenChange={setGalleryOpen}
+        onSelectTemplate={handleSelectTemplate}
+      />
+
       <CreateCrewDialog
         open={createOpen}
         isSubmitting={createMutation.isPending}
-        onOpenChange={setCreateOpen}
+        onOpenChange={(open) => {
+          setCreateOpen(open)
+          if (!open) clearPrefill()
+        }}
         onSubmit={(input) => createMutation.mutate(input)}
+        initialName={prefilledName}
+        initialGoal={prefilledGoal}
+        initialMembers={prefilledMembers}
       />
     </div>
   )
