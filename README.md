@@ -6,18 +6,21 @@
 
 **The only Hermes web UI with a built-in cron job manager — schedule, monitor, and control autonomous agent tasks without touching a terminal.**
 
-[![Version](https://img.shields.io/badge/version-1.5.0-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.0-6366F1.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366F1.svg)](CONTRIBUTING.md)
 
-> Not a chat wrapper. A complete studio — orchestrate agents, approve actions, browse memory, manage skills, and schedule recurring tasks, all from one interface. Built for power users running Hermes Agent locally.
+> Not a chat wrapper. A complete studio — orchestrate multi-agent crews, approve actions, browse memory with a visual knowledge graph, manage skills, and schedule recurring tasks, all from one interface. Built for power users running Hermes Agent locally.
 
 </div>
 
 ## ✨ Features
 
 - 🤖 **Hermes Agent Integration** — Direct gateway connection with real-time SSE streaming
+- 👥 **Multi-Agent Crews** — Create named crews of specialised agents, dispatch tasks to all or specific members, watch live activity feeds
+- 🗂️ **Profile-Scoped Workspaces** — Each agent crew member gets an isolated file system view via per-profile workspace roots
+- 🕸️ **Interactive Knowledge Graph** — Force-directed visual graph of your memory's wiki-link relationships with zoom, pan, node drag, and hover highlights
 - 🎨 **8-Theme System** — Official, Classic, Slate, Mono — each with light and dark variants
 - 🔒 **Security Hardened** — Auth middleware on all API routes, CSP headers, path traversal guards, exec approval prompts
 - 📱 **Mobile-First PWA** — Full feature parity on any device via Tailscale
@@ -74,7 +77,9 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 - ✅ **Permissions & Toolsets** — configure approvals mode, command allowlist, toolsets, website blocklist, code execution limits, and reasoning effort from Settings
 - ✅ **Chat Platform Tokens** — set Telegram, Discord, Slack, and Signal bot tokens from the Integrations settings page (no `.env` editing required)
 - ✅ **Session Persistence** — chat history survives server restarts; Redis backend auto-connects to `localhost:6379` and falls back to file store gracefully
-- 🔜 **Multi-Agent Orchestration** — crew status dashboard for coordinating multiple agents
+- ✅ **Multi-Agent Orchestration** — Crews: named groups of persona agents, parallel task dispatch, live SSE activity feed, per-member status tracking
+- ✅ **Profile-Scoped Workspaces** — each agent works inside an isolated directory (`~/.hermes/profiles/<name>/`) so crews don't collide on the file system
+- ✅ **Interactive Knowledge Graph** — force-directed canvas in the Memory screen: zoom, pan, drag nodes, hover to highlight connections, nodes sized by degree
 
 ---
 
@@ -402,6 +407,42 @@ The only browser-based UI for scheduling Hermes agent tasks. No other Hermes or 
 - Expand any job card to read recent run output inline
 - Auto-refreshes every 30 seconds
 
+### 👥 Multi-Agent Crews
+
+Coordinate multiple AI agents working in parallel toward a shared goal — all from a single UI.
+
+- **Create crews** — give each crew a name, a goal, and up to 8 agent members
+- **Persona agents** — pick from specialised personas (Roger / Frontend, Sally / Backend, Ada / QA, Kai / General, and more) each with a role label, emoji, and colour
+- **Per-member model** — assign any model to any agent independently
+- **Dispatch tasks** — send a prompt to all agents simultaneously or target a specific member
+- **Live activity feed** — SSE events from all crew members stream into a unified timeline in real time; tool calls, messages, and errors are colour-coded
+- **Status indicators** — idle / running / done / error shown with animated pulse on each member card
+- **"Open chat"** link on every member card navigates directly to that agent's chat session
+- **Persistence** — crews and their member status survive server restarts (file-backed crew store)
+
+### 🗂️ Profile-Scoped Workspaces
+
+Every crew member can be assigned a named profile that scopes their file system access to an isolated directory.
+
+- Each profile resolves to `~/.hermes/profiles/<name>/` — auto-created on first use
+- The File Explorer sidebar shows the profile's workspace root, not the global workspace
+- All file operations (read, write, upload, delete, rename, mkdir) are profile-aware
+- Path traversal is prevented server-side — profile names are validated, `../` is rejected
+- The active profile drives the file explorer in the main chat screen via `useActiveProfile` hook
+
+### 🕸️ Interactive Knowledge Graph
+
+The Memory screen's graph view is now a fully interactive force-directed canvas — not a static circle.
+
+- **Force-directed layout** — nodes spread naturally; hubs cluster, orphans spread to the edges; computed synchronously on load (280 iterations of Coulomb repulsion + Hooke spring attraction)
+- **Node sizing by degree** — highly-connected hubs appear larger; isolated nodes stay small
+- **Node type colours** — guide, project, reference, concept, note each get a distinct palette; legend shown only when typed nodes exist in the data
+- **Hover highlights** — hover any node to illuminate its direct connections and dim everything else to 22% opacity; a glow ring marks the hovered node
+- **Zoom** — mouse wheel (non-passive, doesn't scroll the page) + +/− buttons; 0.25×–4× range
+- **Pan** — drag the background to move the viewport
+- **Node drag** — drag individual nodes to reposition them; position is pinned for the session
+- **Stats counter** — `N nodes · M edges` shown in the bottom-right corner
+
 ### 🔐 Permissions & Toolsets
 
 - Approvals mode selector (auto / always / never)
@@ -556,22 +597,29 @@ The Docker setup uses `hermes --gateway` automatically — no action needed if u
 
 ## 🗺️ Roadmap
 
-| Feature                         | Status            |
-| ------------------------------- | ----------------- |
-| Chat + SSE Streaming            | ✅ Shipped        |
-| Files + Terminal                | ✅ Shipped        |
-| Memory Browser                  | ✅ Shipped        |
-| Skills Browser                  | ✅ Shipped        |
-| Mobile PWA + Tailscale          | ✅ Shipped        |
-| 8-Theme System                  | ✅ Shipped        |
-| Execution Approvals UI          | ✅ Shipped v1.1.0 |
-| Skill Install / Toggle UI       | ✅ Shipped v1.2.0 |
-| Cron Job Manager UI             | ✅ Shipped v1.3.0 |
-| Permissions & Toolsets Settings | ✅ Shipped v1.4.0 |
-| Session Persistence (Redis)     | ✅ Shipped v1.5.0 |
-| Multi-Agent Orchestration       | 🔜 Planned        |
-| Native Desktop App (Electron)   | 🔨 In Development |
-| Cloud / Hosted Version          | 🔜 Coming Soon    |
+| Feature                              | Status            |
+| ------------------------------------ | ----------------- |
+| Chat + SSE Streaming                 | ✅ Shipped        |
+| Files + Terminal                     | ✅ Shipped        |
+| Memory Browser                       | ✅ Shipped        |
+| Skills Browser                       | ✅ Shipped        |
+| Mobile PWA + Tailscale               | ✅ Shipped        |
+| 8-Theme System                       | ✅ Shipped        |
+| Execution Approvals UI               | ✅ Shipped v1.1.0 |
+| Skill Install / Toggle UI            | ✅ Shipped v1.2.0 |
+| Cron Job Manager UI                  | ✅ Shipped v1.3.0 |
+| Permissions & Toolsets Settings      | ✅ Shipped v1.4.0 |
+| Session Persistence (Redis)          | ✅ Shipped v1.5.0 |
+| Multi-Agent Orchestration (Crews)    | ✅ Shipped v1.6.0 |
+| Profile-Scoped Workspaces            | ✅ Shipped v1.6.0 |
+| Interactive Knowledge Graph          | ✅ Shipped v1.6.0 |
+| Crew/Agent Metrics Dashboard         | 🔜 Planned        |
+| Visual Workflow Builder (DAG editor) | 🔜 Planned        |
+| Crew Templates                       | 🔜 Planned        |
+| MCP Client Protocol                  | 🔜 Planned        |
+| Audit Trail                          | 🔜 Planned        |
+| Native Desktop App (Electron)        | 🔨 In Development |
+| Cloud / Hosted Version               | 🔜 Coming Soon    |
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "name": "hermes-studio",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "A full-featured web UI for Hermes Agent — chat, memory, skills, terminal, approvals and multi-agent orchestration in your browser.",
   "author": "JPeetz (https://github.com/JPeetz)",
   "license": "MIT",
