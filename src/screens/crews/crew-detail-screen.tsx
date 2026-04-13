@@ -7,6 +7,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowLeft01Icon,
   BarChartIcon,
+  Copy01Icon,
   Delete01Icon,
   MessageMultiple01Icon,
   PlayIcon,
@@ -19,6 +20,7 @@ import { CostPanel } from './components/cost-panel'
 import { Tabs, TabsList, TabsTab, TabsPanel } from '@/components/ui/tabs'
 import type { Crew, CrewMember, CrewMemberStatus } from '@/lib/crews-api'
 import {
+  cloneCrew,
   deleteCrew,
   dispatchTask,
   fetchCrew,
@@ -196,6 +198,16 @@ export function CrewDetailScreen() {
       void navigate({ to: '/crews' })
     },
     onError: () => toast('Failed to delete crew', { type: 'error' }),
+  })
+
+  const cloneMutation = useMutation({
+    mutationFn: () => cloneCrew(crewId),
+    onSuccess: (cloned) => {
+      void queryClient.invalidateQueries({ queryKey: ['crews'] })
+      toast(`Cloned as "${cloned.name}"`)
+      void navigate({ to: '/crews/$crewId', params: { crewId: cloned.id } })
+    },
+    onError: (err) => toast(err instanceof Error ? err.message : 'Failed to clone crew', { type: 'error' }),
   })
 
   const dispatchMutation = useMutation({
@@ -416,6 +428,14 @@ export function CrewDetailScreen() {
           >
             <HugeiconsIcon icon={PlayIcon} size={13} />
             Dispatch Task
+          </button>
+          <button
+            onClick={() => cloneMutation.mutate()}
+            disabled={cloneMutation.isPending}
+            title="Clone crew"
+            className="rounded-lg p-1.5 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)] disabled:opacity-40"
+          >
+            <HugeiconsIcon icon={Copy01Icon} size={16} />
           </button>
           <button
             onClick={() => deleteMutation.mutate()}

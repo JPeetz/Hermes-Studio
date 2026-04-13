@@ -4,6 +4,29 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-13 — Session 15
+
+### What was done
+
+**Task #21 — Clone Crew (duplicate an existing crew with one click)**
+
+Inspired by xaspx/hermes-control-interface + karmsheel/mission-control-hermes.
+
+**Server-side:**
+
+- `src/routes/api/crews/$crewId.clone.ts` — new `POST /api/crews/:crewId/clone` handler; reads source crew from store, mints fresh sessions for all members in parallel (same mintSession logic as the create endpoint — supports both enhanced-hermes and portable/local modes), creates a new crew with name `"Copy of <original>"` and the same goal and member roster; returns 404 if source not found
+
+**Client-side:**
+
+- `src/lib/crews-api.ts` — added `cloneCrew(crewId)` client helper (POST with `Content-Type: application/json` for CSRF compliance)
+- `src/screens/crews/crews-screen.tsx` — `CrewCard` gains a `Copy01Icon` clone button that appears on hover alongside the existing delete button; both buttons are now in a flex group; `cloneMutation` added to `CrewsScreen`; toast shows `"Cloned as 'Copy of …'"` on success
+- `src/screens/crews/crew-detail-screen.tsx` — clone button (`Copy01Icon`) added between Dispatch Task and Delete in the detail header; `cloneMutation` navigates to the newly created crew's detail page on success
+- `src/routeTree.gen.ts` — registered `ApiCrewsCrewIdCloneRoute` as a child of `ApiCrewsCrewIdRoute` across all required locations (import, route definition, ApiCrewsCrewIdRouteChildren interface + object, FileRoutesByFullPath/To/ById interfaces, FileRouteTypes unions, FileRoutesByPath declare module)
+
+**Version:** 1.13.0 → 1.14.0
+
+---
+
 ## 2026-04-13 — Session 14
 
 ### What was done

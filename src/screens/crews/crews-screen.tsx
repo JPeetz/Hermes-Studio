@@ -7,6 +7,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import {
   Add01Icon,
   CheckmarkCircle02Icon,
+  Copy01Icon,
   Delete01Icon,
   GridViewIcon,
   PauseIcon,
@@ -19,6 +20,7 @@ import { TemplatesGallery } from './components/templates-gallery'
 import type { Crew } from '@/lib/crews-api'
 import type { CrewMemberRole } from '@/lib/crews-api'
 import {
+  cloneCrew,
   createCrew,
   deleteCrew,
   fetchCrews,
@@ -202,9 +204,13 @@ function StatsStrip({ crews }: { crews: Crew[] }) {
 function CrewCard({
   crew,
   onDelete,
+  onClone,
+  isCloning,
 }: {
   crew: Crew
   onDelete: (id: string) => void
+  onClone: (id: string) => void
+  isCloning: boolean
 }) {
   const status = STATUS_CONFIG[crew.status]
   const activeCount = crew.members.filter(
@@ -269,17 +275,30 @@ function CrewCard({
         <span>{new Date(crew.updatedAt).toLocaleDateString()}</span>
       </div>
 
-      {/* Delete button */}
-      <button
-        onClick={(e) => {
-          e.preventDefault()
-          onDelete(crew.id)
-        }}
-        title="Delete crew"
-        className="absolute right-3 top-3 rounded-lg p-1.5 text-[var(--theme-muted)] opacity-0 transition-all hover:text-[var(--theme-danger)] group-hover:opacity-100"
-      >
-        <HugeiconsIcon icon={Delete01Icon} size={14} />
-      </button>
+      {/* Action buttons */}
+      <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 transition-all group-hover:opacity-100">
+        <button
+          onClick={(e) => {
+            e.preventDefault()
+            onClone(crew.id)
+          }}
+          disabled={isCloning}
+          title="Clone crew"
+          className="rounded-lg p-1.5 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)] disabled:opacity-40"
+        >
+          <HugeiconsIcon icon={Copy01Icon} size={14} />
+        </button>
+        <button
+          onClick={(e) => {
+            e.preventDefault()
+            onDelete(crew.id)
+          }}
+          title="Delete crew"
+          className="rounded-lg p-1.5 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-hover)] hover:text-[var(--theme-danger)]"
+        >
+          <HugeiconsIcon icon={Delete01Icon} size={14} />
+        </button>
+      </div>
     </div>
   )
 }
@@ -337,6 +356,17 @@ export function CrewsScreen() {
     },
     onError: () => {
       toast('Failed to delete crew', { type: 'error' })
+    },
+  })
+
+  const cloneMutation = useMutation({
+    mutationFn: cloneCrew,
+    onSuccess: (crew) => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+      toast(`Cloned as "${crew.name}"`)
+    },
+    onError: (err) => {
+      toast(err instanceof Error ? err.message : 'Failed to clone crew', { type: 'error' })
     },
   })
 
@@ -418,6 +448,8 @@ export function CrewsScreen() {
                 key={crew.id}
                 crew={crew}
                 onDelete={(id) => deleteMutation.mutate(id)}
+                onClone={(id) => cloneMutation.mutate(id)}
+                isCloning={cloneMutation.isPending && cloneMutation.variables === crew.id}
               />
             ))}
           </div>

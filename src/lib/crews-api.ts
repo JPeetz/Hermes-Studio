@@ -109,6 +109,17 @@ export async function dispatchTask(
   return { dispatched: data.dispatched ?? [] }
 }
 
+export async function cloneCrew(crewId: string): Promise<Crew> {
+  const res = await fetch(`/api/crews/${crewId}/clone`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  })
+  const data = (await res.json()) as { ok: boolean; crew?: Crew; error?: string }
+  if (!data.ok || !data.crew) throw new Error(data.error ?? 'Failed to clone crew')
+  return data.crew
+}
+
 export async function updateMemberStatus(
   crewId: string,
   memberSessionKey: string,

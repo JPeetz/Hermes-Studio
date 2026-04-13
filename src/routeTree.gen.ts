@@ -95,6 +95,7 @@ import { Route as ApiCrewsTemplatesIdRouteImport } from './routes/api/crews/temp
 import { Route as ApiCrewsCrewIdWorkflowRouteImport } from './routes/api/crews/$crewId.workflow'
 import { Route as ApiCrewsCrewIdUsageRouteImport } from './routes/api/crews/$crewId.usage'
 import { Route as ApiCrewsCrewIdDispatchRouteImport } from './routes/api/crews/$crewId.dispatch'
+import { Route as ApiCrewsCrewIdCloneRouteImport } from './routes/api/crews/$crewId.clone'
 import { Route as ApiApprovalsApprovalIdDenyRouteImport } from './routes/api/approvals.$approvalId.deny'
 import { Route as ApiApprovalsApprovalIdApproveRouteImport } from './routes/api/approvals.$approvalId.approve'
 
@@ -531,6 +532,11 @@ const ApiCrewsCrewIdDispatchRoute = ApiCrewsCrewIdDispatchRouteImport.update({
   path: '/dispatch',
   getParentRoute: () => ApiCrewsCrewIdRoute,
 } as any)
+const ApiCrewsCrewIdCloneRoute = ApiCrewsCrewIdCloneRouteImport.update({
+  id: '/clone',
+  path: '/clone',
+  getParentRoute: () => ApiCrewsCrewIdRoute,
+} as any)
 const ApiApprovalsApprovalIdDenyRoute =
   ApiApprovalsApprovalIdDenyRouteImport.update({
     id: '/api/approvals/$approvalId/deny',
@@ -625,6 +631,7 @@ export interface FileRoutesByFullPath {
   '/api/crews/': typeof ApiCrewsIndexRoute
   '/api/approvals/$approvalId/approve': typeof ApiApprovalsApprovalIdApproveRoute
   '/api/approvals/$approvalId/deny': typeof ApiApprovalsApprovalIdDenyRoute
+  '/api/crews/$crewId/clone': typeof ApiCrewsCrewIdCloneRoute
   '/api/crews/$crewId/dispatch': typeof ApiCrewsCrewIdDispatchRoute
   '/api/crews/$crewId/usage': typeof ApiCrewsCrewIdUsageRoute
   '/api/crews/$crewId/workflow': typeof ApiCrewsCrewIdWorkflowRoute
@@ -714,6 +721,7 @@ export interface FileRoutesByTo {
   '/api/crews': typeof ApiCrewsIndexRoute
   '/api/approvals/$approvalId/approve': typeof ApiApprovalsApprovalIdApproveRoute
   '/api/approvals/$approvalId/deny': typeof ApiApprovalsApprovalIdDenyRoute
+  '/api/crews/$crewId/clone': typeof ApiCrewsCrewIdCloneRoute
   '/api/crews/$crewId/dispatch': typeof ApiCrewsCrewIdDispatchRoute
   '/api/crews/$crewId/usage': typeof ApiCrewsCrewIdUsageRoute
   '/api/crews/$crewId/workflow': typeof ApiCrewsCrewIdWorkflowRoute
@@ -805,6 +813,7 @@ export interface FileRoutesById {
   '/api/crews/': typeof ApiCrewsIndexRoute
   '/api/approvals/$approvalId/approve': typeof ApiApprovalsApprovalIdApproveRoute
   '/api/approvals/$approvalId/deny': typeof ApiApprovalsApprovalIdDenyRoute
+  '/api/crews/$crewId/clone': typeof ApiCrewsCrewIdCloneRoute
   '/api/crews/$crewId/dispatch': typeof ApiCrewsCrewIdDispatchRoute
   '/api/crews/$crewId/usage': typeof ApiCrewsCrewIdUsageRoute
   '/api/crews/$crewId/workflow': typeof ApiCrewsCrewIdWorkflowRoute
@@ -897,6 +906,7 @@ export interface FileRouteTypes {
     | '/api/crews/'
     | '/api/approvals/$approvalId/approve'
     | '/api/approvals/$approvalId/deny'
+    | '/api/crews/$crewId/clone'
     | '/api/crews/$crewId/dispatch'
     | '/api/crews/$crewId/usage'
     | '/api/crews/$crewId/workflow'
@@ -986,6 +996,7 @@ export interface FileRouteTypes {
     | '/api/crews'
     | '/api/approvals/$approvalId/approve'
     | '/api/approvals/$approvalId/deny'
+    | '/api/crews/$crewId/clone'
     | '/api/crews/$crewId/dispatch'
     | '/api/crews/$crewId/usage'
     | '/api/crews/$crewId/workflow'
@@ -1076,6 +1087,7 @@ export interface FileRouteTypes {
     | '/api/crews/'
     | '/api/approvals/$approvalId/approve'
     | '/api/approvals/$approvalId/deny'
+    | '/api/crews/$crewId/clone'
     | '/api/crews/$crewId/dispatch'
     | '/api/crews/$crewId/usage'
     | '/api/crews/$crewId/workflow'
@@ -1761,6 +1773,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCrewsCrewIdDispatchRouteImport
       parentRoute: typeof ApiCrewsCrewIdRoute
     }
+    '/api/crews/$crewId/clone': {
+      id: '/api/crews/$crewId/clone'
+      path: '/clone'
+      fullPath: '/api/crews/$crewId/clone'
+      preLoaderRoute: typeof ApiCrewsCrewIdCloneRouteImport
+      parentRoute: typeof ApiCrewsCrewIdRoute
+    }
     '/api/approvals/$approvalId/deny': {
       id: '/api/approvals/$approvalId/deny'
       path: '/api/approvals/$approvalId/deny'
@@ -1883,12 +1902,14 @@ const ApiSkillsRouteWithChildren = ApiSkillsRoute._addFileChildren(
 )
 
 interface ApiCrewsCrewIdRouteChildren {
+  ApiCrewsCrewIdCloneRoute: typeof ApiCrewsCrewIdCloneRoute
   ApiCrewsCrewIdDispatchRoute: typeof ApiCrewsCrewIdDispatchRoute
   ApiCrewsCrewIdUsageRoute: typeof ApiCrewsCrewIdUsageRoute
   ApiCrewsCrewIdWorkflowRoute: typeof ApiCrewsCrewIdWorkflowRoute
 }
 
 const ApiCrewsCrewIdRouteChildren: ApiCrewsCrewIdRouteChildren = {
+  ApiCrewsCrewIdCloneRoute: ApiCrewsCrewIdCloneRoute,
   ApiCrewsCrewIdDispatchRoute: ApiCrewsCrewIdDispatchRoute,
   ApiCrewsCrewIdUsageRoute: ApiCrewsCrewIdUsageRoute,
   ApiCrewsCrewIdWorkflowRoute: ApiCrewsCrewIdWorkflowRoute,
