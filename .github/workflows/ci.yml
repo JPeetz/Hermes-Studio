@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main, production]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Silence deprecation warning
+
 jobs:
   unit-tests:
     name: Unit Tests
@@ -17,10 +20,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          # Removed cache: 'npm' - will re-enable after lockfile is committed
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install  # Changed from 'npm ci' (ci requires lockfile)
 
       - name: Run unit tests
         run: npm test
@@ -36,10 +39,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          # Removed cache: 'npm' - will re-enable after lockfile is committed
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install  # Changed from 'npm ci'
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
