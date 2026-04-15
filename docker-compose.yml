@@ -1,17 +1,21 @@
-# Hermes Workspace + Agent — Docker Compose Setup
+# Hermes Studio + Agent — Docker Compose Setup
 #
 # Requirements:
 #   - Docker & Docker Compose
 #   - ANTHROPIC_API_KEY in .env file (required for the agent gateway)
 #
-# Quick Start:
+# Quick Start (no Redis — sessions stored in container file system):
 #   1. cp .env.example .env
 #   2. Add your ANTHROPIC_API_KEY to .env
 #   3. docker compose up
 #   4. Open http://localhost:3000
 #
+# With Redis session persistence (sessions survive container restarts):
+#   1. Add REDIS_URL=redis://redis:6379 to your .env
+#   2. docker compose --profile redis up
+#
 # Troubleshooting:
-#   - See README.md "Docker" troubleshooting section
+#   - Check logs: docker compose logs hermes-studio
 #   - Check logs: docker compose logs hermes-agent
 
 services:
@@ -24,7 +28,6 @@ services:
     env_file:
       - .env
     environment:
-      # Pass through the API key from .env (required!)
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:8642/health']
@@ -35,9 +38,14 @@ services:
     ports:
       - '8642:8642'
 
-  # The Hermes Workspace Web UI
+  # The Hermes Studio Web UI
   # Connects to hermes-agent at http://hermes-agent:8642
-  hermes-workspace:
+  #
+  # Redis: if REDIS_URL=redis://redis:6379 is set in .env and the redis
+  # profile is active, the studio will automatically use Redis for session
+  # persistence. If Redis is unavailable on startup, it retries for ~30s
+  # then falls back to the file-based store gracefully.
+  hermes-studio:
     build:
       context: .
       dockerfile: docker/workspace/Dockerfile
@@ -49,5 +57,34 @@ services:
     environment:
       # Internal Docker network URL (not localhost!)
       HERMES_API_URL: http://hermes-agent:8642
+      # Inherited from .env — empty string means "no Redis, use file store".
+      # Set REDIS_URL=redis://redis:6379 in .env when running --profile redis.
+      REDIS_URL: ${REDIS_URL:-}
+    volumes:
+      # Persist file-based sessions across container restarts (fallback store)
+      - studio-sessions:/app/.runtime
     ports:
       - '3000:3000'
+
+  # ─── Optional: Redis session persistence ──────────────────────────────────
+  # Activate with: docker compose --profile redis up
+  #
+  # Enables durable, multi-device session storage backed by Redis AOF.
+  # Sessions survive both studio and agent container restarts.
+  redis:
+    image: redis:7-alpine
+    profiles:
+      - redis
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  studio-sessions:
+  redis-data:

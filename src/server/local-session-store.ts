@@ -144,13 +144,29 @@ async function deleteSessionFromRedis(
   }
 }
 
-// Bootstrap: load from file immediately, then connect shared Redis client
+// Bootstrap: load from file immediately, then connect shared Redis client.
+// If REDIS_URL is set but Redis isn't ready yet (common in Docker during
+// container startup), retry with exponential backoff before giving up.
 loadFromDisk()
-void getRedisClient().then((client) => {
-  if (client) void loadFromRedis(client).then(() => {
-    console.log('[session-store] Redis backend active')
-  })
-})
+void (async () => {
+  if (!process.env.REDIS_URL) return // no Redis configured — skip entirely
+
+  const delays = [2_000, 4_000, 8_000, 16_000] // max ~30s total
+  for (let attempt = 0; attempt <= delays.length; attempt++) {
+    const client = await getRedisClient()
+    if (client) {
+      await loadFromRedis(client)
+      console.log('[session-store] Redis backend active')
+      return
+    }
+    if (attempt < delays.length) {
+      const wait = delays[attempt]
+      console.log(`[session-store] Redis not ready — retrying in ${wait / 1000}s (attempt ${attempt + 1}/${delays.length})`)
+      await new Promise((r) => setTimeout(r, wait))
+    }
+  }
+  console.log('[session-store] Redis unavailable after retries — using file store')
+})()
 
 // ─── Deferred write scheduler ───────────────────────────────────────────────
 
