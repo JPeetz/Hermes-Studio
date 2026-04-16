@@ -634,7 +634,7 @@ function SettingCard(props: {
 
           {setting.kind === 'select' ? (
             <select
-              className="w-full rounded-lg border border-[var(--theme-border)] bg-surface px-3 py-2 text-sm text-[var(--theme-text)] outline-none"
+              className="w-full rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-sm text-[var(--theme-text)] outline-none"
               value={coerceString(currentValue)}
               disabled={disabled}
               onChange={(event) => {
@@ -724,7 +724,7 @@ function SettingCard(props: {
 
           {setting.kind === 'multiline' ? (
             <textarea
-              className="min-h-[88px] w-full rounded-lg border border-[var(--theme-border)] bg-surface px-3 py-2 text-sm text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-muted)]"
+              className="min-h-[88px] w-full rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-sm text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-muted)]"
               value={draftValue}
               disabled={disabled}
               rows={setting.rows ?? 4}
@@ -1558,7 +1558,7 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
     return (
       <div
         className={cn(
-          embedded ? 'h-full bg-[var(--theme-bg)]' : 'min-h-full bg-surface',
+          embedded ? 'h-full bg-[var(--theme-bg)]' : 'min-h-full bg-[var(--theme-bg)]',
         )}
       >
         <BackendUnavailableState
@@ -1572,7 +1572,7 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
   return (
     <div
       className={cn(
-        embedded ? 'h-full bg-[var(--theme-bg)]' : 'min-h-full bg-surface',
+        embedded ? 'h-full bg-[var(--theme-bg)]' : 'min-h-full bg-[var(--theme-bg)]',
       )}
     >
       <main

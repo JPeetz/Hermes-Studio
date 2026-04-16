@@ -409,13 +409,13 @@ export function SkillsScreen() {
         <header className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/85 p-4 backdrop-blur-xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="space-y-1.5">
-              <p className="text-xs font-medium uppercase text-primary-500 tabular-nums">
+              <p className="text-xs font-medium uppercase text-[var(--theme-muted)] tabular-nums">
                 Hermes Studio Marketplace
               </p>
               <h1 className="text-2xl font-medium text-ink text-balance sm:text-3xl">
                 Skills Browser
               </h1>
-              <p className="text-sm text-primary-500 text-pretty sm:text-base">
+              <p className="text-sm text-[var(--theme-muted)] text-pretty sm:text-base">
                 Discover, install, and manage skills across your local workspace
                 and Skills Hub.
               </p>
@@ -427,7 +427,7 @@ export function SkillsScreen() {
           <Tabs value={tab} onValueChange={handleTabChange}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <TabsList
-                className="w-full rounded-xl border border-[var(--theme-border)] bg-primary-100/60 p-1 sm:w-auto"
+                className="w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)] p-1 sm:w-auto"
                 variant="default"
               >
                 <TabsTab value="installed" className="flex-1 sm:min-w-[132px]">
@@ -450,7 +450,7 @@ export function SkillsScreen() {
                     value={searchInput}
                     onChange={(event) => handleSearchChange(event.target.value)}
                     placeholder="Search by name, tags, or description"
-                    className="h-9 w-full min-w-0 rounded-lg border border-[var(--theme-border)] bg-primary-100/60 px-3 text-sm text-ink outline-none transition-colors focus:border-primary sm:min-w-[220px]"
+                    className="h-9 w-full min-w-0 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-panel)] px-3 text-sm text-ink outline-none transition-colors focus:border-[var(--theme-accent)] sm:min-w-[220px]"
                   />
 
                   {tab === 'installed' ? (
@@ -459,7 +459,7 @@ export function SkillsScreen() {
                       onChange={(event) =>
                         handleCategoryChange(event.target.value)
                       }
-                      className="h-9 rounded-lg border border-[var(--theme-border)] bg-primary-100/60 px-3 text-sm text-ink outline-none"
+                      className="h-9 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-panel)] px-3 text-sm text-ink outline-none"
                     >
                       {categories.map((item) => (
                         <option key={item} value={item}>
@@ -479,7 +479,7 @@ export function SkillsScreen() {
                             : 'name',
                         )
                       }
-                      className="h-9 rounded-lg border border-[var(--theme-border)] bg-primary-100/60 px-3 text-sm text-ink outline-none"
+                      className="h-9 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-panel)] px-3 text-sm text-ink outline-none"
                     >
                       <option value="name">Name A-Z</option>
                       <option value="category">Category</option>
@@ -490,12 +490,12 @@ export function SkillsScreen() {
             </div>
 
             {actionError ? (
-              <p className="rounded-lg border border-[var(--theme-border)] bg-primary-100/60 px-3 py-2 text-sm text-ink">
+              <p className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-panel)] px-3 py-2 text-sm text-ink">
                 {actionError}
               </p>
             ) : null}
             {actionSkillId && actionType === 'install' ? (
-              <p className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700 dark:border-blue-800/50 dark:bg-blue-900/15 dark:text-blue-400">
+              <p className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700   ">
                 Installing {actionSkillId}... This may take up to 2 minutes.
               </p>
             ) : null}
@@ -523,9 +523,9 @@ export function SkillsScreen() {
                   value={searchInput}
                   onChange={(event) => handleSearchChange(event.target.value)}
                   placeholder="Search skills..."
-                  className="h-10 w-full rounded-lg border border-[var(--theme-border)] bg-primary-100/60 px-3 text-sm text-ink outline-none transition-colors focus:border-primary"
+                  className="h-10 w-full rounded-lg border border-[var(--theme-border)] bg-[var(--theme-panel)] px-3 text-sm text-ink outline-none transition-colors focus:border-primary"
                 />
-                <div className="text-xs text-primary-500 sm:text-right">
+                <div className="text-xs text-[var(--theme-muted)] sm:text-right">
                   {hubQuery.data?.source === 'skillsmp'
                     ? 'Source: skillsmp.com'
                     : hubQuery.data?.source === 'installed-fallback'
@@ -535,9 +535,9 @@ export function SkillsScreen() {
               </div>
 
               {hubQuery.data?.source === 'no-api-key' ? (
-                <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)] px-4 py-4 text-sm text-primary-700">
+                <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)] px-4 py-4 text-sm text-[var(--theme-text)]">
                   <p className="font-medium mb-1">skillsmp.com API key not configured</p>
-                  <p className="text-primary-500 text-pretty">
+                  <p className="text-[var(--theme-muted)] text-pretty">
                     To search the Skills marketplace, add your API key in{' '}
                     <a href="/settings" className="underline underline-offset-2 hover:opacity-80">
                       Settings → Integrations
@@ -610,7 +610,7 @@ export function SkillsScreen() {
         </section>
 
         {tab !== 'featured' && tab !== 'marketplace' ? (
-          <footer className="flex items-center justify-between rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)] px-3 py-2.5 text-sm text-primary-500 tabular-nums">
+          <footer className="flex items-center justify-between rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)] px-3 py-2.5 text-sm text-[var(--theme-muted)] tabular-nums">
             <span>
               {(skillsQuery.data?.total || 0).toLocaleString()} total skills
             </span>
@@ -674,7 +674,7 @@ export function SkillsScreen() {
                 <ScrollAreaViewport className="px-5 py-4">
                   <div className="space-y-3">
                     {selectedSkill.homepage ? (
-                      <p className="text-sm text-primary-500 text-pretty">
+                      <p className="text-sm text-[var(--theme-muted)] text-pretty">
                         Homepage:{' '}
                         <a
                           href={selectedSkill.homepage}
@@ -692,19 +692,19 @@ export function SkillsScreen() {
                         selectedSkill.triggers.slice(0, 8).map((trigger) => (
                           <span
                             key={trigger}
-                            className="rounded-md border border-[var(--theme-border)] bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500"
+                            className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-panel)] px-2 py-0.5 text-xs text-[var(--theme-muted)]"
                           >
                             {trigger}
                           </span>
                         ))
                       ) : (
-                        <span className="rounded-md border border-[var(--theme-border)] bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500">
+                        <span className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-panel)] px-2 py-0.5 text-xs text-[var(--theme-muted)]">
                           No triggers listed
                         </span>
                       )}
                     </div>
 
-                    <article className="rounded-xl border border-[var(--theme-border)] bg-primary-100/30 p-4 backdrop-blur-sm">
+                    <article className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)] p-4 backdrop-blur-sm">
                       <Markdown>
                         {selectedSkill.content ||
                           `# ${selectedSkill.name}\n\n${selectedSkill.description}`}
@@ -718,7 +718,7 @@ export function SkillsScreen() {
               </ScrollAreaRoot>
 
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--theme-border)] px-5 py-3">
-                <p className="text-sm text-primary-500 text-pretty">
+                <p className="text-sm text-[var(--theme-muted)] text-pretty">
                   Source:{' '}
                   <code className="inline-code">
                     {selectedSkill.sourcePath}
@@ -867,12 +867,12 @@ function SecurityScanCard({ security }: { security: SecurityRisk }) {
   return (
     <div className="text-xs">
       <div className="px-3 pt-3 pb-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-400 mb-2">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--theme-muted)] mb-2">
           Security Scan
         </p>
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-primary-500 font-medium w-16 shrink-0">
+            <span className="text-[var(--theme-muted)] font-medium w-16 shrink-0">
               Hermes Studio
             </span>
             <span
@@ -883,14 +883,14 @@ function SecurityScanCard({ security }: { security: SecurityRisk }) {
             >
               {config.label}
             </span>
-            <span className="text-[10px] text-primary-400 uppercase tracking-wide font-medium">
+            <span className="text-[10px] text-[var(--theme-muted)] uppercase tracking-wide font-medium">
               {config.confidence}
             </span>
           </div>
         </div>
       </div>
       <div className="px-3 pb-2">
-        <p className="text-primary-500 text-pretty leading-relaxed">
+        <p className="text-[var(--theme-muted)] text-pretty leading-relaxed">
           {summaryText}
         </p>
       </div>
@@ -912,9 +912,9 @@ function SecurityScanCard({ security }: { security: SecurityRisk }) {
               {security.flags.map((flag) => (
                 <div
                   key={flag}
-                  className="flex items-start gap-2 text-primary-600"
+                  className="flex items-start gap-2 text-[var(--theme-muted)]"
                 >
-                  <span className="mt-0.5 text-[9px] text-primary-400">●</span>
+                  <span className="mt-0.5 text-[9px] text-[var(--theme-muted)]">●</span>
                   <span>{flag}</span>
                 </div>
               ))}
@@ -923,7 +923,7 @@ function SecurityScanCard({ security }: { security: SecurityRisk }) {
         </div>
       )}
       <div className="border-t border-primary-100 px-3 py-2">
-        <p className="text-[10px] text-primary-400 italic">
+        <p className="text-[10px] text-[var(--theme-muted)] italic">
           Like a lobster shell, security has layers — review code before you run
           it.
         </p>
@@ -949,11 +949,11 @@ function SkillsGrid({
 
   if (skills.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-primary-100/40 px-4 py-8 text-center">
-        <p className="text-sm font-medium text-primary-700">
+      <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-panel)]/40 px-4 py-8 text-center">
+        <p className="text-sm font-medium text-[var(--theme-text)]">
           {emptyState?.title || 'No skills found'}
         </p>
-        <p className="mt-1 text-xs text-primary-500 text-pretty max-w-sm mx-auto">
+        <p className="mt-1 text-xs text-[var(--theme-muted)] text-pretty max-w-sm mx-auto">
           {emptyState?.description ||
             'Try adjusting your filters or search term'}
         </p>
@@ -981,7 +981,7 @@ function SkillsGrid({
                   <h3 className="line-clamp-1 text-base font-medium text-ink text-balance">
                     {skill.name}
                   </h3>
-                  <p className="line-clamp-1 text-xs text-primary-500">
+                  <p className="line-clamp-1 text-xs text-[var(--theme-muted)]">
                     by {skill.author}
                   </p>
                 </div>
@@ -990,26 +990,26 @@ function SkillsGrid({
                     'rounded-md border px-2 py-0.5 text-xs tabular-nums',
                     skill.installed
                       ? 'border-primary/40 bg-primary/15 text-primary'
-                      : 'border-[var(--theme-border)] bg-primary-100/60 text-primary-500',
+                      : 'border-[var(--theme-border)] bg-[var(--theme-panel)] text-[var(--theme-muted)]',
                   )}
                 >
                   {skill.installed ? 'Installed' : 'Available'}
                 </span>
               </div>
 
-              <p className="line-clamp-3 min-h-[58px] text-sm text-primary-500 text-pretty">
+              <p className="line-clamp-3 min-h-[58px] text-sm text-[var(--theme-muted)] text-pretty">
                 {skill.description}
               </p>
 
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 <SecurityBadge security={skill.security} />
-                <span className="rounded-md border border-[var(--theme-border)] bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500">
+                <span className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-panel)] px-2 py-0.5 text-xs text-[var(--theme-muted)]">
                   {skill.category}
                 </span>
                 {skill.triggers.slice(0, 2).map((trigger) => (
                   <span
                     key={`${skill.id}-${trigger}`}
-                    className="rounded-md border border-[var(--theme-border)] bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500"
+                    className="rounded-md border border-[var(--theme-border)] bg-[var(--theme-panel)] px-2 py-0.5 text-xs text-[var(--theme-muted)]"
                   >
                     {trigger}
                   </span>
@@ -1027,7 +1027,7 @@ function SkillsGrid({
 
                 {tab === 'installed' ? (
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 text-xs text-primary-500">
+                    <div className="flex items-center gap-1.5 text-xs text-[var(--theme-muted)]">
                       <Switch
                         checked={skill.enabled}
                         disabled={isActing}
@@ -1097,7 +1097,7 @@ function FeaturedGrid({
 
   if (skills.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-primary-100/40 px-4 py-10 text-center text-sm text-primary-500 text-pretty">
+      <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-panel)]/40 px-4 py-10 text-center text-sm text-[var(--theme-muted)] text-pretty">
         Featured picks are currently unavailable.
       </div>
     )
@@ -1114,13 +1114,13 @@ function FeaturedGrid({
           >
             <div className="mb-3 flex items-start justify-between gap-2">
               <div className="space-y-1">
-                <p className="text-xs font-medium uppercase text-primary-500 tabular-nums">
+                <p className="text-xs font-medium uppercase text-[var(--theme-muted)] tabular-nums">
                   {skill.featuredGroup || 'Staff Pick'}
                 </p>
                 <h3 className="text-lg font-medium text-ink text-balance">
                   {skill.icon} {skill.name}
                 </h3>
-                <p className="text-sm text-primary-500">by {skill.author}</p>
+                <p className="text-sm text-[var(--theme-muted)]">by {skill.author}</p>
               </div>
 
               <span
@@ -1128,14 +1128,14 @@ function FeaturedGrid({
                   'rounded-md border px-2 py-0.5 text-xs tabular-nums',
                   skill.installed
                     ? 'border-primary/40 bg-primary/15 text-primary'
-                    : 'border-[var(--theme-border)] bg-primary-100/60 text-primary-500',
+                    : 'border-[var(--theme-border)] bg-[var(--theme-panel)] text-[var(--theme-muted)]',
                 )}
               >
                 {skill.installed ? 'Installed' : 'Staff Pick'}
               </span>
             </div>
 
-            <p className="line-clamp-3 mb-3 text-sm text-primary-500 text-pretty">
+            <p className="line-clamp-3 mb-3 text-sm text-[var(--theme-muted)] text-pretty">
               {skill.description}
             </p>
 
@@ -1197,11 +1197,11 @@ function SkillsSkeleton({
             large ? 'min-h-[120px]' : 'min-h-[100px]',
           )}
         >
-          <div className="mb-3 h-5 w-2/5 rounded-md bg-primary-100" />
-          <div className="mb-2 h-4 w-3/4 rounded-md bg-primary-100" />
-          <div className="h-4 w-1/2 rounded-md bg-primary-100" />
-          <div className="mt-4 h-20 rounded-xl bg-primary-100/80" />
-          <div className="mt-4 h-8 w-1/3 rounded-md bg-primary-100" />
+          <div className="mb-3 h-5 w-2/5 rounded-md bg-[var(--theme-panel)]" />
+          <div className="mb-2 h-4 w-3/4 rounded-md bg-[var(--theme-panel)]" />
+          <div className="h-4 w-1/2 rounded-md bg-[var(--theme-panel)]" />
+          <div className="mt-4 h-20 rounded-xl bg-[var(--theme-panel)]/80" />
+          <div className="mt-4 h-8 w-1/3 rounded-md bg-[var(--theme-panel)]" />
         </div>
       ))}
     </div>
