@@ -21,6 +21,8 @@ import { EditJobDialog } from './edit-job-dialog'
 import type { HermesJob, RunEvent } from '@/lib/jobs-api'
 import { toast } from '@/components/ui/toast'
 import { cn } from '@/lib/utils'
+import { StatusBadge, EmptyState } from '@/components/ds'
+import type { Status } from '@/components/ds'
 import {
   createJob,
   deleteJob,
@@ -94,26 +96,26 @@ function getLastRunStatus(job: HermesJob): {
   }
 }
 
-function formatRunEventLabel(ev: RunEvent): string {
+function statusForEvent(ev: RunEvent): { status: Status; label: string } {
   switch (ev.event) {
     case 'tool.started':
     case 'tool.calling':
     case 'tool.pending':
-      return `⚙ ${ev.name ?? 'tool'}…`
+      return { status: 'pending', label: `${ev.name ?? 'tool'}…` }
     case 'tool.running':
-      return `⚙ ${ev.name ?? 'tool'} running…`
+      return { status: 'running', label: `${ev.name ?? 'tool'} running…` }
     case 'tool.completed':
-      return `✓ ${ev.name ?? 'tool'}`
+      return { status: 'success', label: ev.name ?? 'tool' }
     case 'tool.failed':
-      return `✗ ${ev.name ?? 'tool'} failed`
+      return { status: 'error', label: `${ev.name ?? 'tool'} failed` }
     case 'reasoning.available':
-      return '💭 reasoning…'
+      return { status: 'running', label: 'reasoning…' }
     case 'run.completed':
-      return '✓ Run complete'
+      return { status: 'success', label: 'Run complete' }
     case 'run.failed':
-      return `✗ Run failed${ev.error ? `: ${ev.error}` : ''}`
+      return { status: 'error', label: `Run failed${ev.error ? `: ${ev.error}` : ''}` }
     default:
-      return ev.event
+      return { status: 'pending', label: ev.event }
   }
 }
 
@@ -136,7 +138,7 @@ function JobCard({
 }) {
   const [expanded, setExpanded] = useState(false)
   const [activeRunId, setActiveRunId] = useState<string | null>(null)
-  const [liveLog, setLiveLog] = useState<Array<{ key: string; label: string }>>([])
+  const [liveLog, setLiveLog] = useState<Array<{ key: string; ev: RunEvent }>>([])
   const [liveOutput, setLiveOutput] = useState('')
   const esRef = useRef<EventSource | null>(null)
   const liveLogBottomRef = useRef<HTMLDivElement | null>(null)
@@ -162,10 +164,9 @@ function JobCard({
           setLiveOutput((prev) => prev + (ev.delta ?? ''))
           return
         }
-        const label = formatRunEventLabel(ev)
         setLiveLog((prev) => [
           ...prev,
-          { key: `${ev.event}-${ev.timestamp}`, label },
+          { key: `${ev.event}-${ev.timestamp}`, ev },
         ])
         liveLogBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
       } catch {
@@ -185,7 +186,7 @@ function JobCard({
   // Clear live run state when run.completed/run.failed appears in log
   useEffect(() => {
     const last = liveLog.at(-1)
-    if (last && (last.label.startsWith('✓ Run') || last.label.startsWith('✗ Run'))) {
+    if (last && (last.ev.event === 'run.completed' || last.ev.event === 'run.failed')) {
       esRef.current?.close()
       esRef.current = null
       onLiveTrigger(job) // refresh job list
@@ -347,14 +348,14 @@ function JobCard({
                           Starting…
                         </p>
                       )}
-                      {liveLog.map((entry) => (
-                        <p
-                          key={entry.key}
-                          className="text-[11px] text-[var(--theme-text)]"
-                        >
-                          {entry.label}
-                        </p>
-                      ))}
+                      {liveLog.map((entry) => {
+                        const { status, label } = statusForEvent(entry.ev)
+                        return (
+                          <div key={entry.key} className="py-0.5">
+                            <StatusBadge status={status} label={label} size="sm" />
+                          </div>
+                        )
+                      })}
                       {liveOutput && (
                         <p className="mt-2 whitespace-pre-wrap text-[11px] leading-5 text-[var(--theme-text)]">
                           {liveOutput}
@@ -401,9 +402,11 @@ function JobCard({
                       ))}
                     </div>
                   ) : (
-                    <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">
-                      No run outputs yet.
-                    </div>
+                    <EmptyState
+                      icon={<HugeiconsIcon icon={Clock01Icon} size={28} />}
+                      title="No run outputs yet"
+                      description="Trigger this job to see run history here."
+                    />
                   )}
                 </>
               )}
@@ -593,15 +596,11 @@ export function JobsScreen() {
               : 'Unknown error'}
           </div>
         ) : filteredJobs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-[var(--theme-muted)]">
-            <HugeiconsIcon
-              icon={Clock01Icon}
-              size={32}
-              className="mb-3 opacity-40"
-            />
-            <p className="text-sm font-medium">No scheduled jobs</p>
-            <p className="mt-1 text-xs">Create one to get started</p>
-          </div>
+          <EmptyState
+            icon={<HugeiconsIcon icon={Clock01Icon} size={40} />}
+            title="No scheduled jobs"
+            description="Create one to get started"
+          />
         ) : (
           <AnimatePresence mode="popLayout">
             {filteredJobs.map((job) => (
