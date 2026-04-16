@@ -4,6 +4,35 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-16 — Session 17
+
+### What was done
+
+**Design System Consistency (Tasks #DS-1 through #DS-6 + screen migration)**
+
+Built a canonical 6-component design system library in `src/components/ds/` and migrated all screens to use it.
+
+**New components (`src/components/ds/`):**
+- `Card` — base surface primitive (3 variants: default, panel, subtle)
+- `SettingsRow` — label + description + control slot; optional danger border
+- `SectionHeader` — section title with optional subtitle, action, and divider
+- `StatusBadge` — hugeicon + label in semantic theme color; replaces all emoji status indicators
+- `ListItem` — icon + label + description + meta row with consistent hover state
+- `EmptyState` — centred icon + title + description + action; used by every empty screen
+
+**CSS fixes:**
+- Added `--theme-hover` to all 9 theme blocks in `styles.css`
+- Replaced 300+ broken Tailwind palette classes (`bg-primary-*`, `border-primary-*`, `text-black`, `bg-white`) with `var(--theme-*)` CSS variables across all screens
+- Screens migrated: settings/index.tsx, providers-screen.tsx, provider-wizard.tsx, chat-composer.tsx, chat-header.tsx, memory-browser-screen.tsx, knowledge-browser-screen.tsx, profiles-screen.tsx, skills-screen.tsx, workspace-skills-screen.tsx, jobs-screen.tsx, audit-trail-screen.tsx, crews-screen.tsx, files-screen.tsx
+
+**Tests:** 37 new unit tests for DS components (vitest + @testing-library/react + jsdom); 59 total passing.
+
+**The Rule (for future dev):** Never use Tailwind color classes on screen-level components. Always use `var(--theme-*)`. See `docs/superpowers/specs/2026-04-16-design-system-consistency.md`.
+
+### Version bump: 1.15.1 → 1.16.0
+
+---
+
 ## 2026-04-13 — Session 16
 
 ### What was done
