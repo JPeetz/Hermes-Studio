@@ -751,6 +751,7 @@ code {
   --theme-panel: #0b1220;
   --theme-card: #0f1828;
   --theme-card2: #121e30;
+  --theme-hover: #121e30;
   --theme-border: #18263c;
   --theme-border-subtle: #101c30;
   --theme-text: #e4edff;
@@ -800,6 +801,7 @@ code {
   --theme-panel: #0d1220;
   --theme-card: #11182a;
   --theme-card2: #151d32;
+  --theme-hover: #151d32;
   --theme-border: #24304a;
   --theme-border-subtle: #1b2740;
   --theme-text: #e6eaf2;
@@ -846,6 +848,7 @@ code {
   --theme-panel: #13171c;
   --theme-card: #1a1f26;
   --theme-card2: #1f252d;
+  --theme-hover: #1f252d;
   --theme-border: #2a313b;
   --theme-border-subtle: #222933;
   --theme-text: #eceff4;
@@ -893,6 +896,7 @@ code {
   --theme-panel: #161b22;
   --theme-card: #1c2128;
   --theme-card2: #21262d;
+  --theme-hover: #21262d;
   --theme-border: #30363d;
   --theme-border-subtle: #21262d;
   --theme-text: #c9d1d9;
@@ -939,6 +943,7 @@ code {
   --theme-panel: #1a1a1a;
   --theme-card: #222222;
   --theme-card2: #2a2a2a;
+  --theme-hover: #2a2a2a;
   --theme-border: #333333;
   --theme-border-subtle: #222222;
   --theme-text: #e6edf3;
@@ -985,6 +990,7 @@ code {
   --theme-panel: #eef2ff;
   --theme-card: #ffffff;
   --theme-card2: #f8faff;
+  --theme-hover: #f8faff;
   --theme-border: #d7deee;
   --theme-border-subtle: #e6ebf7;
   --theme-text: #111827;
@@ -1031,6 +1037,7 @@ code {
   --theme-panel: #f0ebe4;
   --theme-card: #fcfaf7;
   --theme-card2: #f7f2eb;
+  --theme-hover: #f7f2eb;
   --theme-border: #d8ccbc;
   --theme-border-subtle: #e7ddd0;
   --theme-text: #1a1f26;
@@ -1077,6 +1084,7 @@ code {
   --theme-panel: #eef2f6;
   --theme-card: #ffffff;
   --theme-card2: #f6f8fa;
+  --theme-hover: #f6f8fa;
   --theme-border: #d0d7de;
   --theme-border-subtle: #e2e8f0;
   --theme-text: #24292f;
@@ -1123,6 +1131,7 @@ code {
   --theme-panel: #f0f0f0;
   --theme-card: #ffffff;
   --theme-card2: #f7f7f7;
+  --theme-hover: #f7f7f7;
   --theme-border: #d4d4d4;
   --theme-border-subtle: #e5e5e5;
   --theme-text: #1a1a1a;
