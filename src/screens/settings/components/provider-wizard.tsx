@@ -330,7 +330,7 @@ export function ProviderWizard({
       ? 'border-green-200 bg-green-50/60'
       : verifyState === 'warning'
         ? 'border-amber-200 bg-amber-50/60'
-        : 'border-primary-200 bg-primary-100/70'
+        : 'border-[var(--theme-border)] bg-[var(--theme-panel)]/70'
 
   const verifyTitle =
     verifyState === 'success'
@@ -341,9 +341,9 @@ export function ProviderWizard({
 
   return (
     <DialogRoot open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="left-auto right-0 top-[var(--titlebar-h,0px)] h-[calc(100dvh-var(--titlebar-h,0px))] w-screen translate-x-0 translate-y-0 overflow-hidden rounded-none border-primary-200 bg-primary-50/95 backdrop-blur-sm duration-300 ease-out sm:w-[min(860px,100vw)] sm:rounded-l-2xl data-[state=open]:scale-100 data-[state=closed]:scale-100 data-[state=open]:translate-x-0 data-[state=closed]:translate-x-full">
+      <DialogContent className="left-auto right-0 top-[var(--titlebar-h,0px)] h-[calc(100dvh-var(--titlebar-h,0px))] w-screen translate-x-0 translate-y-0 overflow-hidden rounded-none border-[var(--theme-border)] bg-[var(--theme-bg)]/95 backdrop-blur-sm duration-300 ease-out sm:w-[min(860px,100vw)] sm:rounded-l-2xl data-[state=open]:scale-100 data-[state=closed]:scale-100 data-[state=open]:translate-x-0 data-[state=closed]:translate-x-full">
         <div className="flex h-full min-h-0 flex-col">
-          <div className="border-b border-primary-200 p-4 sm:p-5">
+          <div className="border-b border-[var(--theme-border)] p-4 sm:p-5">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <DialogTitle className="text-balance">
@@ -384,11 +384,11 @@ export function ProviderWizard({
                     key={item.id}
                     className={cn(
                       'rounded-xl border px-2.5 py-2',
-                      isCurrent && 'border-primary-400 bg-primary-100/70',
+                      isCurrent && 'border-primary-400 bg-[var(--theme-panel)]/70',
                       isComplete && 'border-green-500/30 bg-green-500/10',
                       !isCurrent &&
                         !isComplete &&
-                        'border-primary-200 bg-primary-50',
+                        'border-[var(--theme-border)] bg-[var(--theme-bg)]',
                     )}
                   >
                     <div className="flex items-center gap-2">
@@ -399,7 +399,7 @@ export function ProviderWizard({
                           isComplete && 'border-green-500/40 text-green-600',
                           !isCurrent &&
                             !isComplete &&
-                            'border-primary-300 text-primary-600',
+                            'border-[var(--theme-border)] text-primary-600',
                         )}
                       >
                         {index + 1}
@@ -415,7 +415,7 @@ export function ProviderWizard({
 
             {step === 'provider' ? (
               <section className="mt-5">
-                <h3 className="text-base font-medium text-primary-900 text-balance">
+                <h3 className="text-base font-medium text-[var(--theme-text)] text-balance">
                   Step 1: Choose Provider
                 </h3>
                 <p className="mt-1 text-sm text-primary-600 text-pretty">
@@ -431,13 +431,13 @@ export function ProviderWizard({
                         onClick={function onSelectProvider() {
                           handleSelectProvider(provider.id)
                         }}
-                        className="rounded-2xl border border-primary-200 bg-primary-50/70 p-3 text-left transition-colors hover:border-primary-400 hover:bg-primary-100 dark:hover:bg-primary-800/70"
+                        className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/70 p-3 text-left transition-colors hover:border-primary-400 hover:bg-[var(--theme-panel)] dark:hover:bg-primary-800/70"
                       >
                         <div className="flex items-center gap-2.5">
-                          <span className="inline-flex size-9 items-center justify-center rounded-xl border border-primary-200 bg-primary-100/70">
+                          <span className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/70">
                             <ProviderIcon providerId={provider.id} />
                           </span>
-                          <h4 className="text-sm font-medium text-primary-900 text-balance">
+                          <h4 className="text-sm font-medium text-[var(--theme-text)] text-balance">
                             {provider.name}
                           </h4>
                         </div>
@@ -451,7 +451,7 @@ export function ProviderWizard({
                             return (
                               <span
                                 key={authType}
-                                className="rounded-full border border-primary-300 bg-primary-100 px-2 py-0.5 text-xs text-primary-700"
+                                className="rounded-full border border-[var(--theme-border)] bg-[var(--theme-panel)] px-2 py-0.5 text-xs text-[var(--theme-text)]"
                               >
                                 {getAuthTypeLabel(authType)}
                               </span>
@@ -467,7 +467,7 @@ export function ProviderWizard({
 
             {step === 'auth' && selectedProvider ? (
               <section className="mt-5">
-                <h3 className="text-base font-medium text-primary-900 text-balance">
+                <h3 className="text-base font-medium text-[var(--theme-text)] text-balance">
                   Step 2: Choose Auth Type
                 </h3>
                 <p className="mt-1 text-sm text-primary-600 text-pretty">
@@ -480,8 +480,8 @@ export function ProviderWizard({
                   .
                 </p>
 
-                <div className="mt-3 rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
-                  <p className="text-xs text-primary-700 text-pretty">
+                <div className="mt-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/70 px-3 py-2">
+                  <p className="text-xs text-[var(--theme-text)] text-pretty">
                     Config file path:{' '}
                     <code className="font-mono">{HERMES_CONFIG_PATH}</code>
                   </p>
@@ -504,18 +504,18 @@ export function ProviderWizard({
                         className={cn(
                           'rounded-2xl border p-3 text-left transition-colors',
                           supported
-                            ? 'border-primary-200 bg-primary-50/70 hover:border-primary-400 hover:bg-primary-100 dark:hover:bg-primary-800/80'
-                            : 'cursor-not-allowed border-primary-200 bg-primary-50/40 opacity-50',
+                            ? 'border-[var(--theme-border)] bg-[var(--theme-bg)]/70 hover:border-primary-400 hover:bg-[var(--theme-panel)] dark:hover:bg-primary-800/80'
+                            : 'cursor-not-allowed border-[var(--theme-border)] bg-[var(--theme-bg)]/40 opacity-50',
                         )}
                       >
-                        <h4 className="text-sm font-medium text-primary-900 text-balance">
+                        <h4 className="text-sm font-medium text-[var(--theme-text)] text-balance">
                           {meta.title}
                         </h4>
                         <p className="mt-1 text-xs text-primary-600 text-pretty">
                           {meta.description}
                         </p>
                         {!supported ? (
-                          <p className="mt-2 text-xs text-primary-500 text-pretty">
+                          <p className="mt-2 text-xs text-[var(--theme-muted)] text-pretty">
                             Not supported by {selectedProvider.name}.
                           </p>
                         ) : null}
@@ -550,7 +550,7 @@ export function ProviderWizard({
 
             {step === 'instructions' && selectedProvider && selectedAuthType ? (
               <section className="mt-5">
-                <h3 className="text-base font-medium text-primary-900 text-balance">
+                <h3 className="text-base font-medium text-[var(--theme-text)] text-balance">
                   Step 3: Add API Key
                 </h3>
 
@@ -581,11 +581,11 @@ export function ProviderWizard({
                         Open Terminal
                       </Button>
 
-                      <div className="rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
-                        <p className="text-xs text-primary-700 text-pretty">
+                      <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/70 px-3 py-2">
+                        <p className="text-xs text-[var(--theme-text)] text-pretty">
                           In the terminal, run:
                         </p>
-                        <pre className="mt-1 rounded-lg bg-primary-200/60 px-2 py-1.5 text-xs font-mono text-primary-900">
+                        <pre className="mt-1 rounded-lg bg-primary-200/60 px-2 py-1.5 text-xs font-mono text-[var(--theme-text)]">
                           hermes setup
                         </pre>
                         <p className="mt-1.5 text-xs text-primary-600 text-pretty">
@@ -595,14 +595,14 @@ export function ProviderWizard({
                         </p>
                       </div>
 
-                      <div className="rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
-                        <p className="text-xs text-primary-700 text-pretty">
+                      <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/70 px-3 py-2">
+                        <p className="text-xs text-[var(--theme-text)] text-pretty">
                           No terminal access?{' '}
                           <a
                             href="https://github.com/NousResearch/hermes-agent"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-primary-800 underline decoration-primary-400 hover:text-primary-900"
+                            className="text-primary-800 underline decoration-primary-400 hover:text-[var(--theme-text)]"
                           >
                             See the Hermes Agent docs
                           </a>{' '}
@@ -635,11 +635,11 @@ export function ProviderWizard({
                         Open Terminal
                       </Button>
 
-                      <div className="rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
-                        <p className="text-xs text-primary-700 text-pretty">
+                      <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/70 px-3 py-2">
+                        <p className="text-xs text-[var(--theme-text)] text-pretty">
                           In the terminal, run:
                         </p>
-                        <pre className="mt-1 rounded-lg bg-primary-200/60 px-2 py-1.5 text-xs font-mono text-primary-900">
+                        <pre className="mt-1 rounded-lg bg-primary-200/60 px-2 py-1.5 text-xs font-mono text-[var(--theme-text)]">
                           hermes setup
                         </pre>
                         <p className="mt-1.5 text-xs text-primary-600 text-pretty">
@@ -659,14 +659,14 @@ export function ProviderWizard({
                         </p>
                       </div>
 
-                      <div className="rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
-                        <p className="text-xs text-primary-700 text-pretty">
+                      <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/70 px-3 py-2">
+                        <p className="text-xs text-[var(--theme-text)] text-pretty">
                           No terminal access?{' '}
                           <a
                             href="https://github.com/NousResearch/hermes-agent"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-primary-800 underline decoration-primary-400 hover:text-primary-900"
+                            className="text-primary-800 underline decoration-primary-400 hover:text-[var(--theme-text)]"
                           >
                             See the Hermes Agent docs
                           </a>{' '}
@@ -691,7 +691,7 @@ export function ProviderWizard({
                             setApiKeyInput(e.target.value)
                           }}
                           placeholder={`sk-... or your ${selectedProvider.name} API key`}
-                          className="flex-1 rounded-xl border border-primary-300 bg-white px-3 py-2 text-sm text-primary-900 placeholder:text-primary-400 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400/50"
+                          className="flex-1 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] px-3 py-2 text-sm text-[var(--theme-text)] placeholder:text-primary-400 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400/50"
                           autoFocus
                         />
                         <Button
@@ -732,7 +732,7 @@ export function ProviderWizard({
                       href={selectedProvider.docsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-3 inline-flex items-center gap-1 text-sm text-primary-700 underline decoration-primary-400 hover:text-primary-900"
+                      className="mt-3 inline-flex items-center gap-1 text-sm text-[var(--theme-text)] underline decoration-primary-400 hover:text-[var(--theme-text)]"
                     >
                       <HugeiconsIcon
                         icon={Link01Icon}
@@ -742,8 +742,8 @@ export function ProviderWizard({
                       Get your {selectedProvider.name} API key
                     </a>
 
-                    <div className="mt-4 rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
-                      <p className="text-xs text-primary-700 text-pretty">
+                    <div className="mt-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/70 px-3 py-2">
+                      <p className="text-xs text-[var(--theme-text)] text-pretty">
                         API keys are stored locally in{' '}
                         <code className="font-mono">{HERMES_CONFIG_PATH}</code>,
                         never sent to Studio.
@@ -756,7 +756,7 @@ export function ProviderWizard({
                       onClick={function toggleManual() {
                         setShowManualSnippet(!showManualSnippet)
                       }}
-                      className="mt-3 text-xs text-primary-500 hover:text-primary-700 underline"
+                      className="mt-3 text-xs text-[var(--theme-muted)] hover:text-[var(--theme-text)] underline"
                     >
                       {showManualSnippet ? 'Hide' : 'Show'} manual config
                       snippet
@@ -790,7 +790,7 @@ export function ProviderWizard({
                             </span>
                           ) : null}
                         </div>
-                        <pre className="overflow-x-auto rounded-2xl border border-primary-200 bg-primary-100/80 p-3 text-xs text-primary-900">
+                        <pre className="overflow-x-auto rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/80 p-3 text-xs text-[var(--theme-text)]">
                           <code className="font-mono tabular-nums">
                             {configExample}
                           </code>
@@ -838,7 +838,7 @@ export function ProviderWizard({
 
             {step === 'verify' ? (
               <section className="mt-5">
-                <h3 className="text-base font-medium text-primary-900 text-balance">
+                <h3 className="text-base font-medium text-[var(--theme-text)] text-balance">
                   Step 4: Verify
                 </h3>
                 <div
