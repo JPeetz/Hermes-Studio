@@ -105,7 +105,7 @@ function matchesFilter(section: MemorySection, filter: MemoryFilter): boolean {
 
 function EmptyMemorySection({ label }: { label: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-primary-200 bg-primary-50/70 px-3 py-4 text-xs text-primary-500">
+    <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-bg)]/70 px-3 py-4 text-xs text-primary-500">
       No files found in {label.toLowerCase()}.
     </div>
   )
@@ -230,15 +230,15 @@ export function WorkspaceSkillsScreen() {
   }
 
   return (
-    <div className="min-h-full px-4 pb-10 pt-5 text-primary-900 md:px-6 md:pt-8">
+    <div className="min-h-full px-4 pb-10 pt-5 text-[var(--theme-text)] md:px-6 md:pt-8">
       <section className="mx-auto flex min-h-full w-full max-w-[1480px] flex-col gap-5">
-        <header className="flex flex-col gap-4 rounded-xl border border-primary-200 bg-primary-50/80 px-5 py-4 shadow-sm md:flex-row md:items-center md:justify-between">
+        <header className="flex flex-col gap-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)] px-5 py-4 shadow-sm md:flex-row md:items-center md:justify-between">
           <div className="flex items-start gap-3">
             <div className="flex size-11 items-center justify-center rounded-xl border border-accent-500/30 bg-accent-500/10 text-accent-400">
               <HugeiconsIcon icon={SparklesIcon} size={24} strokeWidth={1.6} />
             </div>
             <div>
-              <h1 className="text-base font-semibold text-primary-900">
+              <h1 className="text-base font-semibold text-[var(--theme-text)]">
                 Skills
               </h1>
               <p className="mt-1 text-sm text-primary-500">
@@ -248,12 +248,12 @@ export function WorkspaceSkillsScreen() {
           </div>
         </header>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden rounded-xl border border-primary-200 bg-white shadow-sm lg:grid-cols-2">
-          <section className="min-h-0 border-b border-primary-200 lg:border-b-0">
+        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden rounded-xl border border-[var(--theme-border)] bg-white shadow-sm lg:grid-cols-2">
+          <section className="min-h-0 border-b border-[var(--theme-border)] lg:border-b-0">
             <div className="flex h-full min-h-0 flex-col p-4 sm:p-5">
-              <div className="flex flex-col gap-3 border-b border-primary-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 border-b border-[var(--theme-border)] pb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-[15px] font-semibold text-primary-900">
+                  <h2 className="text-[15px] font-semibold text-[var(--theme-text)]">
                     Skills
                   </h2>
                 </div>
@@ -277,7 +277,7 @@ export function WorkspaceSkillsScreen() {
 
               <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
                 {skillsQuery.isPending ? (
-                  <div className="rounded-xl border border-primary-200 bg-primary-50/70 px-4 py-5 text-sm text-primary-600">
+                  <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/70 px-4 py-5 text-sm text-primary-600">
                     Loading skills...
                   </div>
                 ) : skillsQuery.isError ? (
@@ -287,7 +287,7 @@ export function WorkspaceSkillsScreen() {
                       : 'Failed to load skills'}
                   </div>
                 ) : visibleSkills.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-primary-200 bg-primary-50/70 px-4 py-5 text-sm text-primary-500">
+                  <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-bg)]/70 px-4 py-5 text-sm text-primary-500">
                     No skills found in `~/.hermes/skills` for Hermes.
                   </div>
                 ) : (
@@ -297,10 +297,10 @@ export function WorkspaceSkillsScreen() {
                       <div
                         key={skill.id}
                         className={cn(
-                          'overflow-hidden rounded-xl border bg-primary-50/60 transition-all',
+                          'overflow-hidden rounded-xl border bg-[var(--theme-bg)]/60 transition-all',
                           expanded
                             ? 'border-accent-500/40 bg-accent-500/5'
-                            : 'border-primary-200 hover:border-primary-300',
+                            : 'border-[var(--theme-border)] hover:border-primary-300',
                         )}
                       >
                         <button
@@ -321,7 +321,7 @@ export function WorkspaceSkillsScreen() {
                           </span>
                           <span className="min-w-0 flex-1">
                             <span className="flex flex-wrap items-center gap-2">
-                              <span className="text-sm font-semibold text-primary-900">
+                              <span className="text-sm font-semibold text-[var(--theme-text)]">
                                 {skill.name}
                               </span>
                               <span
@@ -352,7 +352,7 @@ export function WorkspaceSkillsScreen() {
                               animate={{ height: 'auto', opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
                               transition={{ duration: 0.16 }}
-                              className="overflow-hidden border-t border-primary-200"
+                              className="overflow-hidden border-t border-[var(--theme-border)]"
                             >
                               <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-start gap-3 text-sm text-primary-600">
@@ -395,13 +395,13 @@ export function WorkspaceSkillsScreen() {
 
               {selectedSkill ? (
                 <div className="mt-4 space-y-3">
-                  <div className="rounded-xl border border-primary-200 bg-primary-50/70 px-4 py-3 text-sm text-primary-600">
+                  <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/70 px-4 py-3 text-sm text-primary-600">
                     Selected skill:{' '}
-                    <span className="font-medium text-primary-900">
+                    <span className="font-medium text-[var(--theme-text)]">
                       {selectedSkill.name}
                     </span>
                   </div>
-                  <div className="rounded-xl border border-primary-200 bg-white p-3">
+                  <div className="rounded-xl border border-[var(--theme-border)] bg-white p-3">
                     {skillContentQuery.isPending ? (
                       <div className="space-y-2">
                         {Array.from({ length: 4 }).map((_, index) => (
@@ -418,7 +418,7 @@ export function WorkspaceSkillsScreen() {
                           : 'Failed to load skill content'}
                       </div>
                     ) : (
-                      <div className="max-h-96 overflow-y-auto rounded-lg border border-primary-200 bg-white p-4 text-sm text-primary-800 prose prose-sm prose-primary max-w-none">
+                      <div className="max-h-96 overflow-y-auto rounded-lg border border-[var(--theme-border)] bg-white p-4 text-sm text-primary-800 prose prose-sm prose-primary max-w-none">
                         <SkillMarkdown
                           content={
                             skillContentQuery.data?.trim() ||
@@ -433,10 +433,10 @@ export function WorkspaceSkillsScreen() {
             </div>
           </section>
 
-          <section className="min-h-0 border-l-0 border-primary-200 lg:border-l">
+          <section className="min-h-0 border-l-0 border-[var(--theme-border)] lg:border-l">
             <div className="flex h-full min-h-0 flex-col p-4 sm:p-5">
-              <div className="flex flex-col gap-3 border-b border-primary-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-[15px] font-semibold text-primary-900">
+              <div className="flex flex-col gap-3 border-b border-[var(--theme-border)] pb-4 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-[15px] font-semibold text-[var(--theme-text)]">
                   Memory
                 </h2>
                 <div className="flex flex-wrap gap-2">
@@ -469,7 +469,7 @@ export function WorkspaceSkillsScreen() {
                     value={memorySearch}
                     onChange={(event) => setMemorySearch(event.target.value)}
                     placeholder="Search memory..."
-                    className="w-full rounded-xl border border-primary-200 bg-white px-10 py-2.5 text-sm text-primary-900 outline-none transition-colors placeholder:text-primary-500 focus:border-accent-500/50"
+                    className="w-full rounded-xl border border-[var(--theme-border)] bg-white px-10 py-2.5 text-sm text-[var(--theme-text)] outline-none transition-colors placeholder:text-primary-500 focus:border-accent-500/50"
                   />
                 </div>
 
@@ -485,7 +485,7 @@ export function WorkspaceSkillsScreen() {
                           'rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors',
                           active
                             ? 'border-accent-500/40 bg-accent-500/10 text-accent-400'
-                            : 'border-primary-200 bg-white text-primary-600 hover:border-primary-300 hover:text-primary-900',
+                            : 'border-[var(--theme-border)] bg-white text-primary-600 hover:border-primary-300 hover:text-[var(--theme-text)]',
                         )}
                       >
                         {filter}
@@ -497,7 +497,7 @@ export function WorkspaceSkillsScreen() {
 
               <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1">
                 {memoryQuery.isPending ? (
-                  <div className="rounded-xl border border-primary-200 bg-primary-50/70 px-4 py-5 text-sm text-primary-600">
+                  <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/70 px-4 py-5 text-sm text-primary-600">
                     Loading memory files...
                   </div>
                 ) : memoryQuery.isError ? (
@@ -532,31 +532,31 @@ export function WorkspaceSkillsScreen() {
                 {!memoryQuery.isPending &&
                 !memoryQuery.isError &&
                 filteredMemoryFiles.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-primary-200 bg-primary-50/70 px-4 py-5 text-sm text-primary-500">
+                  <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-bg)]/70 px-4 py-5 text-sm text-primary-500">
                     No memory files match the current filter.
                   </div>
                 ) : null}
 
-                <div className="rounded-xl border border-primary-200 bg-primary-50/70 p-4">
+                <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/70 p-4">
                   <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-400">
                     Retention
                   </div>
                   <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between gap-4 rounded-xl border border-primary-200 bg-primary-50 px-3 py-2">
+                    <div className="flex items-center justify-between gap-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2">
                       <span className="text-primary-600">Workspace memory</span>
-                      <span className="font-medium text-primary-900">
+                      <span className="font-medium text-[var(--theme-text)]">
                         Permanent
                       </span>
                     </div>
-                    <div className="flex items-center justify-between gap-4 rounded-xl border border-primary-200 bg-primary-50 px-3 py-2">
+                    <div className="flex items-center justify-between gap-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2">
                       <span className="text-primary-600">Project memory</span>
-                      <span className="font-medium text-primary-900">
+                      <span className="font-medium text-[var(--theme-text)]">
                         Per-project
                       </span>
                     </div>
-                    <div className="flex items-center justify-between gap-4 rounded-xl border border-primary-200 bg-primary-50 px-3 py-2">
+                    <div className="flex items-center justify-between gap-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2">
                       <span className="text-primary-600">Agent memory</span>
-                      <span className="font-medium text-primary-900">
+                      <span className="font-medium text-[var(--theme-text)]">
                         30 day rolling
                       </span>
                     </div>
@@ -603,10 +603,10 @@ function MemorySectionBlock({
                   'flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-colors',
                   active
                     ? 'border-accent-500/40 bg-accent-500/5'
-                    : 'border-primary-200 bg-white hover:border-primary-300',
+                    : 'border-[var(--theme-border)] bg-white hover:border-primary-300',
                 )}
               >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary-200 bg-primary-50 text-primary-500">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] text-primary-500">
                   <HugeiconsIcon
                     icon={File01Icon}
                     size={16}
@@ -614,7 +614,7 @@ function MemorySectionBlock({
                   />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-primary-900">
+                  <span className="block truncate text-sm font-medium text-[var(--theme-text)]">
                     {file.name}
                   </span>
                   <span className="block truncate text-xs text-primary-400">

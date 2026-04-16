@@ -406,7 +406,7 @@ export function SkillsScreen() {
   return (
     <div className="min-h-full overflow-y-auto bg-surface text-ink">
       <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-5 px-4 py-6 pb-[calc(var(--tabbar-h,80px)+1.5rem)] sm:px-6 lg:px-8">
-        <header className="rounded-2xl border border-primary-200 bg-primary-50/85 p-4 backdrop-blur-xl">
+        <header className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/85 p-4 backdrop-blur-xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="space-y-1.5">
               <p className="text-xs font-medium uppercase text-primary-500 tabular-nums">
@@ -423,11 +423,11 @@ export function SkillsScreen() {
           </div>
         </header>
 
-        <section className="rounded-2xl border border-primary-200 bg-primary-50/80 p-3 backdrop-blur-xl sm:p-4">
+        <section className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-panel)] p-3 backdrop-blur-xl sm:p-4">
           <Tabs value={tab} onValueChange={handleTabChange}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <TabsList
-                className="w-full rounded-xl border border-primary-200 bg-primary-100/60 p-1 sm:w-auto"
+                className="w-full rounded-xl border border-[var(--theme-border)] bg-primary-100/60 p-1 sm:w-auto"
                 variant="default"
               >
                 <TabsTab value="installed" className="flex-1 sm:min-w-[132px]">
@@ -450,7 +450,7 @@ export function SkillsScreen() {
                     value={searchInput}
                     onChange={(event) => handleSearchChange(event.target.value)}
                     placeholder="Search by name, tags, or description"
-                    className="h-9 w-full min-w-0 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none transition-colors focus:border-primary sm:min-w-[220px]"
+                    className="h-9 w-full min-w-0 rounded-lg border border-[var(--theme-border)] bg-primary-100/60 px-3 text-sm text-ink outline-none transition-colors focus:border-primary sm:min-w-[220px]"
                   />
 
                   {tab === 'installed' ? (
@@ -459,7 +459,7 @@ export function SkillsScreen() {
                       onChange={(event) =>
                         handleCategoryChange(event.target.value)
                       }
-                      className="h-9 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none"
+                      className="h-9 rounded-lg border border-[var(--theme-border)] bg-primary-100/60 px-3 text-sm text-ink outline-none"
                     >
                       {categories.map((item) => (
                         <option key={item} value={item}>
@@ -479,7 +479,7 @@ export function SkillsScreen() {
                             : 'name',
                         )
                       }
-                      className="h-9 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none"
+                      className="h-9 rounded-lg border border-[var(--theme-border)] bg-primary-100/60 px-3 text-sm text-ink outline-none"
                     >
                       <option value="name">Name A-Z</option>
                       <option value="category">Category</option>
@@ -490,7 +490,7 @@ export function SkillsScreen() {
             </div>
 
             {actionError ? (
-              <p className="rounded-lg border border-primary-200 bg-primary-100/60 px-3 py-2 text-sm text-ink">
+              <p className="rounded-lg border border-[var(--theme-border)] bg-primary-100/60 px-3 py-2 text-sm text-ink">
                 {actionError}
               </p>
             ) : null}
@@ -523,7 +523,7 @@ export function SkillsScreen() {
                   value={searchInput}
                   onChange={(event) => handleSearchChange(event.target.value)}
                   placeholder="Search skills..."
-                  className="h-10 w-full rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none transition-colors focus:border-primary"
+                  className="h-10 w-full rounded-lg border border-[var(--theme-border)] bg-primary-100/60 px-3 text-sm text-ink outline-none transition-colors focus:border-primary"
                 />
                 <div className="text-xs text-primary-500 sm:text-right">
                   {hubQuery.data?.source === 'skillsmp'
@@ -535,7 +535,7 @@ export function SkillsScreen() {
               </div>
 
               {hubQuery.data?.source === 'no-api-key' ? (
-                <div className="rounded-xl border border-primary-200 bg-primary-50/80 px-4 py-4 text-sm text-primary-700">
+                <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)] px-4 py-4 text-sm text-primary-700">
                   <p className="font-medium mb-1">skillsmp.com API key not configured</p>
                   <p className="text-primary-500 text-pretty">
                     To search the Skills marketplace, add your API key in{' '}
@@ -610,7 +610,7 @@ export function SkillsScreen() {
         </section>
 
         {tab !== 'featured' && tab !== 'marketplace' ? (
-          <footer className="flex items-center justify-between rounded-xl border border-primary-200 bg-primary-50/80 px-3 py-2.5 text-sm text-primary-500 tabular-nums">
+          <footer className="flex items-center justify-between rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)] px-3 py-2.5 text-sm text-primary-500 tabular-nums">
             <span>
               {(skillsQuery.data?.total || 0).toLocaleString()} total skills
             </span>
@@ -649,10 +649,10 @@ export function SkillsScreen() {
           }
         }}
       >
-        <DialogContent className="w-[min(960px,95vw)] border-primary-200 bg-primary-50/95 backdrop-blur-sm">
+        <DialogContent className="w-[min(960px,95vw)] border-[var(--theme-border)] bg-[var(--theme-bg)]/95 backdrop-blur-sm">
           {selectedSkill ? (
             <div className="flex max-h-[85vh] flex-col">
-              <div className="border-b border-primary-200 px-5 py-4">
+              <div className="border-b border-[var(--theme-border)] px-5 py-4">
                 <DialogTitle className="text-balance">
                   {selectedSkill.icon} {selectedSkill.name}
                 </DialogTitle>
@@ -661,7 +661,7 @@ export function SkillsScreen() {
                   {selectedSkill.fileCount.toLocaleString()} files
                 </DialogDescription>
                 {selectedSkill.security && (
-                  <div className="mt-3 rounded-xl border border-primary-200 bg-primary-50/80 overflow-hidden">
+                  <div className="mt-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)] overflow-hidden">
                     <SecurityBadge
                       security={selectedSkill.security}
                       compact={false}
@@ -692,19 +692,19 @@ export function SkillsScreen() {
                         selectedSkill.triggers.slice(0, 8).map((trigger) => (
                           <span
                             key={trigger}
-                            className="rounded-md border border-primary-200 bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500"
+                            className="rounded-md border border-[var(--theme-border)] bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500"
                           >
                             {trigger}
                           </span>
                         ))
                       ) : (
-                        <span className="rounded-md border border-primary-200 bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500">
+                        <span className="rounded-md border border-[var(--theme-border)] bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500">
                           No triggers listed
                         </span>
                       )}
                     </div>
 
-                    <article className="rounded-xl border border-primary-200 bg-primary-100/30 p-4 backdrop-blur-sm">
+                    <article className="rounded-xl border border-[var(--theme-border)] bg-primary-100/30 p-4 backdrop-blur-sm">
                       <Markdown>
                         {selectedSkill.content ||
                           `# ${selectedSkill.name}\n\n${selectedSkill.description}`}
@@ -717,7 +717,7 @@ export function SkillsScreen() {
                 </ScrollAreaScrollbar>
               </ScrollAreaRoot>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-primary-200 px-5 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--theme-border)] px-5 py-3">
                 <p className="text-sm text-primary-500 text-pretty">
                   Source:{' '}
                   <code className="inline-code">
@@ -840,7 +840,7 @@ function SecurityBadge({
           {config.label}
         </button>
         {expanded && (
-          <div className="absolute left-0 bottom-[calc(100%+6px)] z-50 w-72 rounded-xl border border-primary-200 bg-surface p-0 shadow-xl overflow-hidden">
+          <div className="absolute left-0 bottom-[calc(100%+6px)] z-50 w-72 rounded-xl border border-[var(--theme-border)] bg-surface p-0 shadow-xl overflow-hidden">
             <SecurityScanCard security={security} />
           </div>
         )}
@@ -949,7 +949,7 @@ function SkillsGrid({
 
   if (skills.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-primary-200 bg-primary-100/40 px-4 py-8 text-center">
+      <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-primary-100/40 px-4 py-8 text-center">
         <p className="text-sm font-medium text-primary-700">
           {emptyState?.title || 'No skills found'}
         </p>
@@ -973,7 +973,7 @@ function SkillsGrid({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.18 }}
-              className="flex min-h-[220px] flex-col rounded-2xl border border-primary-200 bg-primary-50/85 p-4 shadow-sm backdrop-blur-sm"
+              className="flex min-h-[220px] flex-col rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/85 p-4 shadow-sm backdrop-blur-sm"
             >
               <div className="mb-2 flex items-start justify-between gap-2">
                 <div className="space-y-1">
@@ -990,7 +990,7 @@ function SkillsGrid({
                     'rounded-md border px-2 py-0.5 text-xs tabular-nums',
                     skill.installed
                       ? 'border-primary/40 bg-primary/15 text-primary'
-                      : 'border-primary-200 bg-primary-100/60 text-primary-500',
+                      : 'border-[var(--theme-border)] bg-primary-100/60 text-primary-500',
                   )}
                 >
                   {skill.installed ? 'Installed' : 'Available'}
@@ -1003,13 +1003,13 @@ function SkillsGrid({
 
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 <SecurityBadge security={skill.security} />
-                <span className="rounded-md border border-primary-200 bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500">
+                <span className="rounded-md border border-[var(--theme-border)] bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500">
                   {skill.category}
                 </span>
                 {skill.triggers.slice(0, 2).map((trigger) => (
                   <span
                     key={`${skill.id}-${trigger}`}
-                    className="rounded-md border border-primary-200 bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500"
+                    className="rounded-md border border-[var(--theme-border)] bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500"
                   >
                     {trigger}
                   </span>
@@ -1097,7 +1097,7 @@ function FeaturedGrid({
 
   if (skills.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-primary-200 bg-primary-100/40 px-4 py-10 text-center text-sm text-primary-500 text-pretty">
+      <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-primary-100/40 px-4 py-10 text-center text-sm text-primary-500 text-pretty">
         Featured picks are currently unavailable.
       </div>
     )
@@ -1110,7 +1110,7 @@ function FeaturedGrid({
         return (
           <article
             key={skill.id}
-            className="flex min-h-0 flex-col rounded-2xl border border-primary-200 bg-primary-50/85 p-4 shadow-sm backdrop-blur-sm"
+            className="flex min-h-0 flex-col rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/85 p-4 shadow-sm backdrop-blur-sm"
           >
             <div className="mb-3 flex items-start justify-between gap-2">
               <div className="space-y-1">
@@ -1128,7 +1128,7 @@ function FeaturedGrid({
                   'rounded-md border px-2 py-0.5 text-xs tabular-nums',
                   skill.installed
                     ? 'border-primary/40 bg-primary/15 text-primary'
-                    : 'border-primary-200 bg-primary-100/60 text-primary-500',
+                    : 'border-[var(--theme-border)] bg-primary-100/60 text-primary-500',
                 )}
               >
                 {skill.installed ? 'Installed' : 'Staff Pick'}
@@ -1193,7 +1193,7 @@ function SkillsSkeleton({
         <div
           key={index}
           className={cn(
-            'animate-pulse rounded-2xl border border-primary-200 bg-primary-50/70 p-4',
+            'animate-pulse rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/70 p-4',
             large ? 'min-h-[120px]' : 'min-h-[100px]',
           )}
         >
