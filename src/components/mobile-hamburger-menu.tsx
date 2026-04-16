@@ -16,7 +16,7 @@ import {
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { hapticTap } from '@/lib/haptics'
-import { getTheme, getThemeVariant, isDarkTheme, setTheme } from '@/lib/theme'
+import { getTheme, setTheme } from '@/lib/theme'
 import {
   selectChatProfileDisplayName,
   useChatSettingsStore,
@@ -294,10 +294,7 @@ export function MobileHamburgerMenu() {
             <button
               type="button"
               onClick={() => {
-                const current = getTheme()
-                const dark = isDarkTheme(current)
-                const next = getThemeVariant(current, dark ? 'light' : 'dark')
-                setTheme(next)
+                setTheme(getTheme())
               }}
               className="flex items-center justify-center size-9 rounded-xl active:bg-white/10 transition-colors"
               aria-label="Toggle theme"

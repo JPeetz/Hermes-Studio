@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { getTheme, setTheme } from '@/lib/theme'
 
-export type SettingsThemeMode = 'system' | 'light' | 'dark'
+export type SettingsThemeMode = 'system' | 'dark'
 export type AccentColor = 'orange' | 'purple' | 'blue' | 'green'
 
 export type StudioSettings = {
@@ -85,14 +85,8 @@ export function useSettings() {
   }
 }
 
-export function resolveTheme(theme: SettingsThemeMode): 'light' | 'dark' {
-  if (theme === 'light') return 'light'
-  if (theme === 'dark') return 'dark'
-
-  if (typeof window === 'undefined') return 'dark'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light'
+export function resolveTheme(_theme?: SettingsThemeMode): 'dark' {
+  return 'dark'
 }
 
 export function applyTheme(_theme?: SettingsThemeMode) {

@@ -34,13 +34,9 @@ const DEFAULT_THEME = 'hermes-os'
 const VALID_THEMES = [
   'hermes-os',
   'hermes-official',
-  'hermes-official-light',
   'hermes-classic',
-  'hermes-classic-light',
   'hermes-slate',
-  'hermes-slate-light',
   'hermes-mono',
-  'hermes-mono-light',
 ]
 
 const themeScript = `
@@ -51,13 +47,10 @@ const themeScript = `
     const root = document.documentElement
     const storedTheme = localStorage.getItem('${THEME_STORAGE_KEY}')
     const theme = ${JSON.stringify(VALID_THEMES)}.includes(storedTheme) ? storedTheme : '${DEFAULT_THEME}'
-    const lightThemes = ['hermes-official-light', 'hermes-classic-light', 'hermes-slate-light', 'hermes-mono-light']
-    // hermes-os is a dark theme (not in lightThemes)
-    const isDark = !lightThemes.includes(theme)
-    root.classList.remove('light', 'dark', 'system')
-    root.classList.add(isDark ? 'dark' : 'light')
+    root.classList.remove('light', 'system')
+    root.classList.add('dark')
     root.setAttribute('data-theme', theme)
-    root.style.setProperty('color-scheme', isDark ? 'dark' : 'light')
+    root.style.setProperty('color-scheme', 'dark')
 
     // Demo mode
     try {
@@ -77,17 +70,11 @@ const themeColorScript = `
     const colors = {
       'hermes-os': '#080c14',
       'hermes-official': '#0A0E1A',
-      'hermes-official-light': '#F6F8FC',
       'hermes-classic': '#0d0f12',
-      'hermes-classic-light': '#F5F2ED',
       'hermes-slate': '#0d1117',
-      'hermes-slate-light': '#F6F8FA',
       'hermes-mono': '#111111',
-      'hermes-mono-light': '#FAFAFA',
     }
     const nextColor = colors[theme] || colors['${DEFAULT_THEME}']
-    const isDark = !['hermes-official-light', 'hermes-classic-light', 'hermes-slate-light', 'hermes-mono-light'].includes(String(theme))
-    // hermes-os is always dark
 
     let meta = document.querySelector('meta[name="theme-color"]')
     if (!meta) {
@@ -96,7 +83,7 @@ const themeColorScript = `
       document.head.appendChild(meta)
     }
     meta.setAttribute('content', nextColor)
-    root.style.setProperty('color-scheme', isDark ? 'dark' : 'light')
+    root.style.setProperty('color-scheme', 'dark')
   } catch {}
 })()
 `

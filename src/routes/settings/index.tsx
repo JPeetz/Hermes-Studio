@@ -23,7 +23,7 @@ import { usePageTitle } from '@/hooks/use-page-title'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { useSettings } from '@/hooks/use-settings'
-import { THEMES, getTheme, isDarkTheme, setTheme } from '@/lib/theme'
+import { THEMES, getTheme, setTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import {
   getChatProfileDisplayName,
@@ -104,13 +104,6 @@ const THEME_PREVIEWS: Record<
     accent: '#6366F1',
     text: '#E6EAF2',
   },
-  'hermes-official-light': {
-    bg: '#F6F8FC',
-    panel: '#FFFFFF',
-    border: '#D7DEEE',
-    accent: '#4F46E5',
-    text: '#111827',
-  },
   'hermes-classic': {
     bg: '#0d0f12',
     panel: '#1a1f26',
@@ -132,27 +125,6 @@ const THEME_PREVIEWS: Record<
     accent: '#aaaaaa',
     text: '#e6edf3',
   },
-  'hermes-classic-light': {
-    bg: '#F5F2ED',
-    panel: '#FFFFFF',
-    border: '#D9D0C4',
-    accent: '#b98a44',
-    text: '#1a1f26',
-  },
-  'hermes-slate-light': {
-    bg: '#F6F8FA',
-    panel: '#FFFFFF',
-    border: '#D0D7DE',
-    accent: '#3b82f6',
-    text: '#1F2328',
-  },
-  'hermes-mono-light': {
-    bg: '#FAFAFA',
-    panel: '#FFFFFF',
-    border: '#D4D4D4',
-    accent: '#666666',
-    text: '#1a1a1a',
-  },
 }
 
 function WorkspaceThemePicker() {
@@ -161,7 +133,7 @@ function WorkspaceThemePicker() {
 
   function applyWorkspaceTheme(id: ThemeId) {
     setTheme(id)
-    updateSettings({ theme: isDarkTheme(id) ? 'dark' : 'light' })
+    updateSettings({ theme: 'dark' })
     setCurrent(id)
   }
 
