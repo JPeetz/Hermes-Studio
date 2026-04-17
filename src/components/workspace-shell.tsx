@@ -35,7 +35,7 @@ import { MobileTerminalInput } from '@/components/terminal/mobile-terminal-input
 import { HermesReconnectBanner } from '@/components/hermes-reconnect-banner'
 import { useMobileKeyboard } from '@/hooks/use-mobile-keyboard'
 import { ErrorBoundary } from '@/components/error-boundary'
-// System metrics footer removed — not used in Hermes Studio
+import { SystemMetricsFooter } from '@/components/system-metrics-footer'
 import { CommandPalette } from '@/components/command-palette'
 import { AgentStatusStrip } from '@/components/agent-status-strip'
 import { useSettings } from '@/hooks/use-settings'
@@ -410,7 +410,9 @@ export function WorkspaceShell() {
       </div>
 
       <MobileHamburgerMenu />
-      {/* System metrics footer removed */}
+      {settings.showSystemMetricsFooter && !isMobile && !isOnChatRoute && (
+        <SystemMetricsFooter />
+      )}
       <CommandPalette pathname={pathname} sessions={sessions} />
       <HermesOnboarding />
     </>
