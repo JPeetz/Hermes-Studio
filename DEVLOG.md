@@ -4,6 +4,36 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-17 — Session 20
+
+### What was done
+
+**Roadmap audit + task backlog creation**
+
+Cross-referenced the README roadmap table against the actual codebase to determine true status of every listed item. Found 5 features marked as 🔜 Planned that were already shipped, and 2 marked as in-progress/coming soon that had no code. Corrected all statuses in the README.
+
+**Actual status of roadmap items:**
+- Audit Trail → ✅ v1.13.0 (was 🔜 Planned)
+- Test Suite + CI Badges → ✅ v1.15.0 (was 🔜 Planned)
+- Clone Crew → ✅ v1.14.0 (was 🔜 Planned)
+- Setup Wizard → ✅ v1.16.0 (was 🔜 Planned)
+- Command Palette → ⚠️ Partial — component exists, Ctrl+K binding missing
+- System Health Panel → ⚠️ Partial — setting + layout reserved, no component
+- Native Desktop App → ❌ No code (was 🔨 In Development — corrected to Planned)
+- Cloud / Hosted → ❌ No code (was Coming Soon — corrected to Planned)
+
+**Task backlog created (Tasks #13–#20):**
+- #13 Wire Ctrl+K keybinding to Command Palette
+- #14 Build System Health Panel footer component
+- #15 Add Token Usage Time-Series Chart
+- #16 Build State.db Analytics screen
+- #17 Build Identity File Editor
+- #18 Build Patterns & Corrections Viewer
+- #19 Build Session History Archive
+- #20 Add Systemd Auto-start support
+
+---
+
 ## 2026-04-17 — Session 19
 
 ### What was done

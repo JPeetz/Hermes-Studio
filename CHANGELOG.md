@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased]
+
+### Planned
+- **Command Palette (Ctrl+K)** — keybinding for existing palette component
+- **System Health Panel** — CPU/memory/disk footer (setting already exists)
+- **Token Usage Time-Series Chart** — daily token/cost history in usage modal
+- **State.db Analytics** — aggregate stats from `~/.hermes/state.db`
+- **Identity File Editor** — agent name/persona editor in Settings
+- **Patterns & Corrections Viewer** — browse and manage Hermes learned patterns
+- **Session History Archive** — export/archive old sessions as JSON or Markdown
+- **Systemd Auto-start** — generate `.service` unit files from Settings
+
+---
+
 ## [1.17.1] — 2026-04-17
 
 ### Fixed

@@ -387,7 +387,7 @@ Access Hermes Studio from anywhere on your devices — no port forwarding, no VP
 
 ## 🖥️ Native Desktop App
 
-> **Status: In Development** — A native Electron-based desktop app is in active development.
+> **Status: Planned** — A native Electron-based desktop app is on the roadmap.
 
 The desktop app will offer:
 
@@ -402,9 +402,9 @@ The desktop app will offer:
 
 ## ☁️ Cloud & Hosted Setup
 
-> **Status: Coming Soon**
+> **Status: Planned**
 
-A fully managed cloud version of Hermes Studio is in development:
+A fully managed cloud version of Hermes Studio is planned:
 
 - **One-click deploy** — No self-hosting required
 - **Multi-device sync** — Access your agents from any device
@@ -695,20 +695,22 @@ The Docker setup uses `hermes --gateway` automatically — no action needed if u
 | Cost Tracking per Crew               | ✅ Shipped v1.10.0 |
 | MCP Client Protocol                  | ✅ Shipped v1.11.0 |
 | Agent Library (custom agents)        | ✅ Shipped v1.12.0 |
-| Audit Trail                          | 🔜 Planned        |
-| Test Suite + CI Badges               | 🔜 Planned        |
-| System Health Panel                  | 🔜 Planned        |
-| Clone Crew                           | 🔜 Planned        |
-| Setup Wizard                         | 🔜 Planned        |
-| Systemd Auto-start                   | 🔜 Planned        |
-| State.db Analytics                   | 🔜 Planned        |
-| Command Palette (Ctrl+K)             | 🔜 Planned        |
-| Identity File Editor                 | 🔜 Planned        |
-| Patterns & Corrections Viewer        | 🔜 Planned        |
-| Token Usage Time-Series Chart        | 🔜 Planned        |
-| Session History Archive              | 🔜 Planned        |
-| Native Desktop App (Electron)        | 🔨 In Development |
-| Cloud / Hosted Version               | 🔜 Coming Soon    |
+| Audit Trail                          | ✅ Shipped v1.13.0 |
+| Test Suite + CI Badges               | ✅ Shipped v1.15.0 |
+| Clone Crew                           | ✅ Shipped v1.14.0 |
+| Setup Wizard                         | ✅ Shipped v1.16.0 |
+| Hermes v0.8.0 + v0.9.0 compat       | ✅ Shipped v1.17.0 |
+| Design System v1.0                   | ✅ Shipped v1.16.0 |
+| Command Palette (Ctrl+K)             | 🔨 In Progress     |
+| System Health Panel                  | 🔨 In Progress     |
+| Token Usage Time-Series Chart        | 🔜 Planned         |
+| State.db Analytics                   | 🔜 Planned         |
+| Identity File Editor                 | 🔜 Planned         |
+| Patterns & Corrections Viewer        | 🔜 Planned         |
+| Session History Archive              | 🔜 Planned         |
+| Systemd Auto-start                   | 🔜 Planned         |
+| Native Desktop App (Electron)        | 🔜 Planned         |
+| Cloud / Hosted Version               | 🔜 Planned         |
 
 ---
 
