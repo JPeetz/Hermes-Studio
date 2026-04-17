@@ -13,6 +13,8 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -31,7 +33,28 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run unit tests
-        run: pnpm test
+        run: pnpm test --reporter=json --outputFile=test-results.json
+
+      - name: Update test badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          PASSED=$(node -e "const r=require('./test-results.json'); console.log(r.numPassedTests ?? r.testResults?.reduce((a,f)=>a+(f.status==='passed'?1:0),0) ?? 0)" 2>/dev/null || \
+            grep -o '"Tests.*passed' test-results.json | grep -o '[0-9]\+' | head -1 || echo "0")
+          # vitest JSON output uses numTodoTests/numPassedTests at top level
+          PASSED=$(node -e "
+            try {
+              const r = require('./test-results.json');
+              // vitest JSON reporter shape
+              const passed = r.numPassedTests ?? r.testResults?.reduce((a,f)=>a+(f.numPassedTests||0),0) ?? 0;
+              console.log(passed);
+            } catch(e) { console.log(0); }
+          ")
+          echo "{\"schemaVersion\":1,\"label\":\"tests\",\"message\":\"${PASSED} passed\",\"color\":\"brightgreen\"}" > badges/tests.json
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add badges/tests.json
+          git diff --staged --quiet || git commit -m "ci: update test badge [skip ci]"
+          git push
 
   e2e-tests:
     name: E2E Tests

@@ -6,11 +6,13 @@
 
 **The only Hermes web UI with a built-in cron job manager — schedule, monitor, and control autonomous agent tasks without touching a terminal.**
 
-[![Version](https://img.shields.io/badge/version-1.18.0-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.18.1-6366F1.svg)](CHANGELOG.md)
 [![Hermes Agent](https://img.shields.io/badge/hermes--agent-v0.9.0-orange.svg)](https://github.com/NousResearch/hermes-agent)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
 [![CI](https://github.com/JPeetz/Hermes-Studio/actions/workflows/ci.yml/badge.svg)](https://github.com/JPeetz/Hermes-Studio/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JPeetz/Hermes-Studio/main/badges/tests.json)](src/test)
+[![Commits](https://img.shields.io/github/commits-since/JPeetz/Hermes-Studio/v0.0.0.svg?label=commits)](https://github.com/JPeetz/Hermes-Studio/commits/main)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366F1.svg)](CONTRIBUTING.md)
 
 > Not a chat wrapper. A complete studio — orchestrate multi-agent crews, approve actions, browse memory with a visual knowledge graph, manage skills, and schedule recurring tasks, all from one interface. Built for power users running Hermes Agent locally.

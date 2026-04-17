@@ -13,72 +13,20 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { SessionMeta } from '@/screens/chat/types'
 import type { ChatMessage } from '@/screens/chat/types'
+import {
+  normalise,
+  fmtDate,
+  fmtTokens,
+  fmtCost,
+  sessionTitle,
+} from '@/lib/session-utils'
+import type { RichSession } from '@/lib/session-utils'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type SortField = 'updatedAt' | 'model' | 'messageCount' | 'tokens' | 'cost'
 type SortDir = 'asc' | 'desc'
-
-type RichSession = SessionMeta & {
-  totalTokens: number
-  cost: number
-  messageCount: number
-  toolCallCount: number
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function fmtDate(ts?: number): string {
-  if (!ts) return '—'
-  const ms = ts < 1e12 ? ts * 1000 : ts
-  return new Date(ms).toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function fmtTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}m`
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`
-  return String(n)
-}
-
-function fmtCost(n: number): string {
-  if (!n) return '—'
-  return `$${n.toFixed(4)}`
-}
-
-function sessionTitle(s: SessionMeta): string {
-  return (
-    (s as any).derivedTitle ||
-    s.title ||
-    (s as any).label ||
-    s.friendlyId ||
-    s.key
-  )
-}
-
-function normalise(raw: any): RichSession {
-  return {
-    ...raw,
-    key: raw.key || raw.id || raw.sessionKey || '',
-    friendlyId: raw.friendlyId || raw.id || raw.key || '',
-    totalTokens:
-      raw.totalTokens ||
-      raw.tokenCount ||
-      (raw.usage
-        ? (raw.usage.promptTokens || 0) + (raw.usage.completionTokens || 0)
-        : 0),
-    cost: raw.cost || 0,
-    messageCount: raw.messageCount || raw.message_count || 0,
-    toolCallCount: raw.toolCallCount || raw.tool_call_count || 0,
-    updatedAt: raw.updatedAt || raw.startedAt || raw.createdAt || 0,
-  } as RichSession
-}
 
 // ── API ───────────────────────────────────────────────────────────────────────
 

@@ -14,20 +14,19 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  parseEntries,
+  buildMemoryContent,
+  appendCorrection,
+  removeEntry,
+} from '@/lib/memory-parser'
+import type { MemoryEntry as Entry } from '@/lib/memory-parser'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const MEMORY_PATH = 'memories/MEMORY.md'
-const CORRECTION_PREFIX = 'CORRECTION:'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-type Entry = {
-  index: number
-  raw: string
-  isCorrection: boolean
-  body: string
-}
 
 type Tab = 'patterns' | 'corrections'
 
@@ -50,29 +49,6 @@ async function saveMemory(content: string): Promise<void> {
     body: JSON.stringify({ path: MEMORY_PATH, content }),
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
-}
-
-// ── Parsing ───────────────────────────────────────────────────────────────────
-
-function parseEntries(raw: string): Entry[] {
-  return raw
-    .split('§')
-    .map((chunk, i) => chunk.trim())
-    .filter(Boolean)
-    .map((raw, i) => {
-      const isCorrection = raw
-        .trimStart()
-        .toUpperCase()
-        .startsWith(CORRECTION_PREFIX)
-      const body = isCorrection
-        ? raw.slice(raw.toUpperCase().indexOf(CORRECTION_PREFIX) + CORRECTION_PREFIX.length).trim()
-        : raw
-      return { index: i, raw, isCorrection, body }
-    })
-}
-
-function buildMemoryContent(entries: Entry[]): string {
-  return entries.map((e) => e.raw).join('\n§\n')
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -263,8 +239,7 @@ export function PatternsCorrectionScreen() {
 
   const handleDelete = useCallback(
     async (entryIndex: number) => {
-      const updated = entries.filter((e) => e.index !== entryIndex)
-      const content = buildMemoryContent(updated)
+      const content = removeEntry(rawContent ?? '', entryIndex)
       setSaving(true)
       try {
         await saveMemory(content)
@@ -275,17 +250,13 @@ export function PatternsCorrectionScreen() {
         setSaving(false)
       }
     },
-    [entries],
+    [rawContent],
   )
 
   const handleAddCorrection = useCallback(async () => {
     const body = newCorrection.trim()
     if (!body) return
-    const correctionEntry = `${CORRECTION_PREFIX} ${body}`
-    const newContent =
-      rawContent
-        ? rawContent.trim() + '\n§\n' + correctionEntry
-        : correctionEntry
+    const newContent = appendCorrection(rawContent ?? '', body)
     setSaving(true)
     setAddMsg(null)
     try {

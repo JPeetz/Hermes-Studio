@@ -17,6 +17,13 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { formatModelName } from '@/lib/format-model-name'
+import {
+  buildDayBuckets,
+  formatTokens,
+  progressColor,
+  CHART_DAYS,
+} from '@/lib/chart-utils'
+import type { SessionUsage as ChartSessionUsage } from '@/lib/chart-utils'
 
 type ModelUsage = {
   model: string
@@ -84,12 +91,6 @@ function formatCurrency(value: number): string {
   }).format(value)
 }
 
-function formatTokens(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}m`
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`
-  return Math.round(value).toString()
-}
-
 function formatTimestamp(value?: number): string {
   if (!value) return '—'
   const date = new Date(value < 1_000_000_000_000 ? value * 1000 : value)
@@ -108,13 +109,6 @@ function formatResetTime(iso?: string): string {
   return `resets in ${mins}m`
 }
 
-function progressColor(used: number, limit: number): string {
-  const pct = (used / limit) * 100
-  if (pct >= 90) return 'bg-red-500'
-  if (pct >= 75) return 'bg-amber-500'
-  if (pct >= 50) return 'bg-yellow-500'
-  return 'bg-emerald-500'
-}
 
 function formatLineValue(line: UsageLine): string {
   if (line.value) return line.value
@@ -246,46 +240,6 @@ function statusBadge(status: ProviderUsage['status']) {
 }
 
 // ── Token trend chart ─────────────────────────────────────────────────────────
-
-const CHART_DAYS = 14
-
-type DayBucket = {
-  date: string
-  input: number
-  output: number
-  cost: number
-}
-
-function buildDayBuckets(sessions: Array<SessionUsage>): Array<DayBucket> {
-  const buckets = new Map<string, DayBucket>()
-  const now = Date.now()
-
-  // Pre-fill all 14 days so gaps show as zero
-  for (let i = CHART_DAYS - 1; i >= 0; i--) {
-    const d = new Date(now - i * 86_400_000)
-    const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    buckets.set(key, { date: key, input: 0, output: 0, cost: 0 })
-  }
-
-  for (const s of sessions) {
-    const ts = s.startedAt ?? s.updatedAt
-    if (!ts) continue
-    const ms = ts < 1_000_000_000_000 ? ts * 1000 : ts
-    const age = now - ms
-    if (age < 0 || age > CHART_DAYS * 86_400_000) continue
-    const key = new Date(ms).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    })
-    const bucket = buckets.get(key)
-    if (!bucket) continue
-    bucket.input += s.inputTokens
-    bucket.output += s.outputTokens
-    bucket.cost += s.costUsd
-  }
-
-  return Array.from(buckets.values())
-}
 
 function TokenTrendChart({ sessions }: { sessions: Array<SessionUsage> }) {
   const data = useMemo(() => buildDayBuckets(sessions), [sessions])

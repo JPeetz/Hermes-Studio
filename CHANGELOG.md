@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.18.1] — 2026-04-17
+
+### Added
+- **Expanded test suite** — 5 new test files covering `memory-parser`, `session-utils`, `chart-utils`, `getAnalytics()`, and `auth-middleware`; total tests: 175 (up from 59)
+- **Test badge** — live `tests: N passed` badge in README sourced from `badges/tests.json`, auto-updated by CI on every push to main
+- **Commits badge** — live commit count badge via shields.io (`commits-since/v0.0.0`)
+- **Pure utility libraries** — extracted `src/lib/memory-parser.ts`, `src/lib/session-utils.ts`, `src/lib/chart-utils.ts` from component files; components now import from these
+
+### Changed
+- CI workflow: unit-tests job now outputs `test-results.json` and commits an updated `badges/tests.json` on pushes to main
+
+---
+
 ## [1.18.0] — 2026-04-17
 
 ### Added — Studio feature sprint (Tasks #13–#20)
