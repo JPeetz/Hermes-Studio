@@ -10,7 +10,6 @@
 [![Hermes Agent](https://img.shields.io/badge/hermes--agent-v0.9.0-orange.svg)](https://github.com/NousResearch/hermes-agent)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
-[![CI](https://github.com/JPeetz/Hermes-Studio/actions/workflows/ci.yml/badge.svg)](https://github.com/JPeetz/Hermes-Studio/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JPeetz/Hermes-Studio/main/badges/tests.json)](src/test)
 [![Commits](https://img.shields.io/github/commits-since/JPeetz/Hermes-Studio/v0.0.0.svg?label=commits)](https://github.com/JPeetz/Hermes-Studio/commits/main)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366F1.svg)](CONTRIBUTING.md)
