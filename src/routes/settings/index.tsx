@@ -236,6 +236,7 @@ type SettingsSectionId =
   | 'notifications'
   | 'integrations'
   | 'identity'
+  | 'autostart'
   | 'advanced'
 
 type SettingsNavItem = {
@@ -256,6 +257,7 @@ const SETTINGS_NAV_ITEMS: Array<SettingsNavItem> = [
   { id: 'notifications', label: 'Notifications' },
   { id: 'integrations', label: 'Integrations' },
   { id: 'identity', label: 'Identity' },
+  { id: 'autostart', label: 'Auto-start' },
   { id: 'mcp', label: 'MCP Servers', to: '/settings/mcp' },
 ]
 
@@ -610,6 +612,9 @@ function SettingsRoute() {
 
           {/* ── Identity ────────────────────────────────────────── */}
           {activeSection === 'identity' && <IdentityFileEditor />}
+
+          {/* ── Auto-start ──────────────────────────────────────── */}
+          {activeSection === 'autostart' && <SystemdAutoStartSection />}
 
           <footer className="mt-auto pt-4">
             <div className="flex items-center gap-2 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/70 p-3 text-sm text-[var(--theme-muted)] backdrop-blur-sm">
@@ -3204,5 +3209,380 @@ function HermesConfigSection({
       )}
       {sectionContent[activeView]}
     </>
+  )
+}
+
+// ── Systemd Auto-start ────────────────────────────────────────────────────────
+
+interface SystemdStatus {
+  ok: boolean
+  available: boolean
+  installed: boolean
+  active: boolean
+  enabled: boolean
+  output: string
+}
+
+function SystemdAutoStartSection() {
+  const [status, setStatus] = useState<SystemdStatus | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(
+    null,
+  )
+
+  const fetchStatus = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/systemd-status')
+      const data = (await res.json()) as SystemdStatus
+      setStatus(data)
+    } catch {
+      setStatus(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void fetchStatus()
+  }, [fetchStatus])
+
+  const runAction = useCallback(
+    async (action: string) => {
+      setBusy(true)
+      setMessage(null)
+      try {
+        const res = await fetch('/api/systemd-control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action }),
+        })
+        const data = (await res.json()) as { ok: boolean; output?: string }
+        setMessage({
+          text: data.output ?? (data.ok ? 'Done.' : 'Failed.'),
+          ok: data.ok,
+        })
+        await fetchStatus()
+      } catch (err: unknown) {
+        setMessage({
+          text: err instanceof Error ? err.message : 'Request failed',
+          ok: false,
+        })
+      } finally {
+        setBusy(false)
+      }
+    },
+    [fetchStatus],
+  )
+
+  const sectionStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem',
+  }
+
+  const cardStyle: React.CSSProperties = {
+    background: 'var(--theme-surface)',
+    border: '1px solid var(--theme-border)',
+    borderRadius: '0.75rem',
+    padding: '1.25rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+  }
+
+  const headingStyle: React.CSSProperties = {
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    color: 'var(--theme-text)',
+    margin: 0,
+  }
+
+  const muteStyle: React.CSSProperties = {
+    fontSize: '0.8125rem',
+    color: 'var(--theme-muted)',
+    lineHeight: 1.5,
+  }
+
+  const statusDotStyle = (active: boolean): React.CSSProperties => ({
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    flexShrink: 0,
+    background: active ? '#22c55e' : 'var(--theme-muted)',
+  })
+
+  const rowStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontSize: '0.8125rem',
+    color: 'var(--theme-text)',
+  }
+
+  const btnStyle = (variant: 'primary' | 'danger' | 'ghost'): React.CSSProperties => ({
+    padding: '0.375rem 0.875rem',
+    borderRadius: '0.5rem',
+    fontSize: '0.8125rem',
+    fontWeight: 500,
+    cursor: busy ? 'not-allowed' : 'pointer',
+    opacity: busy ? 0.6 : 1,
+    border: '1px solid',
+    background:
+      variant === 'primary'
+        ? 'var(--theme-accent)'
+        : variant === 'danger'
+          ? 'rgba(239,68,68,0.12)'
+          : 'transparent',
+    borderColor:
+      variant === 'primary'
+        ? 'var(--theme-accent)'
+        : variant === 'danger'
+          ? 'rgba(239,68,68,0.4)'
+          : 'var(--theme-border)',
+    color:
+      variant === 'primary'
+        ? 'var(--theme-bg)'
+        : variant === 'danger'
+          ? '#ef4444'
+          : 'var(--theme-text)',
+  })
+
+  const actionsStyle: React.CSSProperties = {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.5rem',
+    marginTop: '0.25rem',
+  }
+
+  if (loading) {
+    return (
+      <div style={{ color: 'var(--theme-muted)', fontSize: '0.875rem' }}>
+        Checking systemd status…
+      </div>
+    )
+  }
+
+  if (!status?.available) {
+    return (
+      <div style={sectionStyle}>
+        <p style={muteStyle}>
+          Systemd auto-start is only available on Linux systems running systemd.
+          This host does not support it.
+        </p>
+        <div
+          style={{
+            ...cardStyle,
+            background: 'transparent',
+            border: '1px dashed var(--theme-border)',
+          }}
+        >
+          <p style={{ ...headingStyle, fontWeight: 400, ...muteStyle }}>
+            You can still start Hermes Studio manually:
+          </p>
+          <pre
+            style={{
+              background: 'var(--theme-surface)',
+              borderRadius: '0.5rem',
+              padding: '0.75rem 1rem',
+              fontSize: '0.8125rem',
+              color: 'var(--theme-text)',
+              overflowX: 'auto',
+              margin: 0,
+            }}
+          >
+            {`cd /path/to/hermes-studio\npnpm build && node server-entry.js`}
+          </pre>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={sectionStyle}>
+      {/* Status Card */}
+      <div style={cardStyle}>
+        <h3 style={headingStyle}>Service Status</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div style={rowStyle}>
+            <span style={statusDotStyle(status.installed)} />
+            <span>
+              {status.installed ? 'Unit installed' : 'Unit not installed'}
+            </span>
+          </div>
+          {status.installed && (
+            <>
+              <div style={rowStyle}>
+                <span style={statusDotStyle(status.active)} />
+                <span>{status.active ? 'Running' : 'Stopped'}</span>
+              </div>
+              <div style={rowStyle}>
+                <span style={statusDotStyle(status.enabled)} />
+                <span>
+                  {status.enabled ? 'Enabled (starts at login)' : 'Disabled'}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div style={cardStyle}>
+        <h3 style={headingStyle}>Actions</h3>
+        <p style={muteStyle}>
+          Manages a systemd user service unit at{' '}
+          <code
+            style={{
+              fontFamily: 'monospace',
+              background: 'var(--theme-surface)',
+              borderRadius: 4,
+              padding: '1px 5px',
+            }}
+          >
+            ~/.config/systemd/user/hermes-studio.service
+          </code>
+          .
+        </p>
+        <div style={actionsStyle}>
+          {!status.installed ? (
+            <button
+              style={btnStyle('primary')}
+              disabled={busy}
+              onClick={() => runAction('install')}
+            >
+              Install Service
+            </button>
+          ) : (
+            <>
+              {!status.active ? (
+                <button
+                  style={btnStyle('primary')}
+                  disabled={busy}
+                  onClick={() => runAction('start')}
+                >
+                  Start
+                </button>
+              ) : (
+                <button
+                  style={btnStyle('ghost')}
+                  disabled={busy}
+                  onClick={() => runAction('stop')}
+                >
+                  Stop
+                </button>
+              )}
+              {!status.enabled ? (
+                <button
+                  style={btnStyle('ghost')}
+                  disabled={busy}
+                  onClick={() => runAction('enable')}
+                >
+                  Enable (start at login)
+                </button>
+              ) : (
+                <button
+                  style={btnStyle('ghost')}
+                  disabled={busy}
+                  onClick={() => runAction('disable')}
+                >
+                  Disable auto-start
+                </button>
+              )}
+              <button
+                style={btnStyle('danger')}
+                disabled={busy}
+                onClick={() => runAction('uninstall')}
+              >
+                Uninstall
+              </button>
+            </>
+          )}
+          <button
+            style={btnStyle('ghost')}
+            disabled={busy || loading}
+            onClick={() => fetchStatus()}
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* Output */}
+      {message && (
+        <div
+          style={{
+            ...cardStyle,
+            background: message.ok
+              ? 'rgba(34,197,94,0.08)'
+              : 'rgba(239,68,68,0.08)',
+            borderColor: message.ok
+              ? 'rgba(34,197,94,0.3)'
+              : 'rgba(239,68,68,0.3)',
+          }}
+        >
+          <pre
+            style={{
+              margin: 0,
+              fontSize: '0.8125rem',
+              color: message.ok ? '#22c55e' : '#ef4444',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}
+          >
+            {message.text}
+          </pre>
+        </div>
+      )}
+
+      {/* systemctl status output */}
+      {status.installed && status.output && (
+        <div style={cardStyle}>
+          <h3 style={headingStyle}>systemctl status</h3>
+          <pre
+            style={{
+              margin: 0,
+              fontSize: '0.75rem',
+              color: 'var(--theme-muted)',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              overflowX: 'auto',
+              maxHeight: '16rem',
+            }}
+          >
+            {status.output}
+          </pre>
+        </div>
+      )}
+
+      {/* Manual script */}
+      <div
+        style={{
+          ...cardStyle,
+          background: 'transparent',
+          border: '1px dashed var(--theme-border)',
+        }}
+      >
+        <h3 style={headingStyle}>Command-line install</h3>
+        <p style={muteStyle}>
+          You can also manage the service from a terminal using the bundled
+          script:
+        </p>
+        <pre
+          style={{
+            background: 'var(--theme-surface)',
+            borderRadius: '0.5rem',
+            padding: '0.75rem 1rem',
+            fontSize: '0.8125rem',
+            color: 'var(--theme-text)',
+            overflowX: 'auto',
+            margin: 0,
+          }}
+        >
+          {`scripts/install-systemd.sh install\nscripts/install-systemd.sh enable\nscripts/install-systemd.sh start`}
+        </pre>
+      </div>
+    </div>
   )
 }

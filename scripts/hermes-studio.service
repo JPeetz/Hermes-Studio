@@ -1,0 +1,20 @@
+[Unit]
+Description=Hermes Studio AI Development Interface
+Documentation=https://github.com/JPeetz/Hermes-Studio
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=HERMES_INSTALL_DIR
+ExecStart=/usr/bin/node HERMES_INSTALL_DIR/server-entry.js
+Environment=PORT=3002
+Environment=NODE_OPTIONS=--max-old-space-size=2048
+Environment=NODE_ENV=production
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hermes-studio
+
+[Install]
+WantedBy=default.target

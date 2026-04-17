@@ -45,6 +45,8 @@ import { Route as ApiSessionStatusRouteImport } from './routes/api/session-statu
 import { Route as ApiSendStreamRouteImport } from './routes/api/send-stream'
 import { Route as ApiSendRouteImport } from './routes/api/send'
 import { Route as ApiStateAnalyticsRouteImport } from './routes/api/state-analytics'
+import { Route as ApiSystemdStatusRouteImport } from './routes/api/systemd-status'
+import { Route as ApiSystemdControlRouteImport } from './routes/api/systemd-control'
 import { Route as ApiSystemHealthRouteImport } from './routes/api/system-health'
 import { Route as ApiProviderUsageRouteImport } from './routes/api/provider-usage'
 import { Route as ApiPingRouteImport } from './routes/api/ping'
@@ -284,6 +286,16 @@ const ApiSendRoute = ApiSendRouteImport.update({
 const ApiStateAnalyticsRoute = ApiStateAnalyticsRouteImport.update({
   id: '/api/state-analytics',
   path: '/api/state-analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSystemdStatusRoute = ApiSystemdStatusRouteImport.update({
+  id: '/api/systemd-status',
+  path: '/api/systemd-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSystemdControlRoute = ApiSystemdControlRouteImport.update({
+  id: '/api/systemd-control',
+  path: '/api/systemd-control',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSystemHealthRoute = ApiSystemHealthRouteImport.update({
@@ -1189,6 +1201,8 @@ export interface RootRouteChildren {
   ApiSendRoute: typeof ApiSendRoute
   ApiSendStreamRoute: typeof ApiSendStreamRoute
   ApiStateAnalyticsRoute: typeof ApiStateAnalyticsRoute
+  ApiSystemdStatusRoute: typeof ApiSystemdStatusRoute
+  ApiSystemdControlRoute: typeof ApiSystemdControlRoute
   ApiSystemHealthRoute: typeof ApiSystemHealthRoute
   ApiSessionStatusRoute: typeof ApiSessionStatusRoute
   ApiSessionsRoute: typeof ApiSessionsRouteWithChildren
@@ -1482,6 +1496,20 @@ declare module '@tanstack/react-router' {
       path: '/api/state-analytics'
       fullPath: '/api/state-analytics'
       preLoaderRoute: typeof ApiStateAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/systemd-status': {
+      id: '/api/systemd-status'
+      path: '/api/systemd-status'
+      fullPath: '/api/systemd-status'
+      preLoaderRoute: typeof ApiSystemdStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/systemd-control': {
+      id: '/api/systemd-control'
+      path: '/api/systemd-control'
+      fullPath: '/api/systemd-control'
+      preLoaderRoute: typeof ApiSystemdControlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/send': {
@@ -2066,6 +2094,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSendRoute: ApiSendRoute,
   ApiSendStreamRoute: ApiSendStreamRoute,
   ApiStateAnalyticsRoute: ApiStateAnalyticsRoute,
+  ApiSystemdStatusRoute: ApiSystemdStatusRoute,
+  ApiSystemdControlRoute: ApiSystemdControlRoute,
   ApiSystemHealthRoute: ApiSystemHealthRoute,
   ApiSessionStatusRoute: ApiSessionStatusRoute,
   ApiSessionsRoute: ApiSessionsRouteWithChildren,
