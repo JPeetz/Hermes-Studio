@@ -6,7 +6,6 @@ import {
   Cancel01Icon,
   CheckmarkCircle02Icon,
   CloudIcon,
-  ComputerIcon,
   MessageMultiple01Icon,
   Mic01Icon,
   Moon01Icon,
@@ -14,10 +13,9 @@ import {
   PaintBoardIcon,
   Settings02Icon,
   SparklesIcon,
-  Sun01Icon,
   VolumeHighIcon,
 } from '@hugeicons/core-free-icons'
-import { Component, useCallback, useEffect, useState } from 'react'
+import { Component, useCallback, useEffect, useRef, useState } from 'react'
 import type * as React from 'react'
 import type { AccentColor, SettingsThemeMode } from '@/hooks/use-settings'
 import type { LoaderStyle } from '@/hooks/use-chat-settings'
@@ -26,13 +24,7 @@ import type { ThemeId } from '@/lib/theme'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { applyTheme, useSettings } from '@/hooks/use-settings'
-import {
-  THEMES,
-  getTheme,
-  getThemeVariant,
-  isDarkTheme,
-  setTheme,
-} from '@/lib/theme'
+import { THEMES, getTheme, setTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import {
   getChatProfileDisplayName,
@@ -773,9 +765,6 @@ function AppearanceContent() {
   function handleThemeChange(value: string) {
     const theme = value as SettingsThemeMode
     applyTheme(theme)
-    if (theme === 'light' || theme === 'dark') {
-      setTheme(getThemeVariant(getTheme(), theme))
-    }
     updateSettings({ theme })
   }
 
@@ -799,33 +788,6 @@ function AppearanceContent() {
         title="Appearance"
         description="Theme and color accents."
       />
-      <div className={SETTINGS_CARD_CLASS}>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary-500">
-          Theme Mode
-        </p>
-        <div className="inline-flex rounded-lg border border-primary-200 p-1">
-          {[
-            { value: 'light', label: 'Light', icon: Sun01Icon },
-            { value: 'dark', label: 'Dark', icon: Moon01Icon },
-            { value: 'system', label: 'System', icon: ComputerIcon },
-          ].map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => handleThemeChange(option.value)}
-              className={cn(
-                'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors',
-                settings.theme === option.value
-                  ? 'bg-accent-500 text-white'
-                  : 'text-primary-600 hover:bg-primary-100',
-              )}
-            >
-              <HugeiconsIcon icon={option.icon} size={16} strokeWidth={1.5} />
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
       {/* Accent color removed — themes control accent */}
       <div className={SETTINGS_CARD_CLASS}>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary-500">
@@ -853,80 +815,18 @@ function AppearanceContent() {
   )
 }
 
-const ENTERPRISE_THEME_FAMILIES: Array<ThemeId> = [
-  'hermes-official',
-  'hermes-classic',
-  'hermes-slate',
-  'hermes-mono',
-]
+
+const THEME_PREVIEWS: Record<string, { bg: string; panel: string; border: string; accent: string; text: string }> = {
+  'hermes-official': { bg: '#0A0E1A', panel: '#11182A', border: '#24304A', accent: '#6366F1', text: '#E6EAF2' },
+  'hermes-classic': { bg: '#0d0f12', panel: '#1a1f26', border: '#2a313b', accent: '#b98a44', text: '#eceff4' },
+  'hermes-slate': { bg: '#0d1117', panel: '#1c2128', border: '#30363d', accent: '#7eb8f6', text: '#c9d1d9' },
+  'hermes-mono': { bg: '#111111', panel: '#222222', border: '#333333', accent: '#aaaaaa', text: '#e6edf3' },
+}
 
 const ENTERPRISE_THEMES = THEMES.map((theme) => ({
   ...theme,
   desc: theme.description,
-  preview:
-    theme.id === 'hermes-official'
-      ? {
-          bg: '#0A0E1A',
-          panel: '#11182A',
-          border: '#24304A',
-          accent: '#6366F1',
-          text: '#E6EAF2',
-        }
-      : theme.id === 'hermes-official-light'
-        ? {
-            bg: '#F6F8FC',
-            panel: '#FFFFFF',
-            border: '#D7DEEE',
-            accent: '#4F46E5',
-            text: '#111827',
-          }
-        : theme.id === 'hermes-classic'
-          ? {
-              bg: '#0d0f12',
-              panel: '#1a1f26',
-              border: '#2a313b',
-              accent: '#b98a44',
-              text: '#eceff4',
-            }
-          : theme.id === 'hermes-classic-light'
-            ? {
-                bg: '#F5F2ED',
-                panel: '#FCFAF7',
-                border: '#D8CCBC',
-                accent: '#b98a44',
-                text: '#1a1f26',
-              }
-            : theme.id === 'hermes-slate'
-              ? {
-                  bg: '#0d1117',
-                  panel: '#1c2128',
-                  border: '#30363d',
-                  accent: '#7eb8f6',
-                  text: '#c9d1d9',
-                }
-              : theme.id === 'hermes-slate-light'
-                ? {
-                    bg: '#F6F8FA',
-                    panel: '#FFFFFF',
-                    border: '#D0D7DE',
-                    accent: '#3b82f6',
-                    text: '#24292f',
-                  }
-                : theme.id === 'hermes-mono'
-                  ? {
-                      bg: '#111111',
-                      panel: '#222222',
-                      border: '#333333',
-                      accent: '#aaaaaa',
-                      text: '#e6edf3',
-                    }
-                  : {
-                      bg: '#FAFAFA',
-                      panel: '#FFFFFF',
-                      border: '#D4D4D4',
-                      accent: '#666666',
-                      text: '#1a1a1a',
-                    },
+  preview: THEME_PREVIEWS[theme.id] ?? { bg: '#080c14', panel: '#111827', border: '#1e293b', accent: '#38bdf8', text: '#e2e8f0' },
 }))
 
 function ThemeSwatch({
@@ -975,7 +875,6 @@ function EnterpriseThemePicker() {
     if (typeof window === 'undefined') return 'hermes-official'
     return getTheme()
   })
-  const currentMode = isDarkTheme(current) ? 'dark' : 'light'
 
   useEffect(() => {
     setCurrent(getTheme())
@@ -983,53 +882,14 @@ function EnterpriseThemePicker() {
 
   function applyEnterpriseTheme(id: ThemeId) {
     setTheme(id)
-    updateSettings({ theme: isDarkTheme(id) ? 'dark' : 'light' })
+    updateSettings({ theme: 'dark' })
     setCurrent(id)
   }
 
-  function toggleEnterpriseThemeMode() {
-    const nextMode = currentMode === 'dark' ? 'light' : 'dark'
-    applyEnterpriseTheme(getThemeVariant(current, nextMode))
-  }
-
-  const visibleThemes = ENTERPRISE_THEME_FAMILIES.map((themeId) =>
-    ENTERPRISE_THEMES.find(
-      (theme) => theme.id === getThemeVariant(themeId, currentMode),
-    ),
-  ).filter(Boolean) as typeof ENTERPRISE_THEMES
-
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between rounded-lg border border-primary-200 px-3 py-2">
-        <div>
-          <p className="text-xs font-semibold text-primary-900 dark:text-neutral-100">
-            {currentMode === 'dark' ? 'Dark mode' : 'Light mode'}
-          </p>
-          <p className="text-[11px] text-primary-500 dark:text-neutral-400">
-            Toggle the current theme family between paired light and dark
-            variants.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={toggleEnterpriseThemeMode}
-          className="inline-flex items-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-900 transition-colors hover:bg-primary-100"
-          aria-label={
-            currentMode === 'dark'
-              ? 'Switch enterprise theme to light mode'
-              : 'Switch enterprise theme to dark mode'
-          }
-        >
-          <HugeiconsIcon
-            icon={currentMode === 'dark' ? Sun01Icon : Moon01Icon}
-            size={16}
-            strokeWidth={1.5}
-          />
-          {currentMode === 'dark' ? 'Light' : 'Dark'}
-        </button>
-      </div>
       <div className="grid w-full grid-cols-2 gap-2">
-        {visibleThemes.map((t) => {
+        {ENTERPRISE_THEMES.map((t) => {
           const isActive = current === t.id
           return (
             <button
@@ -1247,11 +1107,34 @@ function _AdvancedContent() {
 
   const urlErrorId = 'hermes-url-error'
 
+  const [backupStatus, setBackupStatus] = useState<'idle' | 'running' | 'done' | 'error'>('idle')
+  const importRef = useRef<HTMLInputElement>(null)
+
+  async function triggerBackup() {
+    setBackupStatus('running')
+    try {
+      const r = await fetch('/api/hermes-proxy/api/backup', { method: 'POST' })
+      setBackupStatus(r.ok ? 'done' : 'error')
+    } catch {
+      setBackupStatus('error')
+    }
+    setTimeout(() => setBackupStatus('idle'), 3000)
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const body = new FormData()
+    body.append('file', file)
+    await fetch('/api/hermes-proxy/api/backup/import', { method: 'POST', body })
+    if (importRef.current) importRef.current.value = ''
+  }
+
   return (
     <div className="space-y-4">
       <SectionHeader
         title="Advanced"
-        description="Hermes endpoint and connectivity."
+        description="Hermes endpoint, connectivity, and data management."
       />
       <div className={SETTINGS_CARD_CLASS}>
         <Row label="Hermes URL" description="Used for API requests from Studio">
@@ -1276,6 +1159,16 @@ function _AdvancedContent() {
               </p>
             )}
           </div>
+        </Row>
+        <Row label="API Server Key" description="API_SERVER_KEY for non-loopback Hermes instances (v0.9.0)">
+          <Input
+            type="password"
+            placeholder="sk-…"
+            value={settings.hermesApiKey}
+            onChange={(e) => updateSettings({ hermesApiKey: e.target.value })}
+            className="h-8 w-full max-w-sm rounded-lg border-primary-200 text-sm"
+            aria-label="Hermes API server key"
+          />
         </Row>
         <Row label="Connection status">
           <span
@@ -1313,6 +1206,38 @@ function _AdvancedContent() {
             />
             Test
           </Button>
+        </Row>
+      </div>
+      <div className={SETTINGS_CARD_CLASS}>
+        <Row label="Backup" description="Export config, sessions, skills, and memory to a snapshot file.">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void triggerBackup()}
+            disabled={backupStatus === 'running'}
+            className="h-8 rounded-lg border-primary-200 px-3"
+          >
+            {backupStatus === 'running' ? 'Backing up…' : backupStatus === 'done' ? 'Done ✓' : backupStatus === 'error' ? 'Error' : 'Create backup'}
+          </Button>
+        </Row>
+        <Row label="Import" description="Restore a previously created backup archive.">
+          <div>
+            <input
+              ref={importRef}
+              type="file"
+              accept=".zip,.tar,.tar.gz"
+              className="hidden"
+              onChange={(e) => void handleImport(e)}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => importRef.current?.click()}
+              className="h-8 rounded-lg border-primary-200 px-3"
+            >
+              Choose file…
+            </Button>
+          </div>
         </Row>
       </div>
     </div>

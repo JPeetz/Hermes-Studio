@@ -23,7 +23,7 @@ import { usePageTitle } from '@/hooks/use-page-title'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { useSettings } from '@/hooks/use-settings'
-import { THEMES, getTheme, isDarkTheme, setTheme } from '@/lib/theme'
+import { THEMES, getTheme, setTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import {
   getChatProfileDisplayName,
@@ -104,13 +104,6 @@ const THEME_PREVIEWS: Record<
     accent: '#6366F1',
     text: '#E6EAF2',
   },
-  'hermes-official-light': {
-    bg: '#F6F8FC',
-    panel: '#FFFFFF',
-    border: '#D7DEEE',
-    accent: '#4F46E5',
-    text: '#111827',
-  },
   'hermes-classic': {
     bg: '#0d0f12',
     panel: '#1a1f26',
@@ -132,27 +125,6 @@ const THEME_PREVIEWS: Record<
     accent: '#aaaaaa',
     text: '#e6edf3',
   },
-  'hermes-classic-light': {
-    bg: '#F5F2ED',
-    panel: '#FFFFFF',
-    border: '#D9D0C4',
-    accent: '#b98a44',
-    text: '#1a1f26',
-  },
-  'hermes-slate-light': {
-    bg: '#F6F8FA',
-    panel: '#FFFFFF',
-    border: '#D0D7DE',
-    accent: '#3b82f6',
-    text: '#1F2328',
-  },
-  'hermes-mono-light': {
-    bg: '#FAFAFA',
-    panel: '#FFFFFF',
-    border: '#D4D4D4',
-    accent: '#666666',
-    text: '#1a1a1a',
-  },
 }
 
 function WorkspaceThemePicker() {
@@ -161,7 +133,7 @@ function WorkspaceThemePicker() {
 
   function applyWorkspaceTheme(id: ThemeId) {
     setTheme(id)
-    updateSettings({ theme: isDarkTheme(id) ? 'dark' : 'light' })
+    updateSettings({ theme: 'dark' })
     setCurrent(id)
   }
 
@@ -210,16 +182,16 @@ type SectionProps = {
 
 function SettingsSection({ title, description, icon, children }: SectionProps) {
   return (
-    <section className="rounded-2xl border border-primary-200 bg-primary-50/80 p-4 shadow-sm backdrop-blur-xl md:p-5">
+    <section className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-panel)] p-4 shadow-sm backdrop-blur-xl md:p-5">
       <div className="mb-4 flex items-start gap-3">
-        <span className="inline-flex size-9 items-center justify-center rounded-xl border border-primary-200 bg-primary-100/70">
+        <span className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/70">
           <HugeiconsIcon icon={icon} size={20} strokeWidth={1.5} />
         </span>
         <div className="min-w-0">
-          <h2 className="text-base font-medium text-primary-900 text-balance">
+          <h2 className="text-base font-medium text-[var(--theme-text)] text-balance">
             {title}
           </h2>
-          <p className="text-sm text-primary-600 text-pretty">{description}</p>
+          <p className="text-sm text-[var(--theme-muted)] text-pretty">{description}</p>
         </div>
       </div>
       <div className="space-y-4">{children}</div>
@@ -229,7 +201,7 @@ function SettingsSection({ title, description, icon, children }: SectionProps) {
 
 type RowProps = {
   label: string
-  description?: string
+  description?: React.ReactNode
   children: React.ReactNode
 }
 
@@ -237,11 +209,11 @@ function SettingsRow({ label, description, children }: RowProps) {
   return (
     <div className="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-primary-900 text-balance">
+        <p className="text-sm font-medium text-[var(--theme-text)] text-balance">
           {label}
         </p>
         {description ? (
-          <p className="text-xs text-primary-600 text-pretty">{description}</p>
+          <p className="text-xs text-[var(--theme-muted)] text-pretty">{description}</p>
         ) : null}
       </div>
       <div className="flex w-full items-center gap-2 md:w-auto md:justify-end">
@@ -323,7 +295,7 @@ function SettingsRoute() {
     useState<SettingsSectionId>('hermes')
 
   return (
-    <div className="min-h-screen bg-surface text-primary-900">
+    <div className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]">
       <div className="pointer-events-none fixed inset-0 bg-radial from-primary-400/20 via-transparent to-transparent" />
       <div className="pointer-events-none fixed inset-0 bg-gradient-to-br from-primary-100/25 via-transparent to-primary-300/20" />
 
@@ -331,7 +303,7 @@ function SettingsRoute() {
         {/* Sidebar nav */}
         <nav className="hidden w-48 shrink-0 md:block">
           <div className="sticky top-8">
-            <h1 className="mb-4 text-lg font-semibold text-primary-900 px-3">
+            <h1 className="mb-4 text-lg font-semibold text-[var(--theme-text)] px-3">
               Settings
             </h1>
             <div className="flex flex-col gap-0.5">
@@ -340,7 +312,7 @@ function SettingsRoute() {
                   <Link
                     key={item.id}
                     to={item.to}
-                    className="rounded-lg px-3 py-2 text-left text-sm text-primary-600 transition-colors hover:bg-primary-100 hover:text-primary-900"
+                    className="rounded-lg px-3 py-2 text-left text-sm text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-panel)] hover:text-[var(--theme-text)]"
                   >
                     {item.label}
                   </Link>
@@ -354,8 +326,8 @@ function SettingsRoute() {
                     className={cn(
                       'rounded-lg px-3 py-2 text-left text-sm transition-colors',
                       activeSection === item.id
-                        ? 'bg-accent-500/10 text-accent-600 font-medium'
-                        : 'text-primary-600 hover:bg-primary-100 hover:text-primary-900',
+                        ? 'bg-[var(--theme-accent)]/10 text-accent-600 font-medium'
+                        : 'text-[var(--theme-muted)] hover:bg-[var(--theme-panel)] hover:text-[var(--theme-text)]',
                     )}
                   >
                     {item.label}
@@ -375,7 +347,7 @@ function SettingsRoute() {
               <Link
                 key={item.id}
                 to={item.to}
-                className="shrink-0 rounded-full bg-primary-100 px-3 py-1.5 text-xs font-medium text-primary-600 transition-colors"
+                className="shrink-0 rounded-full bg-[var(--theme-panel)] px-3 py-1.5 text-xs font-medium text-[var(--theme-muted)] transition-colors"
               >
                 {item.label}
               </Link>
@@ -387,8 +359,8 @@ function SettingsRoute() {
                 className={cn(
                   'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
                   activeSection === item.id
-                    ? 'bg-accent-500 text-white'
-                    : 'bg-primary-100 text-primary-600',
+                    ? 'bg-[var(--theme-accent)] text-white'
+                    : 'bg-[var(--theme-panel)] text-[var(--theme-muted)]',
                 )}
               >
                 {item.label}
@@ -471,7 +443,7 @@ function SettingsRoute() {
                     aria-valuemax={20}
                     aria-valuenow={settings.editorFontSize}
                   />
-                  <span className="w-12 text-right text-sm tabular-nums text-primary-700">
+                  <span className="w-12 text-right text-sm tabular-nums text-[var(--theme-text)]">
                     {settings.editorFontSize}px
                   </span>
                 </div>
@@ -545,7 +517,7 @@ function SettingsRoute() {
                       aria-valuemax={100}
                       aria-valuenow={settings.usageThreshold}
                     />
-                    <span className="w-12 text-right text-sm tabular-nums text-primary-700">
+                    <span className="w-12 text-right text-sm tabular-nums text-[var(--theme-text)]">
                       {settings.usageThreshold}%
                     </span>
                   </div>
@@ -578,7 +550,7 @@ function SettingsRoute() {
                     onChange={(e) =>
                       updateSettings({ preferredBudgetModel: e.target.value })
                     }
-                    className="h-9 w-full rounded-lg border border-primary-200 dark:border-gray-600 bg-primary-50 dark:bg-gray-800 px-3 text-sm text-primary-900 dark:text-gray-100 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-400 dark:focus-visible:ring-primary-500 md:max-w-xs"
+                    className="h-9 w-full rounded-lg border border-[var(--theme-border)] dark:border-gray-600 bg-[var(--theme-bg)] dark:bg-gray-800 px-3 text-sm text-[var(--theme-text)] dark:text-gray-100 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-400 dark:focus-visible:ring-primary-500 md:max-w-xs"
                     aria-label="Preferred budget model"
                   >
                     <option value="">Auto-detect</option>
@@ -601,7 +573,7 @@ function SettingsRoute() {
                     onChange={(e) =>
                       updateSettings({ preferredPremiumModel: e.target.value })
                     }
-                    className="h-9 w-full rounded-lg border border-primary-200 dark:border-gray-600 bg-primary-50 dark:bg-gray-800 px-3 text-sm text-primary-900 dark:text-gray-100 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-400 dark:focus-visible:ring-primary-500 md:max-w-xs"
+                    className="h-9 w-full rounded-lg border border-[var(--theme-border)] dark:border-gray-600 bg-[var(--theme-bg)] dark:bg-gray-800 px-3 text-sm text-[var(--theme-text)] dark:text-gray-100 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-400 dark:focus-visible:ring-primary-500 md:max-w-xs"
                     aria-label="Preferred premium model"
                   >
                     <option value="">Auto-detect</option>
@@ -635,7 +607,7 @@ function SettingsRoute() {
           {activeSection === 'integrations' && <IntegrationsSection />}
 
           <footer className="mt-auto pt-4">
-            <div className="flex items-center gap-2 rounded-2xl border border-primary-200 bg-primary-50/70 p-3 text-sm text-primary-600 backdrop-blur-sm">
+            <div className="flex items-center gap-2 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/70 p-3 text-sm text-[var(--theme-muted)] backdrop-blur-sm">
               <HugeiconsIcon
                 icon={Settings02Icon}
                 size={20}
@@ -754,23 +726,23 @@ function IntegrationsSection() {
       >
         <div className="flex w-full flex-col gap-2 md:max-w-sm">
           {status?.fromEnv ? (
-            <p className="text-xs text-primary-500">
+            <p className="text-xs text-[var(--theme-muted)]">
               Key is set via <code className="inline-code">SKILLSMP_API_KEY</code>{' '}
               environment variable and cannot be changed here.
             </p>
           ) : (
             <>
               {status?.keySet && (
-                <div className="flex items-center gap-2 rounded-lg border border-primary-200 bg-primary-100/60 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-panel)]/60 px-3 py-2 text-sm">
                   <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} className="shrink-0 text-green-600" />
-                  <span className="font-mono text-xs text-primary-700 flex-1 truncate">
+                  <span className="font-mono text-xs text-[var(--theme-text)] flex-1 truncate">
                     {status.keyMasked}
                   </span>
                   <button
                     type="button"
                     onClick={handleClear}
                     disabled={saving}
-                    className="text-xs text-primary-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                    className="text-xs text-[var(--theme-muted)] hover:text-red-600 transition-colors disabled:opacity-50"
                   >
                     Remove
                   </button>
@@ -790,7 +762,7 @@ function IntegrationsSection() {
                 <button
                   type="button"
                   onClick={() => setShowKey((v) => !v)}
-                  className="px-2 text-xs text-primary-500 hover:text-primary-700 transition-colors"
+                  className="px-2 text-xs text-[var(--theme-muted)] hover:text-[var(--theme-text)] transition-colors"
                   aria-label={showKey ? 'Hide key' : 'Show key'}
                 >
                   {showKey ? 'Hide' : 'Show'}
@@ -804,7 +776,7 @@ function IntegrationsSection() {
                 {saving ? 'Saving…' : 'Save key'}
               </Button>
               {saveMsg && (
-                <p className="text-xs text-primary-500">{saveMsg}</p>
+                <p className="text-xs text-[var(--theme-muted)]">{saveMsg}</p>
               )}
             </>
           )}
@@ -854,6 +826,33 @@ const CHAT_PLATFORMS = [
     hint: 'Requires signal-cli running as an HTTP daemon.',
     allowedUsersVar: 'SIGNAL_ACCOUNT',
     allowedUsersPlaceholder: '+1234567890',
+  },
+  {
+    key: 'bluebubbles',
+    label: 'BlueBubbles (iMessage)',
+    envVar: 'BLUEBUBBLES_URL',
+    placeholder: 'http://your-mac:1234',
+    hint: 'Requires BlueBubbles server running on a Mac.',
+    allowedUsersVar: 'BLUEBUBBLES_PASSWORD',
+    allowedUsersPlaceholder: 'server password',
+  },
+  {
+    key: 'wechat',
+    label: 'WeChat (Weixin)',
+    envVar: 'WECHAT_ILINK_TOKEN',
+    placeholder: 'iLink Bot API token',
+    hint: 'Via iLink Bot API — requires WeChat Official Account.',
+    allowedUsersVar: 'WECHAT_ALLOWED_USERS',
+    allowedUsersPlaceholder: 'WeChat user IDs',
+  },
+  {
+    key: 'wecom',
+    label: 'WeCom (Enterprise)',
+    envVar: 'WECOM_CORP_ID',
+    placeholder: 'wx1234567890abcdef',
+    hint: 'WeCom callback mode — self-built enterprise app.',
+    allowedUsersVar: 'WECOM_AGENT_SECRET',
+    allowedUsersPlaceholder: 'agent secret',
   },
 ] as const
 
@@ -1127,8 +1126,8 @@ function _ProfileSection() {
           alt={displayName}
         />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-primary-900">{displayName}</p>
-          <p className="text-xs text-primary-500">
+          <p className="text-sm font-medium text-[var(--theme-text)]">{displayName}</p>
+          <p className="text-xs text-[var(--theme-muted)]">
             Shown in the sidebar and chat messages.
           </p>
         </div>
@@ -1169,7 +1168,7 @@ function _ProfileSection() {
                 onChange={handleAvatarUpload}
                 disabled={profileProcessing}
                 aria-label="Upload profile picture"
-                className="block w-full cursor-pointer text-xs text-primary-700 dark:text-gray-300 md:max-w-xs file:mr-2 file:cursor-pointer file:rounded-md file:border file:border-primary-200 dark:file:border-gray-600 file:bg-primary-100 dark:file:bg-gray-700 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-primary-900 dark:file:text-gray-100 file:transition-colors hover:file:bg-primary-200 dark:hover:file:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+                className="block w-full cursor-pointer text-xs text-[var(--theme-text)] dark:text-gray-300 md:max-w-xs file:mr-2 file:cursor-pointer file:rounded-md file:border file:border-[var(--theme-border)] dark:file:border-gray-600 file:bg-[var(--theme-panel)] dark:file:bg-gray-700 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-[var(--theme-text)] dark:file:text-gray-100 file:transition-colors hover:file:bg-[var(--theme-hover)] dark:hover:file:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </label>
             <Button
@@ -1273,7 +1272,7 @@ function LoaderPreview({ style }: { style: LoaderStyle }) {
       preset={preset}
       size={16}
       speed={120}
-      className="text-primary-500"
+      className="text-[var(--theme-muted)]"
     />
   ) : (
     <ThreeDotsSpinner />
@@ -1301,8 +1300,8 @@ function _LoaderStyleSection() {
               className={cn(
                 'flex min-h-16 flex-col items-center justify-center gap-2 rounded-xl border px-2 py-2 transition-colors',
                 active
-                  ? 'border-primary-500 bg-primary-200/60 text-primary-900'
-                  : 'border-primary-200 bg-primary-50 text-primary-700 hover:bg-primary-100',
+                  ? 'border-[var(--theme-accent)] bg-[var(--theme-accent-subtle)] text-[var(--theme-text)]'
+                  : 'border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] hover:bg-[var(--theme-panel)]',
               )}
               aria-pressed={active}
             >
@@ -1488,7 +1487,7 @@ function HermesConfigSection({
   }
 
   const selectClassName =
-    'h-9 w-full rounded-lg border border-primary-200 bg-primary-50 px-3 text-sm text-primary-900 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-400 md:max-w-sm'
+    'h-9 w-full rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 text-sm text-[var(--theme-text)] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-400 md:max-w-sm'
 
   const readNumber = (value: unknown, fallback: number) => {
     if (typeof value === 'number' && Number.isFinite(value)) return value
@@ -1849,37 +1848,37 @@ function HermesConfigSection({
       >
         <div className="space-y-3">
           {customProviders.length === 0 ? (
-            <div className="rounded-xl border border-primary-200 bg-primary-100/40 p-3 text-sm text-primary-600">
+            <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/40 p-3 text-sm text-[var(--theme-muted)]">
               No custom providers configured.
             </div>
           ) : (
             customProviders.map((provider, index) => (
               <div
                 key={`${String(provider.name || provider.base_url || index)}`}
-                className="rounded-xl border border-primary-200 bg-primary-100/40 p-3"
+                className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/40 p-3"
               >
                 <div className="grid gap-2 text-sm md:grid-cols-3">
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-primary-500">
+                    <p className="text-xs uppercase tracking-wide text-[var(--theme-muted)]">
                       Name
                     </p>
-                    <p className="font-medium text-primary-900">
+                    <p className="font-medium text-[var(--theme-text)]">
                       {String(provider.name || 'Unnamed')}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-primary-500">
+                    <p className="text-xs uppercase tracking-wide text-[var(--theme-muted)]">
                       Base URL
                     </p>
-                    <p className="font-mono text-xs text-primary-700 break-all">
+                    <p className="font-mono text-xs text-[var(--theme-text)] break-all">
                       {String(provider.base_url || 'Not set')}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-primary-500">
+                    <p className="text-xs uppercase tracking-wide text-[var(--theme-muted)]">
                       Type
                     </p>
-                    <p className="text-primary-700">
+                    <p className="text-[var(--theme-text)]">
                       {String(provider.type || provider.auth_type || 'Unknown')}
                     </p>
                   </div>
@@ -1887,8 +1886,8 @@ function HermesConfigSection({
               </div>
             ))
           )}
-          <div className="flex flex-col gap-3 rounded-xl border border-primary-200 bg-primary-100/40 p-3 md:flex-row md:items-center md:justify-between">
-            <p className="text-sm text-primary-600">
+          <div className="flex flex-col gap-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-panel)]/40 p-3 md:flex-row md:items-center md:justify-between">
+            <p className="text-sm text-[var(--theme-muted)]">
               Edit custom providers in config.yaml for security.
             </p>
             <Button

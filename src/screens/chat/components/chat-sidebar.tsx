@@ -15,10 +15,10 @@ import {
   PuzzleIcon,
   Search01Icon,
   Settings01Icon,
-  Sun02Icon,
   UserGroupIcon,
   UserMultiple02Icon,
   AiUserIcon,
+  ConsoleIcon,
   TimelineIcon,
 } from '@hugeicons/core-free-icons'
 import { AnimatePresence, motion } from 'motion/react'
@@ -58,59 +58,18 @@ import {
   MenuRoot,
   MenuTrigger,
 } from '@/components/ui/menu'
-import { applyTheme, useSettingsStore } from '@/hooks/use-settings'
 
 type WorkspaceStats = Record<string, unknown>
 
 function ThemeToggleMini() {
-  const _theme = useSettingsStore((state) => state.settings.theme)
-  const updateSettings = useSettingsStore((state) => state.updateSettings)
-  void _theme
-  // Detect dark/light from actual data-theme attribute
-  const currentDataTheme =
-    typeof document !== 'undefined'
-      ? document.documentElement.getAttribute('data-theme') || 'hermes-official'
-      : 'hermes-official'
-  const isDark = !currentDataTheme.endsWith('-light')
-
-  // Map between dark and light counterparts
-  const LIGHT_DARK_PAIRS: Record<string, string> = {
-    'hermes-official': 'hermes-official-light',
-    'hermes-official-light': 'hermes-official',
-    'hermes-classic': 'hermes-classic-light',
-    'hermes-classic-light': 'hermes-classic',
-    'hermes-slate': 'hermes-slate-light',
-    'hermes-slate-light': 'hermes-slate',
-    'hermes-mono': 'hermes-mono-light',
-    'hermes-mono-light': 'hermes-mono',
-  }
-
   return (
-    <button
-      type="button"
-      onClick={() => {
-        const nextDataTheme =
-          LIGHT_DARK_PAIRS[currentDataTheme] ||
-          (isDark ? 'hermes-official-light' : 'hermes-official')
-        // Import and call setTheme to persist and apply
-        import('@/lib/theme').then(({ setTheme }) => {
-          setTheme(nextDataTheme as any)
-        })
-        // Also update settings hook
-        const nextMode = nextDataTheme.endsWith('-light') ? 'light' : 'dark'
-        applyTheme(nextMode)
-        updateSettings({ theme: nextMode })
-      }}
-      className="shrink-0 rounded-lg p-1.5 transition-colors hover:opacity-80"
+    <span
+      className="shrink-0 rounded-lg p-1.5"
       style={{ color: 'var(--theme-muted)' }}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label="Dark mode"
     >
-      <HugeiconsIcon
-        icon={isDark ? Sun02Icon : Moon02Icon}
-        size={16}
-        strokeWidth={1.5}
-      />
-    </button>
+      <HugeiconsIcon icon={Moon02Icon} size={16} strokeWidth={1.5} />
+    </span>
   )
 }
 
@@ -567,6 +526,7 @@ function ChatSidebarComponent({
   const isCrewsActive = pathname === '/crews' || pathname.startsWith('/crews/')
   const isAgentsActive = pathname === '/agents'
   const isAuditActive = pathname === '/audit'
+  const isLogsActive = pathname === '/logs'
   const mainRoutes = ['/chat', '/new', '/files', '/terminal']
   const knowledgeRoutes = ['/memory', '/skills']
   const systemRoutes = ['/settings', '/logs']
@@ -825,6 +785,13 @@ function ChatSidebarComponent({
       icon: TimelineIcon,
       label: 'Audit Trail',
       active: isAuditActive,
+    },
+    {
+      kind: 'link',
+      to: '/logs',
+      icon: ConsoleIcon,
+      label: 'Logs',
+      active: isLogsActive,
     },
   ]
 

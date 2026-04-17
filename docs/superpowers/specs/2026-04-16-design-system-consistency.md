@@ -1,7 +1,7 @@
 # Design System Consistency — Spec
 
 **Date:** 2026-04-16
-**Status:** Approved
+**Status:** Implemented (v1.16.0)
 **Scope:** Hermes Studio — all screens and future extensions
 
 ---

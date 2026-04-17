@@ -241,7 +241,7 @@ function ChatHeaderComponent({
     return (
       <div
         ref={wrapperRef}
-        className="shrink-0 bg-surface transition-transform"
+        className="shrink-0 bg-[var(--theme-card)] transition-transform"
         style={
           pullOffset > 0
             ? { transform: `translateY(${pullOffset}px)` }
@@ -253,7 +253,7 @@ function ChatHeaderComponent({
           <button
             type="button"
             onClick={openHamburgerMenu}
-            className="shrink-0 flex items-center justify-center w-11 h-11 -ml-1 rounded-xl active:bg-white/10 transition-colors z-10"
+            className="shrink-0 flex items-center justify-center w-11 h-11 -ml-1 rounded-xl active:bg-[var(--theme-accent-subtle)] transition-colors z-10"
             aria-label="Open navigation menu"
           >
             <svg
@@ -276,7 +276,7 @@ function ChatHeaderComponent({
           <button
             type="button"
             onClick={onOpenSessions}
-            className="flex items-center gap-1 min-w-0 max-w-[55vw] px-3 py-1.5 rounded-full bg-white/5 hover:bg-primary-100 active:bg-primary-150 transition-colors"
+            className="flex items-center gap-1 min-w-0 max-w-[55vw] px-3 py-1.5 rounded-full bg-[var(--theme-accent-subtle)] hover:bg-[var(--theme-hover)] active:bg-primary-150 transition-colors"
             aria-label="Switch session"
           >
             <span className="truncate text-[13px] font-medium text-ink">
@@ -310,7 +310,7 @@ function ChatHeaderComponent({
   }
 
   return (
-    <div ref={wrapperRef} className="shrink-0 bg-surface">
+    <div ref={wrapperRef} className="shrink-0 bg-[var(--theme-card)]">
       <div className="px-4 h-12 flex items-center">
         {showFileExplorerButton ? (
           <TooltipProvider>
@@ -321,7 +321,7 @@ function ChatHeaderComponent({
                   <Button
                     size="icon-sm"
                     variant="ghost"
-                    className="mr-2 text-primary-800 hover:bg-primary-100 dark:hover:bg-primary-800"
+                    className="mr-2 text-primary-800 hover:bg-[var(--theme-hover)] dark:hover:bg-primary-800"
                     aria-label={
                       fileExplorerCollapsed ? 'Show files' : 'Hide files'
                     }
@@ -361,7 +361,7 @@ function ChatHeaderComponent({
                   cancelTitleEdit()
                 }
               }}
-              className="h-7 w-full min-w-0 border-b border-transparent bg-transparent px-0 text-sm font-medium text-balance text-ink outline-none transition-colors focus:border-primary-300"
+              className="h-7 w-full min-w-0 border-b border-transparent bg-transparent px-0 text-sm font-medium text-balance text-ink outline-none transition-colors focus:border-[var(--theme-border)]"
               aria-label="Session name"
             />
           ) : (
@@ -381,15 +381,15 @@ function ChatHeaderComponent({
                 <button
                   type="button"
                   onClick={startTitleEdit}
-                  className="text-xs text-primary-400 opacity-0 group-hover:opacity-100 hover:text-primary-600 transition-opacity shrink-0"
+                  className="text-xs text-[var(--theme-muted)] opacity-0 group-hover:opacity-100 hover:text-[var(--theme-muted)] transition-opacity shrink-0"
                   title="Rename session"
                 >
                   ✏️
                 </button>
               )}
               {sessionPopoverOpen && (
-                <div className="absolute left-0 top-[calc(100%+6px)] z-50 w-80 rounded-xl border border-primary-200 bg-surface shadow-lg overflow-hidden">
-                  <div className="flex items-center gap-2 border-b border-neutral-100 px-3 py-2">
+                <div className="absolute left-0 top-[calc(100%+6px)] z-50 w-80 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] shadow-lg overflow-hidden">
+                  <div className="flex items-center gap-2 border-b border-[var(--theme-border)] px-3 py-2">
                     <svg
                       width="13"
                       height="13"
@@ -408,7 +408,7 @@ function ChatHeaderComponent({
                       placeholder="Search sessions..."
                       value={sessionSearch}
                       onChange={(e) => setSessionSearch(e.target.value)}
-                      className="flex-1 bg-transparent text-sm outline-none text-neutral-700 placeholder-neutral-400 dark:text-neutral-200"
+                      className="flex-1 bg-transparent text-sm outline-none text-[var(--theme-text)] placeholder-neutral-400 dark:text-neutral-200"
                     />
                   </div>
                   <div className="max-h-60 overflow-y-auto p-1">
@@ -445,12 +445,12 @@ function ChatHeaderComponent({
                               onSelectSession?.(s.key || s.friendlyId || '')
                             }}
                             className={cn(
-                              'flex w-full items-center gap-2 px-3 py-2 text-sm text-left border-b border-neutral-100 last:border-0 hover:bg-neutral-50 dark:hover:bg-white/10 transition-colors',
+                              'flex w-full items-center gap-2 px-3 py-2 text-sm text-left border-b border-[var(--theme-border)] last:border-0 hover:bg-[var(--theme-panel)] dark:hover:bg-[var(--theme-accent-subtle)] transition-colors',
                               isActive &&
-                                'bg-neutral-50 font-medium text-neutral-900',
+                                'bg-[var(--theme-panel)] font-medium text-[var(--theme-text)]',
                             )}
                           >
-                            <span className="flex-1 min-w-0 truncate text-neutral-700 dark:text-neutral-200">
+                            <span className="flex-1 min-w-0 truncate text-[var(--theme-text)] dark:text-neutral-200">
                               {label}
                             </span>
                             {isActive && (
@@ -472,7 +472,7 @@ function ChatHeaderComponent({
         </div>
         {renamingTitle ? (
           <span
-            className="mr-1 inline-flex size-3 animate-spin rounded-full border border-primary-300 border-t-primary-700"
+            className="mr-1 inline-flex size-3 animate-spin rounded-full border border-[var(--theme-border)] border-t-[var(--theme-accent)]"
             aria-label="Saving session name"
           />
         ) : null}
@@ -539,7 +539,7 @@ function ChatHeaderComponent({
                   <Button
                     size="icon-sm"
                     variant="ghost"
-                    className="text-primary-500 hover:bg-primary-100 dark:hover:bg-primary-800"
+                    className="text-[var(--theme-muted)] hover:bg-[var(--theme-hover)] dark:hover:bg-primary-800"
                     aria-label="Undo last message"
                   >
                     <span className="text-sm">↩️</span>
@@ -568,8 +568,8 @@ function ChatHeaderComponent({
                     size="icon-sm"
                     variant="ghost"
                     className={cn(
-                      'hover:bg-primary-100 dark:hover:bg-primary-800',
-                      clearConfirm ? 'text-red-500' : 'text-primary-500',
+                      'hover:bg-[var(--theme-hover)] dark:hover:bg-primary-800',
+                      clearConfirm ? 'text-red-500' : 'text-[var(--theme-muted)]',
                     )}
                     aria-label={
                       clearConfirm ? 'Confirm clear' : 'Clear session'

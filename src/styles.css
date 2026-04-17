@@ -149,33 +149,6 @@
     0 0 22px color-mix(in srgb, var(--theme-accent) 26%, transparent);
 }
 
-.light {
-  color-scheme: light;
-}
-
-.system {
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  .system {
-    color-scheme: dark;
-    --color-primary-50: oklch(0.14 0.005 80);
-    --color-primary-100: oklch(0.18 0.005 80);
-    --color-primary-200: oklch(0.26 0.006 80);
-    --color-primary-300: oklch(0.34 0.006 80);
-    --color-primary-400: oklch(0.44 0.006 80);
-    --color-primary-500: oklch(0.55 0.006 80);
-    --color-primary-600: oklch(0.68 0.006 80);
-    --color-primary-700: oklch(0.76 0.005 80);
-    --color-primary-800: oklch(0.84 0.004 80);
-    --color-primary-900: oklch(0.9 0.003 80);
-    --color-primary-950: oklch(0.95 0.002 80);
-    --color-surface: oklch(0.11 0.005 80);
-    --color-ink: oklch(0.95 0.002 80);
-    --color-surface-deep: oklch(0.08 0.005 80);
-  }
-}
 
 html,
 body {
@@ -751,6 +724,7 @@ code {
   --theme-panel: #0b1220;
   --theme-card: #0f1828;
   --theme-card2: #121e30;
+  --theme-hover: #121e30;
   --theme-border: #18263c;
   --theme-border-subtle: #101c30;
   --theme-text: #e4edff;
@@ -800,6 +774,7 @@ code {
   --theme-panel: #0d1220;
   --theme-card: #11182a;
   --theme-card2: #151d32;
+  --theme-hover: #151d32;
   --theme-border: #24304a;
   --theme-border-subtle: #1b2740;
   --theme-text: #e6eaf2;
@@ -846,6 +821,7 @@ code {
   --theme-panel: #13171c;
   --theme-card: #1a1f26;
   --theme-card2: #1f252d;
+  --theme-hover: #1f252d;
   --theme-border: #2a313b;
   --theme-border-subtle: #222933;
   --theme-text: #eceff4;
@@ -893,6 +869,7 @@ code {
   --theme-panel: #161b22;
   --theme-card: #1c2128;
   --theme-card2: #21262d;
+  --theme-hover: #21262d;
   --theme-border: #30363d;
   --theme-border-subtle: #21262d;
   --theme-text: #c9d1d9;
@@ -939,6 +916,7 @@ code {
   --theme-panel: #1a1a1a;
   --theme-card: #222222;
   --theme-card2: #2a2a2a;
+  --theme-hover: #2a2a2a;
   --theme-border: #333333;
   --theme-border-subtle: #222222;
   --theme-text: #e6edf3;
@@ -979,188 +957,6 @@ code {
   --theme-input: #222222;
 }
 
-[data-theme='hermes-official-light'] {
-  --theme-bg: #f6f8fc;
-  --theme-sidebar: #eef2ff;
-  --theme-panel: #eef2ff;
-  --theme-card: #ffffff;
-  --theme-card2: #f8faff;
-  --theme-border: #d7deee;
-  --theme-border-subtle: #e6ebf7;
-  --theme-text: #111827;
-  --theme-muted: #4b5563;
-  --theme-shadow-1: 0 1px 2px rgba(17, 24, 39, 0.06);
-  --theme-shadow-2: 0 8px 20px rgba(17, 24, 39, 0.09);
-  --theme-shadow-3: 0 18px 38px rgba(17, 24, 39, 0.12);
-  --theme-glass: rgba(246, 248, 252, 0.86);
-  --theme-focus: #6366f1;
-  --theme-accent: #4f46e5;
-  --theme-accent-secondary: #6366f1;
-  --theme-accent-subtle: rgba(79, 70, 229, 0.1);
-  --theme-accent-border: rgba(79, 70, 229, 0.22);
-  --theme-active: #2563eb;
-  --theme-link: #4f46e5;
-  --theme-success: #16a34a;
-  --theme-warning: #d97706;
-  --theme-danger: #dc2626;
-  --theme-stripe: rgba(215, 222, 238, 0.38);
-  --theme-header-bg: #eef2ff;
-  --theme-header-border: #d7deee;
-  --chat-user-bg: #eef2ff;
-  --chat-user-border: #c7d2fe;
-  --chat-user-foreground: #111827;
-  --chat-assistant-bg: #edf0f8;
-  --chat-assistant-border: #d7deee;
-  --chat-assistant-foreground: #111827;
-  --composer-bg: #ffffff;
-  --composer-border: #c7d2fe;
-  --composer-placeholder: #6b7280;
-  --tool-card-bg: #f3f6ff;
-  --tool-card-border: #d6ddf0;
-  --tool-card-title: #111827;
-  --tool-card-muted: #4b5563;
-  --code-bg: #f3f6ff;
-  --code-border: #d6ddf0;
-  --code-foreground: #111827;
-  --theme-input: #ffffff;
-}
-
-[data-theme='hermes-classic-light'] {
-  --theme-bg: #f5f2ed;
-  --theme-sidebar: #eee8df;
-  --theme-panel: #f0ebe4;
-  --theme-card: #fcfaf7;
-  --theme-card2: #f7f2eb;
-  --theme-border: #d8ccbc;
-  --theme-border-subtle: #e7ddd0;
-  --theme-text: #1a1f26;
-  --theme-muted: #6f675e;
-  --theme-shadow-1: 0 1px 2px rgba(31, 24, 18, 0.08);
-  --theme-shadow-2: 0 8px 24px rgba(31, 24, 18, 0.1);
-  --theme-shadow-3: 0 18px 40px rgba(31, 24, 18, 0.14);
-  --theme-glass: rgba(245, 242, 237, 0.84);
-  --theme-focus: #b98a44;
-  --theme-accent: #b98a44;
-  --theme-accent-secondary: #d3a45a;
-  --theme-accent-subtle: rgba(185, 138, 68, 0.12);
-  --theme-accent-border: rgba(185, 138, 68, 0.28);
-  --theme-active: #4c88c7;
-  --theme-link: #8e6428;
-  --theme-success: #3e8b59;
-  --theme-warning: #b67a24;
-  --theme-danger: #b55252;
-  --theme-stripe: rgba(216, 204, 188, 0.4);
-  --theme-header-bg: #f3eee7;
-  --theme-header-border: #d8ccbc;
-  --chat-user-bg: #e9dfc9;
-  --chat-user-border: #c6a97a;
-  --chat-user-foreground: #2b2115;
-  --chat-assistant-bg: #fbf8f3;
-  --chat-assistant-border: #dccfbe;
-  --chat-assistant-foreground: #1a1f26;
-  --composer-bg: #fffcf8;
-  --composer-border: #d6c8b6;
-  --composer-placeholder: #7b7267;
-  --tool-card-bg: #f8f3ec;
-  --tool-card-border: #d7cab7;
-  --tool-card-title: #2a2f36;
-  --tool-card-muted: #756b61;
-  --code-bg: #f4eee6;
-  --code-border: #d8ccbc;
-  --code-foreground: #2b3139;
-  --theme-input: #fffdf9;
-}
-
-[data-theme='hermes-slate-light'] {
-  --theme-bg: #f6f8fa;
-  --theme-sidebar: #f3f5f7;
-  --theme-panel: #eef2f6;
-  --theme-card: #ffffff;
-  --theme-card2: #f6f8fa;
-  --theme-border: #d0d7de;
-  --theme-border-subtle: #e2e8f0;
-  --theme-text: #24292f;
-  --theme-muted: #57606a;
-  --theme-shadow-1: 0 1px 2px rgba(36, 41, 47, 0.08);
-  --theme-shadow-2: 0 8px 24px rgba(36, 41, 47, 0.1);
-  --theme-shadow-3: 0 18px 40px rgba(36, 41, 47, 0.14);
-  --theme-glass: rgba(246, 248, 250, 0.84);
-  --theme-focus: #3b82f6;
-  --theme-accent: #3b82f6;
-  --theme-accent-secondary: #60a5fa;
-  --theme-accent-subtle: rgba(59, 130, 246, 0.12);
-  --theme-accent-border: rgba(59, 130, 246, 0.25);
-  --theme-active: #2563eb;
-  --theme-link: #2563eb;
-  --theme-success: #2da44e;
-  --theme-warning: #bf8700;
-  --theme-danger: #cf222e;
-  --theme-stripe: rgba(208, 215, 222, 0.42);
-  --theme-header-bg: #f6f8fa;
-  --theme-header-border: #d0d7de;
-  --chat-user-bg: #dbeafe;
-  --chat-user-border: #93c5fd;
-  --chat-user-foreground: #1e3a8a;
-  --chat-assistant-bg: #ffffff;
-  --chat-assistant-border: #d8dee4;
-  --chat-assistant-foreground: #24292f;
-  --composer-bg: #ffffff;
-  --composer-border: #d0d7de;
-  --composer-placeholder: #6e7781;
-  --tool-card-bg: #f6f8fa;
-  --tool-card-border: #d0d7de;
-  --tool-card-title: #1f2328;
-  --tool-card-muted: #57606a;
-  --code-bg: #f6f8fa;
-  --code-border: #d0d7de;
-  --code-foreground: #1f2328;
-  --theme-input: #ffffff;
-}
-
-[data-theme='hermes-mono-light'] {
-  --theme-bg: #fafafa;
-  --theme-sidebar: #f5f5f5;
-  --theme-panel: #f0f0f0;
-  --theme-card: #ffffff;
-  --theme-card2: #f7f7f7;
-  --theme-border: #d4d4d4;
-  --theme-border-subtle: #e5e5e5;
-  --theme-text: #1a1a1a;
-  --theme-muted: #666666;
-  --theme-shadow-1: 0 1px 2px rgba(26, 26, 26, 0.06);
-  --theme-shadow-2: 0 8px 20px rgba(26, 26, 26, 0.09);
-  --theme-shadow-3: 0 18px 38px rgba(26, 26, 26, 0.12);
-  --theme-glass: rgba(250, 250, 250, 0.86);
-  --theme-focus: #666666;
-  --theme-accent: #666666;
-  --theme-accent-secondary: #8a8a8a;
-  --theme-accent-subtle: rgba(102, 102, 102, 0.1);
-  --theme-accent-border: rgba(102, 102, 102, 0.22);
-  --theme-active: #4a4a4a;
-  --theme-link: #4a4a4a;
-  --theme-success: #5c5c5c;
-  --theme-warning: #7a7a7a;
-  --theme-danger: #8a8a8a;
-  --theme-stripe: rgba(212, 212, 212, 0.38);
-  --theme-header-bg: #f5f5f5;
-  --theme-header-border: #d4d4d4;
-  --chat-user-bg: #ececec;
-  --chat-user-border: #c7c7c7;
-  --chat-user-foreground: #1a1a1a;
-  --chat-assistant-bg: #ffffff;
-  --chat-assistant-border: #dddddd;
-  --chat-assistant-foreground: #1a1a1a;
-  --composer-bg: #ffffff;
-  --composer-border: #d4d4d4;
-  --composer-placeholder: #7a7a7a;
-  --tool-card-bg: #f5f5f5;
-  --tool-card-border: #d6d6d6;
-  --tool-card-title: #1a1a1a;
-  --tool-card-muted: #666666;
-  --code-bg: #f5f5f5;
-  --code-border: #d4d4d4;
-  --code-foreground: #1a1a1a;
-  --theme-input: #ffffff;
 }
 
 [data-theme='hermes-os'] html,
@@ -1187,25 +983,6 @@ code {
   color: var(--theme-text);
 }
 
-[data-theme='hermes-official-light'] html,
-[data-theme='hermes-official-light'] body,
-[data-theme='hermes-official-light'] #root,
-[data-theme='hermes-official-light'] .light,
-[data-theme='hermes-classic-light'] html,
-[data-theme='hermes-classic-light'] body,
-[data-theme='hermes-classic-light'] #root,
-[data-theme='hermes-classic-light'] .light,
-[data-theme='hermes-slate-light'] html,
-[data-theme='hermes-slate-light'] body,
-[data-theme='hermes-slate-light'] #root,
-[data-theme='hermes-slate-light'] .light,
-[data-theme='hermes-mono-light'] html,
-[data-theme='hermes-mono-light'] body,
-[data-theme='hermes-mono-light'] #root,
-[data-theme='hermes-mono-light'] .light {
-  background-color: var(--theme-bg);
-  color: var(--theme-text);
-}
 
 /* ── Tailwind primary token remaps for dark themes ─────────────────────
    Maps bg-primary-50, text-primary-900, border-primary-200 etc.
@@ -1236,45 +1013,6 @@ code {
   --color-accent-600: var(--theme-accent);
 }
 
-/* ── Tailwind primary token remaps for light themes ────────────────────
-   Light: 50=lightest surface, 950=darkest text */
-
-[data-theme='hermes-official-light'],
-[data-theme='hermes-classic-light'],
-[data-theme='hermes-slate-light'],
-[data-theme='hermes-mono-light'] {
-  color-scheme: light !important;
-  --color-primary-50: var(--theme-card) !important;
-  --color-primary-100: var(--theme-card2) !important;
-  --color-primary-200: var(--theme-border) !important;
-  --color-primary-300: var(--theme-border-subtle) !important;
-  --color-primary-400: var(--theme-muted) !important;
-  --color-primary-500: var(--theme-muted) !important;
-  --color-primary-600: var(--theme-muted) !important;
-  --color-primary-700: var(--theme-text) !important;
-  --color-primary-800: var(--theme-text) !important;
-  --color-primary-900: var(--theme-text) !important;
-  --color-primary-950: var(--theme-text) !important;
-  --color-surface: var(--theme-bg) !important;
-  --color-surface-deep: var(--theme-bg) !important;
-  --color-ink: var(--theme-text) !important;
-  --color-accent-400: var(--theme-accent-secondary) !important;
-  --color-accent-500: var(--theme-accent) !important;
-  --color-accent-600: var(--theme-accent) !important;
-}
-
-/* Force light theme text and backgrounds to prevent dark mode leakage */
-[data-theme$='-light'] * {
-  --tw-text-opacity: 1;
-}
-[data-theme$='-light'] .text-white {
-  color: var(--theme-text) !important;
-}
-/* Keep text-white on accent-bg buttons */
-[data-theme$='-light'] [style*='--theme-accent'] .text-white,
-[data-theme$='-light'] .bg-accent-500 .text-white {
-  color: #fff !important;
-}
 
 /* Composer focus ring for all themes */
 [data-theme] .composer-input:focus-within {

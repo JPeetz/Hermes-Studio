@@ -4,6 +4,65 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-17 — Session 18
+
+### What was done
+
+**Hermes agent v0.8.0 + v0.9.0 compatibility audit — 12 tasks, all shipped**
+
+Researched both release notes, planned 12 UI-surfaceable tasks, implemented and committed.
+
+**Hermes v0.9.0 (UI changes):**
+- **Fast Mode button** — `FlashIcon` toolbar button in `chat-composer.tsx`; wired to existing `fastMode` state + `effectiveFastMode` send logic (the state and `/fast` slash handler already existed; only the visible button was missing)
+- **`/fast`, `/compress`, `/debug`** added to slash-command autocomplete in `slash-command-menu.tsx`
+- **API_SERVER_KEY** — new password field in Settings → Connection (`use-settings.ts` + `settings-dialog.tsx`); for non-loopback Hermes instances
+- **Backup / Import** — `triggerBackup()` (POST `/api/hermes-proxy/api/backup`) + `handleImport()` (POST `…/api/backup/import`) buttons added to Settings connection section; hidden `<input type="file">` for import
+- **BlueBubbles, WeChat, WeCom** — three entries added to `CHAT_PLATFORMS` array in `routes/settings/index.tsx`; reuses existing generic `PlatformsSection` renderer, zero new components
+- **`GET /api/provider-usage`** — new Studio route (`routes/api/provider-usage.ts`) fetches Hermes `/api/usage` (v0.9.0 rate-limit capture), maps to `ProviderUsageEntry[]` with `requests/tokens remaining + resetsAt` progress bars; previously the fetch 404'd silently
+
+**Hermes v0.8.0 (UI changes):**
+- **Logs viewer** — `src/screens/logs/logs-screen.tsx` (new); `src/routes/logs.tsx` (new); `ConsoleIcon` nav entry in `chat-sidebar.tsx` + `workspace-shell.tsx` title; fetches `/api/hermes-proxy/api/logs?level=&tail=500`; All/Errors tabs, search, color-coded lines, auto-scroll
+- **Delivery failure badge** — red `X delivery failures` pill on job cards when `delivery_failures > 0`; `HermesJob` type extended in `jobs-api.ts`
+- **Pre-run script** — collapsible textarea in Create Job dialog (`create-job-dialog.tsx`); `pre_run_script` wired through `createJob()` payload
+
+**Key design decisions:**
+- hermes-proxy catch-all (`/api/hermes-proxy/$`) forwarded backup and logs calls — no new Studio API routes needed for those
+- Platform integrations reused the existing `CHAT_PLATFORMS` + `PlatformsSection` pattern — adding 3 platforms was 30 lines, no new components
+- SSE breaking change assessment: `use-streaming-message.ts` already correctly handled named `event:` SSE; `jobs-screen.tsx` EventSource uses a different stream — no fix needed
+
+### Version bump: 1.16.0 → 1.17.0
+
+---
+
+## 2026-04-16 — Session 17
+
+### What was done
+
+**Design System Consistency (Tasks #DS-1 through #DS-6 + screen migration)**
+
+Built a canonical 6-component design system library in `src/components/ds/` and migrated all screens to use it.
+
+**New components (`src/components/ds/`):**
+- `Card` — base surface primitive (3 variants: default, panel, subtle)
+- `SettingsRow` — label + description + control slot; optional danger border
+- `SectionHeader` — section title with optional subtitle, action, and divider
+- `StatusBadge` — hugeicon + label in semantic theme color; replaces all emoji status indicators
+- `ListItem` — icon + label + description + meta row with consistent hover state
+- `EmptyState` — centred icon + title + description + action; used by every empty screen
+
+**CSS fixes:**
+- Added `--theme-hover` to all 9 theme blocks in `styles.css`
+- Replaced 300+ broken Tailwind palette classes (`bg-primary-*`, `border-primary-*`, `text-black`, `bg-white`) with `var(--theme-*)` CSS variables across all screens
+- Screens migrated: settings/index.tsx, providers-screen.tsx, provider-wizard.tsx, chat-composer.tsx, chat-header.tsx, memory-browser-screen.tsx, knowledge-browser-screen.tsx, profiles-screen.tsx, skills-screen.tsx, workspace-skills-screen.tsx, jobs-screen.tsx, audit-trail-screen.tsx, crews-screen.tsx, files-screen.tsx
+
+**Tests:** 37 new unit tests for DS components (vitest + @testing-library/react + jsdom); 59 total passing.
+
+**The Rule (for future dev):** Never use Tailwind color classes on screen-level components. Always use `var(--theme-*)`. See `docs/superpowers/specs/2026-04-16-design-system-consistency.md`.
+
+### Version bump: 1.15.1 → 1.16.0
+
+---
+
 ## 2026-04-13 — Session 16
 
 ### What was done

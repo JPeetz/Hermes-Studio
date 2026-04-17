@@ -21,6 +21,10 @@ export type HermesJob = {
   skills?: Array<string>
   repeat?: { times?: number; completed?: number }
   run_count?: number
+  /** Failed delivery attempts tracked since v0.8.0 */
+  delivery_failures?: number
+  /** Shell script run before the main prompt (v0.8.0) */
+  pre_run_script?: string
 }
 
 export type JobOutput = {
@@ -44,6 +48,7 @@ export async function createJob(input: {
   deliver?: Array<string>
   skills?: Array<string>
   repeat?: number
+  pre_run_script?: string
 }): Promise<HermesJob> {
   const res = await fetch(HERMES_API, {
     method: 'POST',
