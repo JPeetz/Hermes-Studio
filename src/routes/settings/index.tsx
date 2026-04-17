@@ -849,7 +849,7 @@ const CHAT_PLATFORMS = [
     key: 'wecom',
     label: 'WeCom (Enterprise)',
     envVar: 'WECOM_CORP_ID',
-    placeholder: 'wx1234567890abcdef',
+    placeholder: 'your-corp-id',
     hint: 'WeCom callback mode — self-built enterprise app.',
     allowedUsersVar: 'WECOM_AGENT_SECRET',
     allowedUsersPlaceholder: 'agent secret',
