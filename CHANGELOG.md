@@ -5,10 +5,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
-
----
-
 ## [1.18.0] — 2026-04-17
 
 ### Added — Studio feature sprint (Tasks #13–#20)
