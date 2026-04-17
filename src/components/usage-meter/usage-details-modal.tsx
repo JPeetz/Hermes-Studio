@@ -1,6 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import {
   DialogClose,
   DialogDescription,
@@ -236,6 +245,150 @@ function statusBadge(status: ProviderUsage['status']) {
   }
 }
 
+// ── Token trend chart ─────────────────────────────────────────────────────────
+
+const CHART_DAYS = 14
+
+type DayBucket = {
+  date: string
+  input: number
+  output: number
+  cost: number
+}
+
+function buildDayBuckets(sessions: Array<SessionUsage>): Array<DayBucket> {
+  const buckets = new Map<string, DayBucket>()
+  const now = Date.now()
+
+  // Pre-fill all 14 days so gaps show as zero
+  for (let i = CHART_DAYS - 1; i >= 0; i--) {
+    const d = new Date(now - i * 86_400_000)
+    const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    buckets.set(key, { date: key, input: 0, output: 0, cost: 0 })
+  }
+
+  for (const s of sessions) {
+    const ts = s.startedAt ?? s.updatedAt
+    if (!ts) continue
+    const ms = ts < 1_000_000_000_000 ? ts * 1000 : ts
+    const age = now - ms
+    if (age < 0 || age > CHART_DAYS * 86_400_000) continue
+    const key = new Date(ms).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    })
+    const bucket = buckets.get(key)
+    if (!bucket) continue
+    bucket.input += s.inputTokens
+    bucket.output += s.outputTokens
+    bucket.cost += s.costUsd
+  }
+
+  return Array.from(buckets.values())
+}
+
+function TokenTrendChart({ sessions }: { sessions: Array<SessionUsage> }) {
+  const data = useMemo(() => buildDayBuckets(sessions), [sessions])
+  const hasData = data.some((d) => d.input > 0 || d.output > 0)
+
+  if (!hasData) {
+    return (
+      <div className="rounded-2xl border border-primary-200 bg-white/70 p-4">
+        <div className="mb-3 text-sm font-semibold text-primary-900">
+          Token usage — last {CHART_DAYS} days
+        </div>
+        <div className="flex h-28 items-center justify-center text-sm text-primary-400">
+          No data yet. Send a message to start tracking.
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-2xl border border-primary-200 bg-white/70 p-4">
+      <div className="mb-1 flex items-center justify-between">
+        <div className="text-sm font-semibold text-primary-900">
+          Token usage — last {CHART_DAYS} days
+        </div>
+        <div className="flex items-center gap-3 text-[10px] text-primary-500">
+          <span className="flex items-center gap-1">
+            <span className="inline-block h-2 w-3 rounded-sm bg-[#6366f1] opacity-70" />
+            Input
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block h-2 w-3 rounded-sm bg-[#22c55e] opacity-70" />
+            Output
+          </span>
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={140}>
+        <AreaChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+          <defs>
+            <linearGradient id="g-input" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
+              <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="g-output" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#22c55e" stopOpacity={0.25} />
+              <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.6} />
+          <XAxis
+            dataKey="date"
+            tick={{ fontSize: 9, fill: '#9ca3af' }}
+            tickLine={false}
+            axisLine={false}
+            interval={2}
+          />
+          <YAxis
+            tick={{ fontSize: 9, fill: '#9ca3af' }}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(v: number) =>
+              v >= 1_000_000
+                ? `${(v / 1_000_000).toFixed(1)}m`
+                : v >= 1000
+                  ? `${(v / 1000).toFixed(0)}k`
+                  : String(v)
+            }
+          />
+          <Tooltip
+            contentStyle={{
+              background: '#fff',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontSize: 11,
+            }}
+            formatter={(value: number, name: string) => [
+              value >= 1000
+                ? `${(value / 1000).toFixed(1)}k`
+                : String(value),
+              name === 'input' ? 'Input tokens' : 'Output tokens',
+            ]}
+          />
+          <Area
+            type="monotone"
+            dataKey="input"
+            stroke="#6366f1"
+            strokeWidth={1.5}
+            fill="url(#g-input)"
+            dot={false}
+          />
+          <Area
+            type="monotone"
+            dataKey="output"
+            stroke="#22c55e"
+            strokeWidth={1.5}
+            fill="url(#g-output)"
+            dot={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
 function buildCsv(usage: UsageSummary): string {
   const rows: Array<string> = []
   rows.push('Usage Summary')
@@ -379,6 +532,8 @@ export function UsageDetailsModal({
                 </div>
               </div>
             </div>
+
+            <TokenTrendChart sessions={usage.sessions} />
 
             <div className="rounded-2xl border border-primary-200 bg-white/70 p-4">
               <div className="mb-3 text-sm font-semibold text-primary-900">
