@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.17.0] — 2026-04-17
+
+### Added — Hermes Agent v0.8.0 + v0.9.0 compatibility
+
+Full UI surface for all features introduced in NousResearch/hermes-agent v0.8.0 and v0.9.0.
+
+**Hermes v0.9.0 (2026-04)**
+- **Fast Mode toggle** — lightning bolt button in the chat composer toolbar activates `/fast` priority queue (OpenAI/Anthropic); visual active state, tooltip, aria-pressed; wired to the existing `effectiveFastMode` send logic
+- **`/fast`, `/compress`, `/debug` slash commands** — added to the slash-command autocomplete menu with descriptions
+- **API Server Key setting** — new password field in Settings → Connection for `API_SERVER_KEY` required by non-loopback Hermes instances; stored in Zustand settings and passed through auth layer
+- **Backup / Import** — Settings → Connection now has "Backup" (POST `/api/backup`) and "Import" (POST `/api/backup/import`) buttons; import uses a hidden file input; both surface errors via toast
+- **BlueBubbles, WeChat, WeCom integrations** — three new entries in Settings → Integrations platform list (BlueBubbles iMessage via BlueBubbles server URL + password, WeChat via iLink Bot token, WeCom via Corp ID + agent secret)
+- **Provider usage route** — new `GET /api/provider-usage` Studio route fetches Hermes `/api/usage` (which now captures rate-limit headers: requests remaining/limit/reset, tokens remaining/limit/reset) and maps it into the usage meter's `ProviderUsageEntry` format including `resetsAt` progress bars
+
+**Hermes v0.8.0 (2026-03)**
+- **Logs viewer** — new `/logs` screen with `ConsoleIcon` nav entry; fetches `GET /api/hermes-proxy/api/logs?level=INFO|WARNING&tail=500`; All/Errors filter tabs; search with clear button; color-coded lines (ERROR=red, WARNING=amber, DEBUG=muted, INFO=text); auto-scrolls to bottom on load; `EmptyState` for no data and error states
+- **Cron delivery failure badge** — job cards now show a red badge (`X delivery failures`) when `delivery_failures > 0` (v0.8.0 tracks failed Telegram/Discord/Slack/Signal delivery attempts)
+- **Pre-run script field** — collapsible "Pre-run script" section in Create Job dialog; monospace textarea, hidden when empty, `pre_run_script` included in job creation payload
+
+---
+
 ## [1.15.1] — 2026-04-13
 
 ### Fixed

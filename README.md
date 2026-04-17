@@ -6,7 +6,8 @@
 
 **The only Hermes web UI with a built-in cron job manager — schedule, monitor, and control autonomous agent tasks without touching a terminal.**
 
-[![Version](https://img.shields.io/badge/version-1.15.0-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.17.0-6366F1.svg)](CHANGELOG.md)
+[![Hermes Agent](https://img.shields.io/badge/hermes--agent-v0.9.0-orange.svg)](https://github.com/NousResearch/hermes-agent)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
 [![CI](https://github.com/JPeetz/Hermes-Studio/actions/workflows/ci.yml/badge.svg)](https://github.com/JPeetz/Hermes-Studio/actions/workflows/ci.yml)
@@ -40,6 +41,11 @@
 - 🕵️ **Audit Trail** — chronological timeline of every tool call, user message, and approval request across all sessions; filter by session, event type, and date range; expand tool events to inspect full args and results
 - 📋 **Clone Crew** — duplicate any existing crew in one click; mints fresh sessions for every member and opens the new crew immediately; available on the crew card (hover) and from the crew detail header
 - 🧪 **Test Suite** — vitest unit tests for core stores and utilities (23 tests, all passing); Playwright e2e smoke tests for all major pages; GitHub Actions CI with visible status badge
+- ⚡ **Fast Mode** — one-click toggle in the chat composer activates Hermes v0.9.0's priority queue for OpenAI and Anthropic models; persists per-session
+- 📋 **Logs Viewer** — `/logs` screen pulls the last 500 lines from `~/.hermes/logs/` (Hermes v0.8.0 centralised logging); filter All/Errors, live search, color-coded by level, auto-scroll
+- 💾 **Backup & Import** — one-click Hermes data backup and restore from Settings (Hermes v0.9.0)
+- 📡 **iMessage, WeChat & WeCom** — BlueBubbles (iMessage), WeChat, and WeCom/Enterprise added to the platform integration settings alongside Telegram, Discord, Slack, and Signal (Hermes v0.9.0)
+- 📊 **Rate Limit Display** — provider usage meter now surfaces API rate-limit headers (requests/tokens remaining, reset countdown) captured by Hermes v0.9.0 from LLM provider responses
 
 ---
 
@@ -96,6 +102,8 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 - ✅ **Agent Library** — new `/agents` screen: create custom agents with system prompt, emoji, color, role label, model override, and tags; built-in personas ship with default system prompts; custom agents surface in crew builder and template gallery dropdowns; full CRUD via `/api/agents` REST API; persisted in `.runtime/agent-definitions.json`
 - ✅ **Audit Trail** — new `/audit` screen: cross-session chronological timeline of all tool calls (with phase/args/result), user messages, and approval requests; backed by `GET /api/audit/`; filters by session, event type (Tool Call, User Message, Approval), and date range; tool event cards expand inline to show full args and result; 50-event pagination
 - ✅ **Clone Crew** — `POST /api/crews/:crewId/clone`; duplicates name/goal/member roster, mints fresh sessions for all members in parallel; clone button on the crew grid card (hover) and on the detail screen header; navigates directly to the new crew on success; inspired by xaspx/hermes-control-interface + karmsheel/mission-control-hermes
+- ✅ **Hermes v0.9.0 compatibility** — Fast Mode toggle (`/fast`), `/compress` and `/debug` slash commands, API_SERVER_KEY field, one-click backup/import, BlueBubbles + WeChat + WeCom platform integrations, rate-limit header display in provider usage meter
+- ✅ **Hermes v0.8.0 compatibility** — Logs viewer screen (`~/.hermes/logs/`), cron delivery failure badges, pre-run script field in job creation
 
 ---
 
