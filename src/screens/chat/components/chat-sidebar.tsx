@@ -526,6 +526,7 @@ function ChatSidebarComponent({
   const isMemoryActive = pathname === '/memory'
   const isCrewsActive = pathname === '/crews' || pathname.startsWith('/crews/')
   const isAgentsActive = pathname === '/agents'
+  const isPatternsActive = pathname === '/patterns'
   const isAnalyticsActive = pathname === '/analytics'
   const isAuditActive = pathname === '/audit'
   const isLogsActive = pathname === '/logs'
@@ -780,6 +781,13 @@ function ChatSidebarComponent({
       icon: AiUserIcon,
       label: 'Agents',
       active: isAgentsActive,
+    },
+    {
+      kind: 'link',
+      to: '/patterns',
+      icon: BrainIcon,
+      label: 'Patterns',
+      active: isPatternsActive,
     },
     {
       kind: 'link',

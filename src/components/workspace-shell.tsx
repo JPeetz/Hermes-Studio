@@ -132,6 +132,7 @@ export function WorkspaceShell() {
     if (pathname.startsWith('/memory')) return 'Memory'
     if (pathname.startsWith('/skills')) return 'Skills'
     if (pathname.startsWith('/agents')) return 'Agents'
+    if (pathname.startsWith('/patterns')) return 'Patterns & Corrections'
     if (pathname.startsWith('/analytics')) return 'Analytics'
     if (pathname.startsWith('/audit')) return 'Audit Trail'
     if (pathname.startsWith('/logs')) return 'Logs'
