@@ -8,6 +8,8 @@ export type AccentColor = 'orange' | 'purple' | 'blue' | 'green'
 export type StudioSettings = {
   hermesUrl: string
   hermesToken: string
+  /** API_SERVER_KEY for non-loopback Hermes instances (v0.9.0) */
+  hermesApiKey: string
   theme: SettingsThemeMode
   accentColor: AccentColor
   editorFontSize: number
@@ -32,6 +34,7 @@ type SettingsState = {
 export const defaultStudioSettings: StudioSettings = {
   hermesUrl: '',
   hermesToken: '',
+  hermesApiKey: '',
   theme: 'system',
   accentColor: 'blue',
   editorFontSize: 13,

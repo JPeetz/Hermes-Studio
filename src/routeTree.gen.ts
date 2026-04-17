@@ -14,6 +14,7 @@ import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfilesRouteImport } from './routes/profiles'
 import { Route as MemoryRouteImport } from './routes/memory'
+import { Route as LogsRouteImport } from './routes/logs'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as FilesRouteImport } from './routes/files'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -40,6 +41,7 @@ import { Route as ApiSessionsRouteImport } from './routes/api/sessions'
 import { Route as ApiSessionStatusRouteImport } from './routes/api/session-status'
 import { Route as ApiSendStreamRouteImport } from './routes/api/send-stream'
 import { Route as ApiSendRouteImport } from './routes/api/send'
+import { Route as ApiProviderUsageRouteImport } from './routes/api/provider-usage'
 import { Route as ApiPingRouteImport } from './routes/api/ping'
 import { Route as ApiPathsRouteImport } from './routes/api/paths'
 import { Route as ApiModelsRouteImport } from './routes/api/models'
@@ -122,6 +124,11 @@ const ProfilesRoute = ProfilesRouteImport.update({
 const MemoryRoute = MemoryRouteImport.update({
   id: '/memory',
   path: '/memory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JobsRoute = JobsRouteImport.update({
@@ -252,6 +259,11 @@ const ApiSendStreamRoute = ApiSendStreamRouteImport.update({
 const ApiSendRoute = ApiSendRouteImport.update({
   id: '/api/send',
   path: '/api/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProviderUsageRoute = ApiProviderUsageRouteImport.update({
+  id: '/api/provider-usage',
+  path: '/api/provider-usage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPingRoute = ApiPingRouteImport.update({
@@ -558,6 +570,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/files': typeof FilesRoute
   '/jobs': typeof JobsRoute
+  '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
   '/profiles': typeof ProfilesRoute
   '/settings': typeof SettingsRouteWithChildren
@@ -579,6 +592,7 @@ export interface FileRoutesByFullPath {
   '/api/models': typeof ApiModelsRoute
   '/api/paths': typeof ApiPathsRoute
   '/api/ping': typeof ApiPingRoute
+  '/api/provider-usage': typeof ApiProviderUsageRoute
   '/api/send': typeof ApiSendRoute
   '/api/send-stream': typeof ApiSendStreamRoute
   '/api/session-status': typeof ApiSessionStatusRoute
@@ -649,6 +663,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/files': typeof FilesRoute
   '/jobs': typeof JobsRoute
+  '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
   '/profiles': typeof ProfilesRoute
   '/skills': typeof SkillsRoute
@@ -669,6 +684,7 @@ export interface FileRoutesByTo {
   '/api/models': typeof ApiModelsRoute
   '/api/paths': typeof ApiPathsRoute
   '/api/ping': typeof ApiPingRoute
+  '/api/provider-usage': typeof ApiProviderUsageRoute
   '/api/send': typeof ApiSendRoute
   '/api/send-stream': typeof ApiSendStreamRoute
   '/api/session-status': typeof ApiSessionStatusRoute
@@ -740,6 +756,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/files': typeof FilesRoute
   '/jobs': typeof JobsRoute
+  '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
   '/profiles': typeof ProfilesRoute
   '/settings': typeof SettingsRouteWithChildren
@@ -761,6 +778,7 @@ export interface FileRoutesById {
   '/api/models': typeof ApiModelsRoute
   '/api/paths': typeof ApiPathsRoute
   '/api/ping': typeof ApiPingRoute
+  '/api/provider-usage': typeof ApiProviderUsageRoute
   '/api/send': typeof ApiSendRoute
   '/api/send-stream': typeof ApiSendStreamRoute
   '/api/session-status': typeof ApiSessionStatusRoute
@@ -833,6 +851,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/files'
     | '/jobs'
+    | '/logs'
     | '/memory'
     | '/profiles'
     | '/settings'
@@ -854,6 +873,7 @@ export interface FileRouteTypes {
     | '/api/models'
     | '/api/paths'
     | '/api/ping'
+    | '/api/provider-usage'
     | '/api/send'
     | '/api/send-stream'
     | '/api/session-status'
@@ -924,6 +944,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/files'
     | '/jobs'
+    | '/logs'
     | '/memory'
     | '/profiles'
     | '/skills'
@@ -944,6 +965,7 @@ export interface FileRouteTypes {
     | '/api/models'
     | '/api/paths'
     | '/api/ping'
+    | '/api/provider-usage'
     | '/api/send'
     | '/api/send-stream'
     | '/api/session-status'
@@ -1014,6 +1036,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/files'
     | '/jobs'
+    | '/logs'
     | '/memory'
     | '/profiles'
     | '/settings'
@@ -1035,6 +1058,7 @@ export interface FileRouteTypes {
     | '/api/models'
     | '/api/paths'
     | '/api/ping'
+    | '/api/provider-usage'
     | '/api/send'
     | '/api/send-stream'
     | '/api/session-status'
@@ -1106,6 +1130,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FilesRoute: typeof FilesRoute
   JobsRoute: typeof JobsRoute
+  LogsRoute: typeof LogsRoute
   MemoryRoute: typeof MemoryRoute
   ProfilesRoute: typeof ProfilesRoute
   SettingsRoute: typeof SettingsRouteWithChildren
@@ -1127,6 +1152,7 @@ export interface RootRouteChildren {
   ApiModelsRoute: typeof ApiModelsRoute
   ApiPathsRoute: typeof ApiPathsRoute
   ApiPingRoute: typeof ApiPingRoute
+  ApiProviderUsageRoute: typeof ApiProviderUsageRoute
   ApiSendRoute: typeof ApiSendRoute
   ApiSendStreamRoute: typeof ApiSendStreamRoute
   ApiSessionStatusRoute: typeof ApiSessionStatusRoute
@@ -1204,6 +1230,13 @@ declare module '@tanstack/react-router' {
       path: '/memory'
       fullPath: '/memory'
       preLoaderRoute: typeof MemoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jobs': {
@@ -1386,6 +1419,13 @@ declare module '@tanstack/react-router' {
       path: '/api/send'
       fullPath: '/api/send'
       preLoaderRoute: typeof ApiSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/provider-usage': {
+      id: '/api/provider-usage'
+      path: '/api/provider-usage'
+      fullPath: '/api/provider-usage'
+      preLoaderRoute: typeof ApiProviderUsageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ping': {
@@ -1927,6 +1967,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FilesRoute: FilesRoute,
   JobsRoute: JobsRoute,
+  LogsRoute: LogsRoute,
   MemoryRoute: MemoryRoute,
   ProfilesRoute: ProfilesRoute,
   SettingsRoute: SettingsRouteWithChildren,
@@ -1948,6 +1989,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiModelsRoute: ApiModelsRoute,
   ApiPathsRoute: ApiPathsRoute,
   ApiPingRoute: ApiPingRoute,
+  ApiProviderUsageRoute: ApiProviderUsageRoute,
   ApiSendRoute: ApiSendRoute,
   ApiSendStreamRoute: ApiSendStreamRoute,
   ApiSessionStatusRoute: ApiSessionStatusRoute,
@@ -1992,12 +2034,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

@@ -5,6 +5,7 @@ import {
   ArrowUp02Icon,
   Cancel01Icon,
   Delete01Icon,
+  FlashIcon,
   Mic01Icon,
   StopIcon,
 } from '@hugeicons/core-free-icons'
@@ -2609,6 +2610,25 @@ function ChatComposerComponent({
                     </>
                   )}
                 </div>
+                {/* Fast Mode toggle — priority queue for OpenAI/Anthropic (v0.9.0) */}
+                <PromptInputAction tooltip={fastMode ? 'Fast Mode on — click to disable' : 'Fast Mode — priority queue (OpenAI/Anthropic)'}>
+                  <Button
+                    type="button"
+                    size="icon-sm"
+                    variant="ghost"
+                    onClick={() => setFastMode((prev) => !prev)}
+                    className={cn(
+                      'rounded-lg transition-colors',
+                      fastMode
+                        ? 'text-accent-500 bg-[var(--theme-accent-subtle)] hover:bg-[var(--theme-accent-subtle)]'
+                        : 'text-[var(--theme-muted)] hover:bg-[var(--theme-hover)] dark:hover:bg-primary-800 hover:text-[var(--theme-text)]',
+                    )}
+                    aria-label={fastMode ? 'Disable Fast Mode' : 'Enable Fast Mode'}
+                    aria-pressed={fastMode}
+                  >
+                    <HugeiconsIcon icon={FlashIcon} size={16} strokeWidth={1.5} />
+                  </Button>
+                </PromptInputAction>
               </div>
               <div className="ml-1 flex shrink-0 items-center gap-0.5 md:gap-1">
                 {voiceInput.isSupported || voiceRecorder.isSupported ? (

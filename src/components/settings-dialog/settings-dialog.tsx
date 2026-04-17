@@ -15,7 +15,7 @@ import {
   SparklesIcon,
   VolumeHighIcon,
 } from '@hugeicons/core-free-icons'
-import { Component, useCallback, useEffect, useState } from 'react'
+import { Component, useCallback, useEffect, useRef, useState } from 'react'
 import type * as React from 'react'
 import type { AccentColor, SettingsThemeMode } from '@/hooks/use-settings'
 import type { LoaderStyle } from '@/hooks/use-chat-settings'
@@ -1107,11 +1107,34 @@ function _AdvancedContent() {
 
   const urlErrorId = 'hermes-url-error'
 
+  const [backupStatus, setBackupStatus] = useState<'idle' | 'running' | 'done' | 'error'>('idle')
+  const importRef = useRef<HTMLInputElement>(null)
+
+  async function triggerBackup() {
+    setBackupStatus('running')
+    try {
+      const r = await fetch('/api/hermes-proxy/api/backup', { method: 'POST' })
+      setBackupStatus(r.ok ? 'done' : 'error')
+    } catch {
+      setBackupStatus('error')
+    }
+    setTimeout(() => setBackupStatus('idle'), 3000)
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const body = new FormData()
+    body.append('file', file)
+    await fetch('/api/hermes-proxy/api/backup/import', { method: 'POST', body })
+    if (importRef.current) importRef.current.value = ''
+  }
+
   return (
     <div className="space-y-4">
       <SectionHeader
         title="Advanced"
-        description="Hermes endpoint and connectivity."
+        description="Hermes endpoint, connectivity, and data management."
       />
       <div className={SETTINGS_CARD_CLASS}>
         <Row label="Hermes URL" description="Used for API requests from Studio">
@@ -1136,6 +1159,16 @@ function _AdvancedContent() {
               </p>
             )}
           </div>
+        </Row>
+        <Row label="API Server Key" description="API_SERVER_KEY for non-loopback Hermes instances (v0.9.0)">
+          <Input
+            type="password"
+            placeholder="sk-…"
+            value={settings.hermesApiKey}
+            onChange={(e) => updateSettings({ hermesApiKey: e.target.value })}
+            className="h-8 w-full max-w-sm rounded-lg border-primary-200 text-sm"
+            aria-label="Hermes API server key"
+          />
         </Row>
         <Row label="Connection status">
           <span
@@ -1173,6 +1206,38 @@ function _AdvancedContent() {
             />
             Test
           </Button>
+        </Row>
+      </div>
+      <div className={SETTINGS_CARD_CLASS}>
+        <Row label="Backup" description="Export config, sessions, skills, and memory to a snapshot file.">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void triggerBackup()}
+            disabled={backupStatus === 'running'}
+            className="h-8 rounded-lg border-primary-200 px-3"
+          >
+            {backupStatus === 'running' ? 'Backing up…' : backupStatus === 'done' ? 'Done ✓' : backupStatus === 'error' ? 'Error' : 'Create backup'}
+          </Button>
+        </Row>
+        <Row label="Import" description="Restore a previously created backup archive.">
+          <div>
+            <input
+              ref={importRef}
+              type="file"
+              accept=".zip,.tar,.tar.gz"
+              className="hidden"
+              onChange={(e) => void handleImport(e)}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => importRef.current?.click()}
+              className="h-8 rounded-lg border-primary-200 px-3"
+            >
+              Choose file…
+            </Button>
+          </div>
         </Row>
       </div>
     </div>

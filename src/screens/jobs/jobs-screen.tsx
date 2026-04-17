@@ -241,12 +241,17 @@ function JobCard({
               </>
             )}
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-[var(--theme-muted)]">
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--theme-muted)]">
             <span
               className="inline-block h-2.5 w-2.5 rounded-full"
               style={{ background: lastRunStatus.color }}
             />
             <span>{lastRunStatus.label}</span>
+            {(job.delivery_failures ?? 0) > 0 && (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-red-500/15 px-1.5 py-0.5 text-[10px] font-medium text-red-500">
+                {job.delivery_failures} delivery {job.delivery_failures === 1 ? 'failure' : 'failures'}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -514,6 +519,7 @@ export function JobsScreen() {
       deliver?: Array<string>
       skills?: Array<string>
       repeat?: number
+      pre_run_script?: string
     }) => {
       await createMutation.mutateAsync(input)
     },

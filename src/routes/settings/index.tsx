@@ -827,6 +827,33 @@ const CHAT_PLATFORMS = [
     allowedUsersVar: 'SIGNAL_ACCOUNT',
     allowedUsersPlaceholder: '+1234567890',
   },
+  {
+    key: 'bluebubbles',
+    label: 'BlueBubbles (iMessage)',
+    envVar: 'BLUEBUBBLES_URL',
+    placeholder: 'http://your-mac:1234',
+    hint: 'Requires BlueBubbles server running on a Mac.',
+    allowedUsersVar: 'BLUEBUBBLES_PASSWORD',
+    allowedUsersPlaceholder: 'server password',
+  },
+  {
+    key: 'wechat',
+    label: 'WeChat (Weixin)',
+    envVar: 'WECHAT_ILINK_TOKEN',
+    placeholder: 'iLink Bot API token',
+    hint: 'Via iLink Bot API — requires WeChat Official Account.',
+    allowedUsersVar: 'WECHAT_ALLOWED_USERS',
+    allowedUsersPlaceholder: 'WeChat user IDs',
+  },
+  {
+    key: 'wecom',
+    label: 'WeCom (Enterprise)',
+    envVar: 'WECOM_CORP_ID',
+    placeholder: 'wx1234567890abcdef',
+    hint: 'WeCom callback mode — self-built enterprise app.',
+    allowedUsersVar: 'WECOM_AGENT_SECRET',
+    allowedUsersPlaceholder: 'agent secret',
+  },
 ] as const
 
 type PlatformKey = (typeof CHAT_PLATFORMS)[number]['key']

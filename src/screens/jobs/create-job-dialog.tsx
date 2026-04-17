@@ -27,6 +27,7 @@ type CreateJobDialogProps = {
     deliver?: Array<string>
     skills?: Array<string>
     repeat?: number
+    pre_run_script?: string
   }) => void | Promise<void>
 }
 
@@ -39,6 +40,8 @@ function getInitialState() {
     deliver: ['local'] as Array<string>,
     repeatMode: 'unlimited' as 'unlimited' | 'limited',
     repeatCount: '1',
+    preRunScript: '',
+    showPreRunScript: false,
   }
 }
 
@@ -103,6 +106,7 @@ export function CreateJobDialog({
         form.repeatMode === 'limited'
           ? Math.max(1, Number.parseInt(form.repeatCount, 10) || 1)
           : undefined,
+      pre_run_script: form.preRunScript.trim() || undefined,
     })
   }
 
@@ -428,6 +432,59 @@ export function CreateJobDialog({
                       }}
                     />
                   ) : null}
+                </div>
+              </section>
+
+              {/* Pre-run script — advanced */}
+              <section className="space-y-3">
+                <div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((current) => ({
+                        ...current,
+                        showPreRunScript: !current.showPreRunScript,
+                      }))
+                    }
+                    className="flex items-center gap-1.5 text-xs font-medium transition-colors"
+                    style={{ color: 'var(--theme-muted)' }}
+                  >
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        transform: form.showPreRunScript ? 'rotate(90deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.15s',
+                      }}
+                    >
+                      ▶
+                    </span>
+                    Pre-run script (advanced)
+                  </button>
+                  {form.showPreRunScript && (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs" style={{ color: 'var(--theme-muted)' }}>
+                        Shell script that runs before the agent prompt — useful for change detection or data collection.
+                      </p>
+                      <textarea
+                        value={form.preRunScript}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            preRunScript: event.target.value,
+                          }))
+                        }
+                        rows={4}
+                        placeholder="#!/bin/bash&#10;echo 'pre-run data'"
+                        className="w-full rounded-xl border px-3 py-2.5 font-mono text-xs focus:outline-none focus:ring-1"
+                        style={{
+                          background: 'var(--theme-input)',
+                          borderColor: 'var(--theme-border)',
+                          color: 'var(--theme-text)',
+                          resize: 'vertical',
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </section>
             </div>
