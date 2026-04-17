@@ -6,7 +6,7 @@
 
 **The only Hermes web UI with a built-in cron job manager — schedule, monitor, and control autonomous agent tasks without touching a terminal.**
 
-[![Version](https://img.shields.io/badge/version-1.17.1-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.18.0-6366F1.svg)](CHANGELOG.md)
 [![Hermes Agent](https://img.shields.io/badge/hermes--agent-v0.9.0-orange.svg)](https://github.com/NousResearch/hermes-agent)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
@@ -46,6 +46,13 @@
 - 💾 **Backup & Import** — one-click Hermes data backup and restore from Settings (Hermes v0.9.0)
 - 📡 **iMessage, WeChat & WeCom** — BlueBubbles (iMessage), WeChat, and WeCom/Enterprise added to the platform integration settings alongside Telegram, Discord, Slack, and Signal (Hermes v0.9.0)
 - 📊 **Rate Limit Display** — provider usage meter now surfaces API rate-limit headers (requests/tokens remaining, reset countdown) captured by Hermes v0.9.0 from LLM provider responses
+- 🖥️ **System Health Panel** — fixed footer bar showing live CPU %, memory, disk usage, and uptime; color-coded thresholds (green/amber/red); toggle in Settings → Display
+- 📈 **Token Usage Chart** — 14-day area chart in the usage modal breaks down daily input vs output tokens across all sessions
+- 🔬 **Event Analytics** — `/analytics` screen with aggregate event stats, daily volume bar chart, and top-15 tool frequency chart sourced directly from the SQLite event store
+- 🪪 **Identity File Editor** — Settings → Identity lets you read and write `SOUL.md`, `persona.md`, and `CLAUDE.md` directly from the browser; no terminal required
+- 🧩 **Patterns & Corrections Viewer** — `/patterns` screen to browse agent-learned patterns and manage user corrections stored in `MEMORY.md`
+- 🕐 **Session History Archive** — two-pane session browser at `/session-history`; sortable by date/model/tokens/cost; lazy-loads full message thread per session
+- ⚙️ **Systemd Auto-start** — Settings → Auto-start generates and installs a systemd user service unit; install/start/stop/enable/disable/uninstall from the UI with live status display
 
 ---
 
@@ -701,14 +708,14 @@ The Docker setup uses `hermes --gateway` automatically — no action needed if u
 | Setup Wizard                         | ✅ Shipped v1.16.0 |
 | Hermes v0.8.0 + v0.9.0 compat       | ✅ Shipped v1.17.0 |
 | Design System v1.0                   | ✅ Shipped v1.16.0 |
-| Command Palette (Ctrl+K)             | 🔨 In Progress     |
-| System Health Panel                  | 🔨 In Progress     |
-| Token Usage Time-Series Chart        | 🔜 Planned         |
-| State.db Analytics                   | 🔜 Planned         |
-| Identity File Editor                 | 🔜 Planned         |
-| Patterns & Corrections Viewer        | 🔜 Planned         |
-| Session History Archive              | 🔜 Planned         |
-| Systemd Auto-start                   | 🔜 Planned         |
+| Command Palette (Ctrl+K)             | ✅ Shipped v1.18.0 |
+| System Health Panel                  | ✅ Shipped v1.18.0 |
+| Token Usage Time-Series Chart        | ✅ Shipped v1.18.0 |
+| State.db Analytics                   | ✅ Shipped v1.18.0 |
+| Identity File Editor                 | ✅ Shipped v1.18.0 |
+| Patterns & Corrections Viewer        | ✅ Shipped v1.18.0 |
+| Session History Archive              | ✅ Shipped v1.18.0 |
+| Systemd Auto-start                   | ✅ Shipped v1.18.0 |
 | Native Desktop App (Electron)        | 🔜 Planned         |
 | Cloud / Hosted Version               | 🔜 Planned         |
 

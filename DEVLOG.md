@@ -4,6 +4,66 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-17 — Session 21
+
+### What was done
+
+**Feature sprint completion — v1.18.0 (Tasks #13–#20)**
+
+All 8 roadmap tasks from the backlog built in this session and the previous one. Zero TypeScript errors, 59/59 tests passing throughout.
+
+**Task #13 — Command Palette (Ctrl+K)**
+- `use-global-shortcuts` hook dispatches `hermes:toggle-sidebar` custom event on `Ctrl+K` / `Cmd+K`; no changes needed to the existing `CommandPalette` component
+
+**Task #14 — System Health Panel**
+- `<SystemMetricsFooter />` polls `GET /api/system-health` every 10 s
+- Fixed bottom bar: CPU%, memory, disk, uptime; green <60%, amber 60–80%, red >80%
+- Conditional render in `WorkspaceShell` behind `settings.showSystemMetricsFooter`
+
+**Task #15 — Token Usage Time-Series Chart**
+- 14-day `AreaChart` (recharts) added to `usage-details-modal.tsx`
+- `buildDayBuckets()` pre-fills 14 days, groups sessions by timestamp
+- recharts `Cell` not available in bundler mode — workaround: single `fill` prop on `Bar`
+
+**Task #16 — Event Store Analytics**
+- `getAnalytics()` added to `event-store.ts` using SQL (`json_extract`, `GROUP BY`, `strftime`) — never loads raw payloads into JS
+- `GET /api/state-analytics` route + `AnalyticsScreen` at `/analytics`
+- 4 stat cards, 14-day stacked bar chart, horizontal top-15 tool chart
+
+**Task #17 — Identity File Editor**
+- New `'identity'` section in Settings with tabbed editor for `SOUL.md`, `persona.md`, `CLAUDE.md`
+- Reads via `GET /api/files?action=read`, writes via `POST /api/files`
+
+**Task #18 — Patterns & Corrections Viewer**
+- `PatternsCorrectionScreen` at `/patterns`
+- Parser splits `MEMORY.md` on `§` delimiter; classifies by `CORRECTION:` prefix
+- Two tabs: patterns (read-only cards) and corrections (cards + add form + delete)
+
+**Task #19 — Session History Archive**
+- `SessionHistoryScreen` at `/session-history`
+- Two-pane: sortable session list (date/model/msgs/tokens/cost) + lazy message thread
+- Aggregate stats bar; message bubbles for user/assistant
+
+**Task #20 — Systemd Auto-start**
+- `scripts/hermes-studio.service` unit template with `HERMES_INSTALL_DIR` placeholder
+- `scripts/install-systemd.sh` CLI: install/uninstall/start/stop/enable/disable/status
+- `GET /api/systemd-status` + `POST /api/systemd-control` API routes
+- Settings → Auto-start UI: status indicators, action buttons, `systemctl status` output panel
+- Graceful degradation on non-Linux platforms
+
+**Docs + release**
+- CHANGELOG.md: `[Unreleased]` promoted to `[1.18.0]` with full entry
+- README.md: version badge bumped to 1.18.0; 8 new feature bullets; roadmap table updated (all 8 tasks → ✅ Shipped v1.18.0)
+- `package.json` version bumped to `1.18.0`
+
+**Key technical notes:**
+- `routeTree.gen.ts` is `@ts-nocheck`; only `FileRoutesByPath` inside `declare module '@tanstack/react-router'` matters for compile-time checking — must add entries there for every new route
+- recharts `Cell` not importable under `moduleResolution: bundler` despite being in type definitions
+- `BrainIcon` was already imported in `chat-sidebar.tsx` (agent personas) — reused, not duplicated
+- MEMORY.md uses `§` as entry separator (not `##` headings)
+
+---
+
 ## 2026-04-17 — Session 20
 
 ### What was done

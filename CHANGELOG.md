@@ -7,15 +7,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Planned
-- **Command Palette (Ctrl+K)** — keybinding for existing palette component
-- **System Health Panel** — CPU/memory/disk footer (setting already exists)
-- **Token Usage Time-Series Chart** — daily token/cost history in usage modal
-- **State.db Analytics** — aggregate stats from `~/.hermes/state.db`
-- **Identity File Editor** — agent name/persona editor in Settings
-- **Patterns & Corrections Viewer** — browse and manage Hermes learned patterns
-- **Session History Archive** — export/archive old sessions as JSON or Markdown
-- **Systemd Auto-start** — generate `.service` unit files from Settings
+---
+
+## [1.18.0] — 2026-04-17
+
+### Added — Studio feature sprint (Tasks #13–#20)
+
+- **Command Palette (Ctrl+K)** — global `Ctrl+K` / `Cmd+K` shortcut wired to the existing command palette; dispatches `hermes:toggle-sidebar` custom event; keyboard shortcut registered in `use-global-shortcuts`
+- **System Health Panel** — `<SystemMetricsFooter />` fixed footer polls `GET /api/system-health` every 10 s; shows CPU %, memory, disk usage, and uptime with green/amber/red color thresholds; toggle via Settings → Display → "Show System Metrics Footer"
+- **Token Usage Time-Series Chart** — 14-day rolling `AreaChart` (recharts) in the token usage modal breaks down daily input vs output tokens across all sessions; pre-fills missing days to zero
+- **Event Store Analytics screen** — `/analytics` route backed by `GET /api/state-analytics`; aggregate event stats (total events, sessions, tool calls), 14-day stacked bar chart, top-15 tool frequency horizontal bars; all SQL aggregation done in SQLite via `json_extract` + `GROUP BY` — no raw payloads loaded into JS memory
+- **Identity File Editor** — Settings → Identity section; tabbed editor for `SOUL.md`, `persona.md`, and `CLAUDE.md` under `~/.hermes/`; reads via `GET /api/files?action=read`, writes via `POST /api/files`; save/discard buttons with status feedback
+- **Patterns & Corrections Viewer** — `/patterns` screen reads `memories/MEMORY.md` via `/api/memory/read`; parses `§`-delimited entries; Tab 1: searchable pattern cards; Tab 2: searchable correction cards with an add-new form and per-entry delete (rewrites full MEMORY.md)
+- **Session History Archive** — `/session-history` two-pane layout; left pane: sortable session list (date, model, messages, tokens, cost) with aggregate stats bar; right pane: lazy-loaded message thread fetched from `GET /api/history?sessionKey=<key>`
+- **Systemd Auto-start** — `scripts/hermes-studio.service` unit template + `scripts/install-systemd.sh` CLI script; `GET /api/systemd-status` reads live `systemctl --user` state; `POST /api/systemd-control` handles install/uninstall/start/stop/enable/disable; Settings → Auto-start UI with status indicators, action buttons, and `systemctl status` output display; graceful degradation on non-Linux
 
 ---
 
