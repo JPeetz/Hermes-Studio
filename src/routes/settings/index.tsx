@@ -235,6 +235,7 @@ type SettingsSectionId =
   | 'display'
   | 'notifications'
   | 'integrations'
+  | 'identity'
   | 'advanced'
 
 type SettingsNavItem = {
@@ -254,6 +255,7 @@ const SETTINGS_NAV_ITEMS: Array<SettingsNavItem> = [
   { id: 'chat', label: 'Chat' },
   { id: 'notifications', label: 'Notifications' },
   { id: 'integrations', label: 'Integrations' },
+  { id: 'identity', label: 'Identity' },
   { id: 'mcp', label: 'MCP Servers', to: '/settings/mcp' },
 ]
 
@@ -606,6 +608,9 @@ function SettingsRoute() {
           {/* ── Integrations ────────────────────────────────────── */}
           {activeSection === 'integrations' && <IntegrationsSection />}
 
+          {/* ── Identity ────────────────────────────────────────── */}
+          {activeSection === 'identity' && <IdentityFileEditor />}
+
           <footer className="mt-auto pt-4">
             <div className="flex items-center gap-2 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/70 p-3 text-sm text-[var(--theme-muted)] backdrop-blur-sm">
               <HugeiconsIcon
@@ -621,6 +626,212 @@ function SettingsRoute() {
         </div>
       </main>
     </div>
+  )
+}
+
+// ── Identity File Editor ──────────────────────────────────────────────────────
+
+/**
+ * Reads and writes the three identity-defining files in ~/.hermes:
+ *   • SOUL.md      — agent persona / tone (loaded every message, no restart)
+ *   • persona.md   — startup directives (read at session start)
+ *   • CLAUDE.md    — coding guidelines / project context
+ *
+ * All I/O goes through GET|POST /api/files which is scoped to ~/.hermes.
+ */
+const IDENTITY_FILES = [
+  {
+    path: 'SOUL.md',
+    label: 'Soul (persona)',
+    description:
+      'Defines the agent\'s personality and tone. Loaded fresh on every message — changes take effect immediately without restarting Hermes.',
+  },
+  {
+    path: 'persona.md',
+    label: 'Persona (startup)',
+    description:
+      'Startup directive read at the beginning of each session. Use this to instruct the agent to load identity files, memory logs, or user profiles.',
+  },
+  {
+    path: 'CLAUDE.md',
+    label: 'CLAUDE.md (project context)',
+    description:
+      'Coding guidelines and project context injected into every Claude Code session. Edit to add custom rules or remove unwanted defaults.',
+  },
+] as const
+
+type IdentityFilePath = (typeof IDENTITY_FILES)[number]['path']
+
+async function readIdentityFile(path: IdentityFilePath): Promise<string> {
+  const res = await fetch(`/api/files?action=read&path=${encodeURIComponent(path)}`)
+  if (!res.ok) {
+    if (res.status === 404) return ''
+    throw new Error(`HTTP ${res.status}`)
+  }
+  const data = await res.json()
+  return typeof data.content === 'string' ? data.content : ''
+}
+
+async function writeIdentityFile(
+  path: IdentityFilePath,
+  content: string,
+): Promise<void> {
+  const res = await fetch('/api/files', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'write', path, content }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
+
+function IdentityFileEditor() {
+  const [selectedPath, setSelectedPath] = useState<IdentityFilePath>('SOUL.md')
+  const [content, setContent] = useState('')
+  const [originalContent, setOriginalContent] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState<{
+    text: string
+    kind: 'success' | 'error'
+  } | null>(null)
+
+  const selectedFile = IDENTITY_FILES.find((f) => f.path === selectedPath)!
+  const isDirty = content !== originalContent
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setMessage(null)
+    readIdentityFile(selectedPath)
+      .then((text) => {
+        if (!cancelled) {
+          setContent(text)
+          setOriginalContent(text)
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setMessage({
+            text: err instanceof Error ? err.message : 'Failed to load',
+            kind: 'error',
+          })
+          setLoading(false)
+        }
+      })
+    return () => { cancelled = true }
+  }, [selectedPath])
+
+  const handleSave = async () => {
+    setSaving(true)
+    setMessage(null)
+    try {
+      await writeIdentityFile(selectedPath, content)
+      setOriginalContent(content)
+      setMessage({ text: 'Saved.', kind: 'success' })
+      setTimeout(() => setMessage(null), 3000)
+    } catch (err) {
+      setMessage({
+        text: err instanceof Error ? err.message : 'Failed to save',
+        kind: 'error',
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDiscard = () => {
+    setContent(originalContent)
+    setMessage(null)
+  }
+
+  return (
+    <SettingsSection
+      title="Identity Files"
+      description="Edit the files that define your Hermes agent's personality, startup behaviour, and coding guidelines. Changes are saved directly to ~/.hermes."
+      icon={UserIcon}
+    >
+      {/* File picker */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {IDENTITY_FILES.map((f) => (
+          <button
+            key={f.path}
+            type="button"
+            onClick={() => {
+              if (isDirty && !window.confirm('Discard unsaved changes?')) return
+              setSelectedPath(f.path)
+            }}
+            className={cn(
+              'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors border',
+              selectedPath === f.path
+                ? 'border-[var(--theme-accent)] bg-[var(--theme-accent)]/10 text-[var(--theme-accent)]'
+                : 'border-[var(--theme-border)] bg-[var(--theme-panel)] text-[var(--theme-muted)] hover:text-[var(--theme-text)]',
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Description */}
+      <p className="text-xs text-[var(--theme-muted)] mb-3">
+        {selectedFile.description}
+      </p>
+
+      {/* Editor */}
+      {loading ? (
+        <div className="h-48 flex items-center justify-center text-sm text-[var(--theme-muted)]">
+          Loading…
+        </div>
+      ) : (
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          spellCheck={false}
+          rows={18}
+          placeholder={`# ${selectedPath}\n\nStart writing…`}
+          className="w-full resize-y rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2.5 font-mono text-xs leading-relaxed text-[var(--theme-text)] outline-none focus:border-[var(--theme-accent)] transition-colors"
+          style={{ minHeight: '12rem' }}
+        />
+      )}
+
+      {/* Feedback message */}
+      {message && (
+        <div
+          className="rounded-lg px-3 py-2 text-xs font-medium mt-2"
+          style={{
+            backgroundColor:
+              message.kind === 'error'
+                ? 'rgba(239,68,68,0.12)'
+                : 'rgba(34,197,94,0.12)',
+            color: message.kind === 'error' ? '#ef4444' : '#22c55e',
+          }}
+        >
+          {message.text}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center justify-between gap-3 mt-3">
+        <span className="text-[10px] text-[var(--theme-muted)]">
+          {isDirty ? 'Unsaved changes' : 'Up to date'}
+        </span>
+        <div className="flex gap-2">
+          {isDirty && (
+            <Button size="sm" variant="outline" onClick={handleDiscard}>
+              Discard
+            </Button>
+          )}
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving || !isDirty}
+          >
+            {saving ? 'Saving…' : 'Save'}
+          </Button>
+        </div>
+      </div>
+    </SettingsSection>
   )
 }
 
