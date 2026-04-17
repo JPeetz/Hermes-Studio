@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.17.1] — 2026-04-17
+
+### Fixed
+- **WeChat Corp ID secret scanner alert** — placeholder `wx1234567890abcdef` in the WeCom settings entry matched GitHub's Tencent WeChat API App ID pattern; replaced with generic `your-corp-id`
+- **CI rewritten for pnpm** — project uses pnpm (not npm); `npm install` was failing on `workspace:` protocol in transitive deps; CI now uses `pnpm/action-setup@v4`, `pnpm install --frozen-lockfile`, and `pnpm exec playwright`; `pnpm-lock.yaml` committed and lockfile caching enabled
+- **`@playwright/test` missing from package.json** — test files imported from `@playwright/test` but it was not declared; added to devDependencies; TypeScript errors in `playwright.config.ts` and `tests/e2e/smoke.spec.ts` now resolved
+- **`APPROVAL_RECEIPT_TTL_MS` undefined** — constant was declared as `APPROVAL_APPROVAL_RECEIPT_TTL_MS` (double-prefix typo) in `chat-screen.tsx` but referenced correctly; renamed
+- **`toast.success` / `toast.error` in agent-library-screen** — `toast` is a plain function, not an object with `.success`/`.error` methods; converted to `toast(msg, { type: 'success' | 'error' })`
+- **`hubQuery.data?.source` on `never`** — TanStack Query narrows `data` to `undefined` when `isPending`; accessing `.source` caused a TS error; cast to `HubSearchResponse | undefined`
+- **`profileName` missing from crew-store test fixture** — field added to `CrewMember` after the test was written; added `profileName: null` to fixture
+- **`forcedSession` possibly null** — `forcedSession?.friendlyId === x` does not narrow the type in the truthy branch; changed to explicit `forcedSession !== null && forcedSession.friendlyId === x`
+
+---
+
 ## [1.17.0] — 2026-04-17
 
 ### Added — Hermes Agent v0.8.0 + v0.9.0 compatibility

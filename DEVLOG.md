@@ -4,6 +4,40 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-17 — Session 19
+
+### What was done
+
+**Bugfix sweep + CI infrastructure repair (v1.17.1)**
+
+Resolved a GitHub secret scanner alert, cleared all TypeScript errors, and fixed a broken CI pipeline.
+
+**Secret scanner:**
+- `wx1234567890abcdef` in the WeCom settings placeholder matched Tencent WeChat App ID pattern → replaced with `your-corp-id`
+
+**TypeScript errors (5 fixes, now 0 errors project-wide):**
+- `chat-screen.tsx` — `APPROVAL_APPROVAL_RECEIPT_TTL_MS` double-prefix typo → `APPROVAL_RECEIPT_TTL_MS`
+- `agent-library-screen.tsx` — `toast.success()`/`toast.error()` don't exist; `toast` is a plain function → `toast(msg, { type })`
+- `skills-screen.tsx` — TanStack Query narrows `data` to `undefined` when `isPending`, making `.source` fail → cast to `HubSearchResponse | undefined`
+- `crew-store.test.ts` — `profileName` was added to `CrewMember` after the test fixture was written → added `profileName: null`
+- `chat/$sessionKey.tsx` — `forcedSession?.friendlyId === x` doesn't narrow type in the truthy branch → `forcedSession !== null && forcedSession.friendlyId === x`
+
+**CI rewrite:**
+- Project uses pnpm; CI was using `npm install` which fails with `workspace:` protocol errors in pnpm-installed deps
+- Rewrote `.github/workflows/ci.yml` to use `pnpm/action-setup@v4`, `pnpm install --frozen-lockfile`, pnpm-cached Node setup, `pnpm exec playwright`
+- Added `@playwright/test` to devDependencies (was missing; both `playwright.config.ts` and `tests/e2e/smoke.spec.ts` import from it)
+- Committed `pnpm-lock.yaml` (was not tracked; CI now uses `--frozen-lockfile` for reproducibility)
+
+**Cleanup:**
+- Removed `feature/ds-consistency` worktree and local + remote branch
+- Updated stale project memory file (5-day-old snapshot showed features as not-started that were long done)
+
+**Result:** 59/59 unit tests passing, 0 TS errors, CI pipeline correctly wired end-to-end.
+
+### Version bump: 1.17.0 → 1.17.1
+
+---
+
 ## 2026-04-17 — Session 18
 
 ### What was done

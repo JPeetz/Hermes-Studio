@@ -6,7 +6,7 @@
 
 **The only Hermes web UI with a built-in cron job manager — schedule, monitor, and control autonomous agent tasks without touching a terminal.**
 
-[![Version](https://img.shields.io/badge/version-1.17.0-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.17.1-6366F1.svg)](CHANGELOG.md)
 [![Hermes Agent](https://img.shields.io/badge/hermes--agent-v0.9.0-orange.svg)](https://github.com/NousResearch/hermes-agent)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
