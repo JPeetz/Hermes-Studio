@@ -20,6 +20,7 @@ import { Route as FilesRouteImport } from './routes/files'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as PatternsRouteImport } from './routes/patterns'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as SessionHistoryRouteImport } from './routes/session-history'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as SplatRouteImport } from './routes/$'
@@ -158,6 +159,11 @@ const PatternsRoute = PatternsRouteImport.update({
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessionHistoryRoute = SessionHistoryRouteImport.update({
+  id: '/session-history',
+  path: '/session-history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuditRoute = AuditRouteImport.update({
@@ -1151,6 +1157,7 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   PatternsRoute: typeof PatternsRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  SessionHistoryRoute: typeof SessionHistoryRoute
   AgentsRoute: typeof AgentsRoute
   AuditRoute: typeof AuditRoute
   DashboardRoute: typeof DashboardRoute
@@ -1300,6 +1307,13 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/session-history': {
+      id: '/session-history'
+      path: '/session-history'
+      fullPath: '/session-history'
+      preLoaderRoute: typeof SessionHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/audit': {
@@ -2020,6 +2034,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   PatternsRoute: PatternsRoute,
   AnalyticsRoute: AnalyticsRoute,
+  SessionHistoryRoute: SessionHistoryRoute,
   AgentsRoute: AgentsRoute,
   AuditRoute: AuditRoute,
   DashboardRoute: DashboardRoute,

@@ -528,6 +528,7 @@ function ChatSidebarComponent({
   const isAgentsActive = pathname === '/agents'
   const isPatternsActive = pathname === '/patterns'
   const isAnalyticsActive = pathname === '/analytics'
+  const isSessionHistoryActive = pathname === '/session-history'
   const isAuditActive = pathname === '/audit'
   const isLogsActive = pathname === '/logs'
   const mainRoutes = ['/chat', '/new', '/files', '/terminal']
@@ -795,6 +796,13 @@ function ChatSidebarComponent({
       icon: Analytics01Icon,
       label: 'Analytics',
       active: isAnalyticsActive,
+    },
+    {
+      kind: 'link',
+      to: '/session-history',
+      icon: Clock01Icon,
+      label: 'Session History',
+      active: isSessionHistoryActive,
     },
     {
       kind: 'link',
