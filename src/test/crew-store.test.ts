@@ -97,6 +97,7 @@ describe('crew-store', () => {
           roleLabel: 'Dev',
           color: 'blue',
           model: null,
+          profileName: null,
         },
       ],
     })

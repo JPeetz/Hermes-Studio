@@ -96,7 +96,7 @@ import { useChatMode } from '@/hooks/use-chat-mode'
 const _noopSetActivity = (_s: string) => {}
 
 /** How long a resolved approval receipt stays visible before the card is removed. */
-const APPROVAL_APPROVAL_RECEIPT_TTL_MS = 2500
+const APPROVAL_RECEIPT_TTL_MS = 2500
 
 type ChatScreenProps = {
   activeFriendlyId: string

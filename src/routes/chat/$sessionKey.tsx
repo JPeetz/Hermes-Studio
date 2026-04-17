@@ -67,7 +67,7 @@ function ChatRoute() {
     typeof params.sessionKey === 'string' ? params.sessionKey : 'main'
   const isNewChat = activeFriendlyId === 'new'
   const forcedSessionKey =
-    forcedSession?.friendlyId === activeFriendlyId
+    forcedSession !== null && forcedSession.friendlyId === activeFriendlyId
       ? forcedSession.sessionKey
       : undefined
 

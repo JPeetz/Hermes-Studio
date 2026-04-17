@@ -159,9 +159,9 @@ export function AgentLibraryScreen() {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       setEditorOpen(false)
       setEditingAgent(null)
-      toast.success('Agent created')
+      toast('Agent created', { type: 'success' })
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast(err.message, { type: 'error' }),
   })
 
   const updateMutation = useMutation({
@@ -171,18 +171,18 @@ export function AgentLibraryScreen() {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       setEditorOpen(false)
       setEditingAgent(null)
-      toast.success('Agent updated')
+      toast('Agent updated', { type: 'success' })
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast(err.message, { type: 'error' }),
   })
 
   const deleteMutation = useMutation({
     mutationFn: deleteAgent,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
-      toast.success('Agent deleted')
+      toast('Agent deleted', { type: 'success' })
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast(err.message, { type: 'error' }),
   })
 
   function handleEdit(agent: AgentDefinition) {

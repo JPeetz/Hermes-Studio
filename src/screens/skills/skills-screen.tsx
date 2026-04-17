@@ -563,7 +563,7 @@ export function SkillsScreen() {
 
               <SkillsGrid
                 skills={marketplaceSkills}
-                loading={hubQuery.isPending && hubQuery.data?.source !== 'no-api-key'}
+                loading={hubQuery.isPending && (hubQuery.data as HubSearchResponse | undefined)?.source !== 'no-api-key'}
                 actionSkillId={actionSkillId}
                 tab="marketplace"
                 emptyState={{
