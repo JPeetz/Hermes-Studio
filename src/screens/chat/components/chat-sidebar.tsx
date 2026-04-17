@@ -18,6 +18,7 @@ import {
   UserGroupIcon,
   UserMultiple02Icon,
   AiUserIcon,
+  Analytics01Icon,
   ConsoleIcon,
   TimelineIcon,
 } from '@hugeicons/core-free-icons'
@@ -525,6 +526,7 @@ function ChatSidebarComponent({
   const isMemoryActive = pathname === '/memory'
   const isCrewsActive = pathname === '/crews' || pathname.startsWith('/crews/')
   const isAgentsActive = pathname === '/agents'
+  const isAnalyticsActive = pathname === '/analytics'
   const isAuditActive = pathname === '/audit'
   const isLogsActive = pathname === '/logs'
   const mainRoutes = ['/chat', '/new', '/files', '/terminal']
@@ -778,6 +780,13 @@ function ChatSidebarComponent({
       icon: AiUserIcon,
       label: 'Agents',
       active: isAgentsActive,
+    },
+    {
+      kind: 'link',
+      to: '/analytics',
+      icon: Analytics01Icon,
+      label: 'Analytics',
+      active: isAnalyticsActive,
     },
     {
       kind: 'link',

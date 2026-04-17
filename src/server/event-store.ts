@@ -275,6 +275,143 @@ export function queryAuditEvents(query: AuditQuery = {}): AuditResult {
   }
 }
 
+export interface AnalyticsResult {
+  totalEvents: number
+  totalSessions: number
+  eventTypeCounts: Record<string, number>
+  /** Top 15 tool names by call count (complete phase only) */
+  toolFrequency: Array<{ tool: string; count: number; errors: number }>
+  /** Last 14 days of event activity, oldest first */
+  dailyVolume: Array<{
+    date: string
+    tool: number
+    user_message: number
+    approval: number
+  }>
+  /** Oldest and newest event timestamps (ms), or null when empty */
+  timeRange: { oldest: number; newest: number } | null
+}
+
+/**
+ * Compute aggregate analytics from the event store in a single SQLite pass.
+ * All aggregation is done in SQL so we never load raw event payloads into JS.
+ */
+export function getAnalytics(): AnalyticsResult {
+  const db = getDb()
+  const empty: AnalyticsResult = {
+    totalEvents: 0,
+    totalSessions: 0,
+    eventTypeCounts: {},
+    toolFrequency: [],
+    dailyVolume: [],
+    timeRange: null,
+  }
+  if (!db) return empty
+
+  try {
+    // ── Totals ──────────────────────────────────────────────────────────────
+    const { total } = db
+      .prepare('SELECT COUNT(*) AS total FROM events')
+      .get() as { total: number }
+
+    const { sessions } = db
+      .prepare(
+        'SELECT COUNT(DISTINCT session_key) AS sessions FROM events',
+      )
+      .get() as { sessions: number }
+
+    // ── Per-type counts ──────────────────────────────────────────────────────
+    const typeRows = db
+      .prepare(
+        `SELECT event_type, COUNT(*) AS cnt FROM events GROUP BY event_type`,
+      )
+      .all() as Array<{ event_type: string; cnt: number }>
+
+    const eventTypeCounts: Record<string, number> = {}
+    for (const row of typeRows) eventTypeCounts[row.event_type] = row.cnt
+
+    // ── Tool frequency (complete + error phases via json_extract) ───────────
+    const toolRows = db
+      .prepare(
+        `SELECT
+           json_extract(payload, '$.name') AS tool,
+           SUM(CASE WHEN json_extract(payload, '$.phase') = 'complete' THEN 1 ELSE 0 END) AS count,
+           SUM(CASE WHEN json_extract(payload, '$.phase') = 'error'    THEN 1 ELSE 0 END) AS errors
+         FROM events
+         WHERE event_type = 'tool'
+           AND json_extract(payload, '$.phase') IN ('complete', 'error')
+           AND json_extract(payload, '$.name') IS NOT NULL
+         GROUP BY tool
+         ORDER BY count DESC
+         LIMIT 15`,
+      )
+      .all() as Array<{ tool: string; count: number; errors: number }>
+
+    // ── Daily volume — last 14 days ─────────────────────────────────────────
+    const since14 = Date.now() - 14 * 24 * 60 * 60 * 1000
+    const dayRows = db
+      .prepare(
+        `SELECT
+           date(ts / 1000, 'unixepoch', 'localtime') AS d,
+           SUM(CASE WHEN event_type = 'tool'         THEN 1 ELSE 0 END) AS tool,
+           SUM(CASE WHEN event_type = 'user_message' THEN 1 ELSE 0 END) AS user_message,
+           SUM(CASE WHEN event_type = 'approval'     THEN 1 ELSE 0 END) AS approval
+         FROM events
+         WHERE ts >= ?
+         GROUP BY d
+         ORDER BY d ASC`,
+      )
+      .all(since14) as Array<{
+        d: string
+        tool: number
+        user_message: number
+        approval: number
+      }>
+
+    // Pre-fill all 14 days so gaps show as zero
+    const dailyMap = new Map<
+      string,
+      { tool: number; user_message: number; approval: number }
+    >()
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86_400_000)
+        .toLocaleDateString('en-CA') // YYYY-MM-DD
+      dailyMap.set(d, { tool: 0, user_message: 0, approval: 0 })
+    }
+    for (const row of dayRows) {
+      const existing = dailyMap.get(row.d)
+      if (existing) {
+        existing.tool = row.tool
+        existing.user_message = row.user_message
+        existing.approval = row.approval
+      }
+    }
+    const dailyVolume = Array.from(dailyMap.entries()).map(([date, v]) => ({
+      date,
+      ...v,
+    }))
+
+    // ── Time range ───────────────────────────────────────────────────────────
+    const rangeRow = db
+      .prepare('SELECT MIN(ts) AS oldest, MAX(ts) AS newest FROM events')
+      .get() as { oldest: number | null; newest: number | null }
+
+    return {
+      totalEvents: total,
+      totalSessions: sessions,
+      eventTypeCounts,
+      toolFrequency: toolRows,
+      dailyVolume,
+      timeRange:
+        rangeRow.oldest !== null && rangeRow.newest !== null
+          ? { oldest: rangeRow.oldest, newest: rangeRow.newest }
+          : null,
+    }
+  } catch {
+    return empty
+  }
+}
+
 /**
  * Return the highest stored sequence number for a session.
  * Useful for clients to detect drift without opening an SSE stream.

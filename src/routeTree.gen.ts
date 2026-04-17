@@ -18,6 +18,7 @@ import { Route as LogsRouteImport } from './routes/logs'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as FilesRouteImport } from './routes/files'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as SplatRouteImport } from './routes/$'
@@ -41,6 +42,7 @@ import { Route as ApiSessionsRouteImport } from './routes/api/sessions'
 import { Route as ApiSessionStatusRouteImport } from './routes/api/session-status'
 import { Route as ApiSendStreamRouteImport } from './routes/api/send-stream'
 import { Route as ApiSendRouteImport } from './routes/api/send'
+import { Route as ApiStateAnalyticsRouteImport } from './routes/api/state-analytics'
 import { Route as ApiSystemHealthRouteImport } from './routes/api/system-health'
 import { Route as ApiProviderUsageRouteImport } from './routes/api/provider-usage'
 import { Route as ApiPingRouteImport } from './routes/api/ping'
@@ -145,6 +147,11 @@ const FilesRoute = FilesRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuditRoute = AuditRouteImport.update({
@@ -260,6 +267,11 @@ const ApiSendStreamRoute = ApiSendStreamRouteImport.update({
 const ApiSendRoute = ApiSendRouteImport.update({
   id: '/api/send',
   path: '/api/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStateAnalyticsRoute = ApiStateAnalyticsRouteImport.update({
+  id: '/api/state-analytics',
+  path: '/api/state-analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSystemHealthRoute = ApiSystemHealthRouteImport.update({
@@ -1131,6 +1143,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  AnalyticsRoute: typeof AnalyticsRoute
   AgentsRoute: typeof AgentsRoute
   AuditRoute: typeof AuditRoute
   DashboardRoute: typeof DashboardRoute
@@ -1161,6 +1174,7 @@ export interface RootRouteChildren {
   ApiProviderUsageRoute: typeof ApiProviderUsageRoute
   ApiSendRoute: typeof ApiSendRoute
   ApiSendStreamRoute: typeof ApiSendStreamRoute
+  ApiStateAnalyticsRoute: typeof ApiStateAnalyticsRoute
   ApiSystemHealthRoute: typeof ApiSystemHealthRoute
   ApiSessionStatusRoute: typeof ApiSessionStatusRoute
   ApiSessionsRoute: typeof ApiSessionsRouteWithChildren
@@ -1265,6 +1279,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/audit': {
@@ -1426,6 +1447,13 @@ declare module '@tanstack/react-router' {
       path: '/api/system-health'
       fullPath: '/api/system-health'
       preLoaderRoute: typeof ApiSystemHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/state-analytics': {
+      id: '/api/state-analytics'
+      path: '/api/state-analytics'
+      fullPath: '/api/state-analytics'
+      preLoaderRoute: typeof ApiStateAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/send': {
@@ -1976,6 +2004,7 @@ const ApiCrewsCrewIdRouteWithChildren = ApiCrewsCrewIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  AnalyticsRoute: AnalyticsRoute,
   AgentsRoute: AgentsRoute,
   AuditRoute: AuditRoute,
   DashboardRoute: DashboardRoute,
@@ -2006,6 +2035,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProviderUsageRoute: ApiProviderUsageRoute,
   ApiSendRoute: ApiSendRoute,
   ApiSendStreamRoute: ApiSendStreamRoute,
+  ApiStateAnalyticsRoute: ApiStateAnalyticsRoute,
   ApiSystemHealthRoute: ApiSystemHealthRoute,
   ApiSessionStatusRoute: ApiSessionStatusRoute,
   ApiSessionsRoute: ApiSessionsRouteWithChildren,
