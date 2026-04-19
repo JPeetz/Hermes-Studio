@@ -677,6 +677,39 @@ The Docker setup uses `hermes --gateway` automatically — no action needed if u
 
 ---
 
+## 🗑️ Uninstall
+
+Run the included script from inside the project folder:
+
+```bash
+bash scripts/uninstall.sh
+```
+
+This will:
+1. Stop and disable the systemd service (if installed)
+2. Kill any running `server-entry.js` process
+3. Ask for confirmation, then delete the project folder (including `.runtime/` data)
+
+**Data locations removed with the project folder:**
+
+| File | Contents |
+|------|----------|
+| `.runtime/events.db` | Analytics SQLite database |
+| `.runtime/costs.json` | Token cost history |
+| `.runtime/crews.json` | Saved agent crews |
+| `.runtime/workflows.json` | Crew workflows |
+| `.runtime/agent-definitions.json` | Custom agent definitions |
+| `.runtime/local-sessions.json` | Session metadata |
+| `.runtime/templates.json` | Message templates |
+
+**Manual steps after the script:**
+
+- **Browser localStorage** — open DevTools → Application → Storage → Local Storage → clear the entry for `http://localhost:<port>`
+- **`~/.hermes/`** — this belongs to Hermes Agent, not Hermes Studio. Do not delete it unless you are also uninstalling Hermes Agent.
+- **Redis** — if you used password protection, session tokens in Redis will expire naturally (or run `redis-cli FLUSHDB` to clear immediately).
+
+---
+
 <img width="400" height="400" alt="Gemini_Generated_Image_33fkmx33fkmx33fk-ezremove" src="https://github.com/user-attachments/assets/2b24e3bc-fb37-4fd9-922a-641113e4e3a4" />
 
 ## 🗺️ Roadmap
