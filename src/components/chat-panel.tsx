@@ -140,13 +140,14 @@ export function ChatPanel() {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop for narrow screens */}
+          {/* Backdrop — click to close (all screen sizes) */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 bg-black/20 z-10 min-[1200px]:hidden"
+            className="fixed inset-0 z-10"
+            style={{ background: 'rgba(0,0,0,0.15)' }}
             onClick={handleClose}
             aria-hidden
           />

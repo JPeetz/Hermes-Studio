@@ -12,16 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TerminalRouteImport } from './routes/terminal'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SessionHistoryRouteImport } from './routes/session-history'
 import { Route as ProfilesRouteImport } from './routes/profiles'
+import { Route as PatternsRouteImport } from './routes/patterns'
 import { Route as MemoryRouteImport } from './routes/memory'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as FilesRouteImport } from './routes/files'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as PatternsRouteImport } from './routes/patterns'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
-import { Route as SessionHistoryRouteImport } from './routes/session-history'
 import { Route as AuditRouteImport } from './routes/audit'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,6 +37,10 @@ import { Route as ApiTerminalStreamRouteImport } from './routes/api/terminal-str
 import { Route as ApiTerminalResizeRouteImport } from './routes/api/terminal-resize'
 import { Route as ApiTerminalInputRouteImport } from './routes/api/terminal-input'
 import { Route as ApiTerminalCloseRouteImport } from './routes/api/terminal-close'
+import { Route as ApiSystemdStatusRouteImport } from './routes/api/systemd-status'
+import { Route as ApiSystemdControlRouteImport } from './routes/api/systemd-control'
+import { Route as ApiSystemHealthRouteImport } from './routes/api/system-health'
+import { Route as ApiStateAnalyticsRouteImport } from './routes/api/state-analytics'
 import { Route as ApiStartHermesRouteImport } from './routes/api/start-hermes'
 import { Route as ApiStartAgentRouteImport } from './routes/api/start-agent'
 import { Route as ApiSkillsRouteImport } from './routes/api/skills'
@@ -44,10 +48,6 @@ import { Route as ApiSessionsRouteImport } from './routes/api/sessions'
 import { Route as ApiSessionStatusRouteImport } from './routes/api/session-status'
 import { Route as ApiSendStreamRouteImport } from './routes/api/send-stream'
 import { Route as ApiSendRouteImport } from './routes/api/send'
-import { Route as ApiStateAnalyticsRouteImport } from './routes/api/state-analytics'
-import { Route as ApiSystemdStatusRouteImport } from './routes/api/systemd-status'
-import { Route as ApiSystemdControlRouteImport } from './routes/api/systemd-control'
-import { Route as ApiSystemHealthRouteImport } from './routes/api/system-health'
 import { Route as ApiProviderUsageRouteImport } from './routes/api/provider-usage'
 import { Route as ApiPingRouteImport } from './routes/api/ping'
 import { Route as ApiPathsRouteImport } from './routes/api/paths'
@@ -123,9 +123,19 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SessionHistoryRoute = SessionHistoryRouteImport.update({
+  id: '/session-history',
+  path: '/session-history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfilesRoute = ProfilesRouteImport.update({
   id: '/profiles',
   path: '/profiles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatternsRoute = PatternsRouteImport.update({
+  id: '/patterns',
+  path: '/patterns',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MemoryRoute = MemoryRouteImport.update({
@@ -153,24 +163,14 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PatternsRoute = PatternsRouteImport.update({
-  id: '/patterns',
-  path: '/patterns',
+const AuditRoute = AuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SessionHistoryRoute = SessionHistoryRouteImport.update({
-  id: '/session-history',
-  path: '/session-history',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuditRoute = AuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgentsRoute = AgentsRouteImport.update({
@@ -248,6 +248,26 @@ const ApiTerminalCloseRoute = ApiTerminalCloseRouteImport.update({
   path: '/api/terminal-close',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSystemdStatusRoute = ApiSystemdStatusRouteImport.update({
+  id: '/api/systemd-status',
+  path: '/api/systemd-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSystemdControlRoute = ApiSystemdControlRouteImport.update({
+  id: '/api/systemd-control',
+  path: '/api/systemd-control',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSystemHealthRoute = ApiSystemHealthRouteImport.update({
+  id: '/api/system-health',
+  path: '/api/system-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStateAnalyticsRoute = ApiStateAnalyticsRouteImport.update({
+  id: '/api/state-analytics',
+  path: '/api/state-analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStartHermesRoute = ApiStartHermesRouteImport.update({
   id: '/api/start-hermes',
   path: '/api/start-hermes',
@@ -281,26 +301,6 @@ const ApiSendStreamRoute = ApiSendStreamRouteImport.update({
 const ApiSendRoute = ApiSendRouteImport.update({
   id: '/api/send',
   path: '/api/send',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiStateAnalyticsRoute = ApiStateAnalyticsRouteImport.update({
-  id: '/api/state-analytics',
-  path: '/api/state-analytics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSystemdStatusRoute = ApiSystemdStatusRouteImport.update({
-  id: '/api/systemd-status',
-  path: '/api/systemd-status',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSystemdControlRoute = ApiSystemdControlRouteImport.update({
-  id: '/api/systemd-control',
-  path: '/api/systemd-control',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSystemHealthRoute = ApiSystemHealthRouteImport.update({
-  id: '/api/system-health',
-  path: '/api/system-health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiProviderUsageRoute = ApiProviderUsageRouteImport.update({
@@ -608,13 +608,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/agents': typeof AgentsRoute
+  '/analytics': typeof AnalyticsRoute
   '/audit': typeof AuditRoute
   '/dashboard': typeof DashboardRoute
   '/files': typeof FilesRoute
   '/jobs': typeof JobsRoute
   '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
+  '/patterns': typeof PatternsRoute
   '/profiles': typeof ProfilesRoute
+  '/session-history': typeof SessionHistoryRoute
   '/settings': typeof SettingsRouteWithChildren
   '/skills': typeof SkillsRoute
   '/terminal': typeof TerminalRoute
@@ -642,6 +645,10 @@ export interface FileRoutesByFullPath {
   '/api/skills': typeof ApiSkillsRouteWithChildren
   '/api/start-agent': typeof ApiStartAgentRoute
   '/api/start-hermes': typeof ApiStartHermesRoute
+  '/api/state-analytics': typeof ApiStateAnalyticsRoute
+  '/api/system-health': typeof ApiSystemHealthRoute
+  '/api/systemd-control': typeof ApiSystemdControlRoute
+  '/api/systemd-status': typeof ApiSystemdStatusRoute
   '/api/terminal-close': typeof ApiTerminalCloseRoute
   '/api/terminal-input': typeof ApiTerminalInputRoute
   '/api/terminal-resize': typeof ApiTerminalResizeRoute
@@ -701,13 +708,16 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/agents': typeof AgentsRoute
+  '/analytics': typeof AnalyticsRoute
   '/audit': typeof AuditRoute
   '/dashboard': typeof DashboardRoute
   '/files': typeof FilesRoute
   '/jobs': typeof JobsRoute
   '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
+  '/patterns': typeof PatternsRoute
   '/profiles': typeof ProfilesRoute
+  '/session-history': typeof SessionHistoryRoute
   '/skills': typeof SkillsRoute
   '/terminal': typeof TerminalRoute
   '/api/auth': typeof ApiAuthRoute
@@ -734,6 +744,10 @@ export interface FileRoutesByTo {
   '/api/skills': typeof ApiSkillsRouteWithChildren
   '/api/start-agent': typeof ApiStartAgentRoute
   '/api/start-hermes': typeof ApiStartHermesRoute
+  '/api/state-analytics': typeof ApiStateAnalyticsRoute
+  '/api/system-health': typeof ApiSystemHealthRoute
+  '/api/systemd-control': typeof ApiSystemdControlRoute
+  '/api/systemd-status': typeof ApiSystemdStatusRoute
   '/api/terminal-close': typeof ApiTerminalCloseRoute
   '/api/terminal-input': typeof ApiTerminalInputRoute
   '/api/terminal-resize': typeof ApiTerminalResizeRoute
@@ -794,13 +808,16 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/agents': typeof AgentsRoute
+  '/analytics': typeof AnalyticsRoute
   '/audit': typeof AuditRoute
   '/dashboard': typeof DashboardRoute
   '/files': typeof FilesRoute
   '/jobs': typeof JobsRoute
   '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
+  '/patterns': typeof PatternsRoute
   '/profiles': typeof ProfilesRoute
+  '/session-history': typeof SessionHistoryRoute
   '/settings': typeof SettingsRouteWithChildren
   '/skills': typeof SkillsRoute
   '/terminal': typeof TerminalRoute
@@ -828,6 +845,10 @@ export interface FileRoutesById {
   '/api/skills': typeof ApiSkillsRouteWithChildren
   '/api/start-agent': typeof ApiStartAgentRoute
   '/api/start-hermes': typeof ApiStartHermesRoute
+  '/api/state-analytics': typeof ApiStateAnalyticsRoute
+  '/api/system-health': typeof ApiSystemHealthRoute
+  '/api/systemd-control': typeof ApiSystemdControlRoute
+  '/api/systemd-status': typeof ApiSystemdStatusRoute
   '/api/terminal-close': typeof ApiTerminalCloseRoute
   '/api/terminal-input': typeof ApiTerminalInputRoute
   '/api/terminal-resize': typeof ApiTerminalResizeRoute
@@ -889,13 +910,16 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/agents'
+    | '/analytics'
     | '/audit'
     | '/dashboard'
     | '/files'
     | '/jobs'
     | '/logs'
     | '/memory'
+    | '/patterns'
     | '/profiles'
+    | '/session-history'
     | '/settings'
     | '/skills'
     | '/terminal'
@@ -923,6 +947,10 @@ export interface FileRouteTypes {
     | '/api/skills'
     | '/api/start-agent'
     | '/api/start-hermes'
+    | '/api/state-analytics'
+    | '/api/system-health'
+    | '/api/systemd-control'
+    | '/api/systemd-status'
     | '/api/terminal-close'
     | '/api/terminal-input'
     | '/api/terminal-resize'
@@ -982,13 +1010,16 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/agents'
+    | '/analytics'
     | '/audit'
     | '/dashboard'
     | '/files'
     | '/jobs'
     | '/logs'
     | '/memory'
+    | '/patterns'
     | '/profiles'
+    | '/session-history'
     | '/skills'
     | '/terminal'
     | '/api/auth'
@@ -1015,6 +1046,10 @@ export interface FileRouteTypes {
     | '/api/skills'
     | '/api/start-agent'
     | '/api/start-hermes'
+    | '/api/state-analytics'
+    | '/api/system-health'
+    | '/api/systemd-control'
+    | '/api/systemd-status'
     | '/api/terminal-close'
     | '/api/terminal-input'
     | '/api/terminal-resize'
@@ -1074,13 +1109,16 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/agents'
+    | '/analytics'
     | '/audit'
     | '/dashboard'
     | '/files'
     | '/jobs'
     | '/logs'
     | '/memory'
+    | '/patterns'
     | '/profiles'
+    | '/session-history'
     | '/settings'
     | '/skills'
     | '/terminal'
@@ -1108,6 +1146,10 @@ export interface FileRouteTypes {
     | '/api/skills'
     | '/api/start-agent'
     | '/api/start-hermes'
+    | '/api/state-analytics'
+    | '/api/system-health'
+    | '/api/systemd-control'
+    | '/api/systemd-status'
     | '/api/terminal-close'
     | '/api/terminal-input'
     | '/api/terminal-resize'
@@ -1167,17 +1209,17 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
-  PatternsRoute: typeof PatternsRoute
-  AnalyticsRoute: typeof AnalyticsRoute
-  SessionHistoryRoute: typeof SessionHistoryRoute
   AgentsRoute: typeof AgentsRoute
+  AnalyticsRoute: typeof AnalyticsRoute
   AuditRoute: typeof AuditRoute
   DashboardRoute: typeof DashboardRoute
   FilesRoute: typeof FilesRoute
   JobsRoute: typeof JobsRoute
   LogsRoute: typeof LogsRoute
   MemoryRoute: typeof MemoryRoute
+  PatternsRoute: typeof PatternsRoute
   ProfilesRoute: typeof ProfilesRoute
+  SessionHistoryRoute: typeof SessionHistoryRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   SkillsRoute: typeof SkillsRoute
   TerminalRoute: typeof TerminalRoute
@@ -1200,15 +1242,15 @@ export interface RootRouteChildren {
   ApiProviderUsageRoute: typeof ApiProviderUsageRoute
   ApiSendRoute: typeof ApiSendRoute
   ApiSendStreamRoute: typeof ApiSendStreamRoute
-  ApiStateAnalyticsRoute: typeof ApiStateAnalyticsRoute
-  ApiSystemdStatusRoute: typeof ApiSystemdStatusRoute
-  ApiSystemdControlRoute: typeof ApiSystemdControlRoute
-  ApiSystemHealthRoute: typeof ApiSystemHealthRoute
   ApiSessionStatusRoute: typeof ApiSessionStatusRoute
   ApiSessionsRoute: typeof ApiSessionsRouteWithChildren
   ApiSkillsRoute: typeof ApiSkillsRouteWithChildren
   ApiStartAgentRoute: typeof ApiStartAgentRoute
   ApiStartHermesRoute: typeof ApiStartHermesRoute
+  ApiStateAnalyticsRoute: typeof ApiStateAnalyticsRoute
+  ApiSystemHealthRoute: typeof ApiSystemHealthRoute
+  ApiSystemdControlRoute: typeof ApiSystemdControlRoute
+  ApiSystemdStatusRoute: typeof ApiSystemdStatusRoute
   ApiTerminalCloseRoute: typeof ApiTerminalCloseRoute
   ApiTerminalInputRoute: typeof ApiTerminalInputRoute
   ApiTerminalResizeRoute: typeof ApiTerminalResizeRoute
@@ -1267,11 +1309,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/session-history': {
+      id: '/session-history'
+      path: '/session-history'
+      fullPath: '/session-history'
+      preLoaderRoute: typeof SessionHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profiles': {
       id: '/profiles'
       path: '/profiles'
       fullPath: '/profiles'
       preLoaderRoute: typeof ProfilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/patterns': {
+      id: '/patterns'
+      path: '/patterns'
+      fullPath: '/patterns'
+      preLoaderRoute: typeof PatternsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/memory': {
@@ -1309,11 +1365,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/patterns': {
-      id: '/patterns'
-      path: '/patterns'
-      fullPath: '/patterns'
-      preLoaderRoute: typeof PatternsRouteImport
+    '/audit': {
+      id: '/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analytics': {
@@ -1321,20 +1377,6 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/session-history': {
-      id: '/session-history'
-      path: '/session-history'
-      fullPath: '/session-history'
-      preLoaderRoute: typeof SessionHistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/audit': {
-      id: '/audit'
-      path: '/audit'
-      fullPath: '/audit'
-      preLoaderRoute: typeof AuditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agents': {
@@ -1442,6 +1484,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTerminalCloseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/systemd-status': {
+      id: '/api/systemd-status'
+      path: '/api/systemd-status'
+      fullPath: '/api/systemd-status'
+      preLoaderRoute: typeof ApiSystemdStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/systemd-control': {
+      id: '/api/systemd-control'
+      path: '/api/systemd-control'
+      fullPath: '/api/systemd-control'
+      preLoaderRoute: typeof ApiSystemdControlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/system-health': {
+      id: '/api/system-health'
+      path: '/api/system-health'
+      fullPath: '/api/system-health'
+      preLoaderRoute: typeof ApiSystemHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/state-analytics': {
+      id: '/api/state-analytics'
+      path: '/api/state-analytics'
+      fullPath: '/api/state-analytics'
+      preLoaderRoute: typeof ApiStateAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/start-hermes': {
       id: '/api/start-hermes'
       path: '/api/start-hermes'
@@ -1482,34 +1552,6 @@ declare module '@tanstack/react-router' {
       path: '/api/send-stream'
       fullPath: '/api/send-stream'
       preLoaderRoute: typeof ApiSendStreamRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/system-health': {
-      id: '/api/system-health'
-      path: '/api/system-health'
-      fullPath: '/api/system-health'
-      preLoaderRoute: typeof ApiSystemHealthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/state-analytics': {
-      id: '/api/state-analytics'
-      path: '/api/state-analytics'
-      fullPath: '/api/state-analytics'
-      preLoaderRoute: typeof ApiStateAnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/systemd-status': {
-      id: '/api/systemd-status'
-      path: '/api/systemd-status'
-      fullPath: '/api/systemd-status'
-      preLoaderRoute: typeof ApiSystemdStatusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/systemd-control': {
-      id: '/api/systemd-control'
-      path: '/api/systemd-control'
-      fullPath: '/api/systemd-control'
-      preLoaderRoute: typeof ApiSystemdControlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/send': {
@@ -2060,17 +2102,17 @@ const ApiCrewsCrewIdRouteWithChildren = ApiCrewsCrewIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
-  PatternsRoute: PatternsRoute,
-  AnalyticsRoute: AnalyticsRoute,
-  SessionHistoryRoute: SessionHistoryRoute,
   AgentsRoute: AgentsRoute,
+  AnalyticsRoute: AnalyticsRoute,
   AuditRoute: AuditRoute,
   DashboardRoute: DashboardRoute,
   FilesRoute: FilesRoute,
   JobsRoute: JobsRoute,
   LogsRoute: LogsRoute,
   MemoryRoute: MemoryRoute,
+  PatternsRoute: PatternsRoute,
   ProfilesRoute: ProfilesRoute,
+  SessionHistoryRoute: SessionHistoryRoute,
   SettingsRoute: SettingsRouteWithChildren,
   SkillsRoute: SkillsRoute,
   TerminalRoute: TerminalRoute,
@@ -2093,15 +2135,15 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProviderUsageRoute: ApiProviderUsageRoute,
   ApiSendRoute: ApiSendRoute,
   ApiSendStreamRoute: ApiSendStreamRoute,
-  ApiStateAnalyticsRoute: ApiStateAnalyticsRoute,
-  ApiSystemdStatusRoute: ApiSystemdStatusRoute,
-  ApiSystemdControlRoute: ApiSystemdControlRoute,
-  ApiSystemHealthRoute: ApiSystemHealthRoute,
   ApiSessionStatusRoute: ApiSessionStatusRoute,
   ApiSessionsRoute: ApiSessionsRouteWithChildren,
   ApiSkillsRoute: ApiSkillsRouteWithChildren,
   ApiStartAgentRoute: ApiStartAgentRoute,
   ApiStartHermesRoute: ApiStartHermesRoute,
+  ApiStateAnalyticsRoute: ApiStateAnalyticsRoute,
+  ApiSystemHealthRoute: ApiSystemHealthRoute,
+  ApiSystemdControlRoute: ApiSystemdControlRoute,
+  ApiSystemdStatusRoute: ApiSystemdStatusRoute,
   ApiTerminalCloseRoute: ApiTerminalCloseRoute,
   ApiTerminalInputRoute: ApiTerminalInputRoute,
   ApiTerminalResizeRoute: ApiTerminalResizeRoute,
@@ -2139,3 +2181,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
