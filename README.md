@@ -154,6 +154,10 @@ User-created templates are saved to `.runtime/templates.json` and persist across
 
 ## 📸 Screenshots
 
+> **New feature screenshots coming shortly** — crews, knowledge graph, analytics, and visual workflow are all live; visuals are being captured from a fresh deployment this week.
+
+### Original features
+
 |                 Cron Job                |                 Files                  |
 | :----------------------------------: | :------------------------------------: |
 | <img width="764" height="972" alt="image" src="https://github.com/user-attachments/assets/f13f35fd-0538-4515-9902-1cbe9fb99d71" />| ![Files](./docs/screenshots/files.png) |
@@ -165,6 +169,20 @@ User-created templates are saved to `.runtime/templates.json` and persist across
 |                  Skills                  |                   Settings                   |
 | :--------------------------------------: | :------------------------------------------: |
 | ![Skills](./docs/screenshots/skills.png) | <img width="1048" height="1216" alt="image" src="https://github.com/user-attachments/assets/f62d3378-ad68-4516-81ff-eceb952d2e7d" /> |
+
+### New in Hermes Studio
+
+| Feature | Description |
+| :------ | :---------- |
+| **Multi-Agent Crews** | Create named crews of specialised agents, dispatch tasks to all or specific members, watch live per-agent activity feeds |
+| **Visual Workflow Builder** | Drag-and-drop node graph — connect agents into pipelines, set triggers, wire outputs to inputs |
+| **Interactive Knowledge Graph** | Force-directed graph of your memory's wiki-link relationships — zoom, pan, drag nodes, hover to highlight |
+| **Usage Analytics** | 14-day token/cost charts, tool frequency breakdown, session volume heatmap |
+| **Session History Archive** | Browse, filter, and replay every past session with token and cost metadata |
+| **Cron Job Manager** | Schedule recurring agent tasks with cron expressions, live status, and run history |
+| **Systemd Auto-start** | One-click service install/uninstall with status panel directly in Settings |
+
+*📷 Screenshots for each of the above are being added this week.*
 
 ---
 
