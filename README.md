@@ -175,8 +175,8 @@ User-created templates are saved to `.runtime/templates.json` and persist across
 | Feature | Description |
 | :------ | :---------- |
 | **Multi-Agent Crews** | Create named crews of specialised agents, dispatch tasks to all or specific members, watch live per-agent activity feeds |
-| **Visual Workflow Builder** | Drag-and-drop node graph — connect agents into pipelines, set triggers, wire outputs to inputs |
-| **Interactive Knowledge Graph** | Force-directed graph of your memory's wiki-link relationships — zoom, pan, drag nodes, hover to highlight |
+| **Visual Workflow Builder** | SVG node graph for agent pipelines — add tasks, wire edges between them, auto-layout via topological sort, cycle detection |
+| **Interactive Knowledge Graph** | Force-directed SVG graph of your memory's wiki-link relationships — zoom, pan, drag nodes, hover to highlight neighbours |
 | **Usage Analytics** | 14-day token/cost charts, tool frequency breakdown, session volume heatmap |
 | **Session History Archive** | Browse, filter, and replay every past session with token and cost metadata |
 | **Cron Job Manager** | Schedule recurring agent tasks with cron expressions, live status, and run history |
