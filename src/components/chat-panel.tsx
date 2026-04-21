@@ -3,7 +3,7 @@
  * Renders a full ChatScreen in a side panel so users can chat while
  * viewing dashboard, skills, other pages, etc.
  */
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -123,6 +123,19 @@ export function ChatPanel() {
   // Simple dropdown state
   const [showSessionList, setShowSessionList] = useState(false)
 
+  // ── Escape key to close ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isOpen) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setChatPanelOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isOpen, setChatPanelOpen])
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -209,6 +222,7 @@ export function ChatPanel() {
                   onClick={handleClose}
                   className="text-primary-600 hover:text-primary-900"
                   aria-label="Close chat panel"
+                  title="Close (Esc)"
                 >
                   <HugeiconsIcon
                     icon={Cancel01Icon}
