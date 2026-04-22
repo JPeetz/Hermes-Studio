@@ -82,6 +82,27 @@
     "vitest": "^3.0.5",
     "web-vitals": "^5.1.0"
   },
+  "keywords": [
+    "hermes",
+    "hermes-agent",
+    "nous-research",
+    "openclaw",
+    "ai-agent",
+    "web-ui",
+    "dashboard",
+    "multi-agent",
+    "mcp",
+    "llm",
+    "self-hosted",
+    "react",
+    "typescript",
+    "pwa",
+    "cron",
+    "ollama"
+  ],
+  "bugs": {
+    "url": "https://github.com/JPeetz/Hermes-Studio/issues"
+  },
   "homepage": "https://github.com/JPeetz/Hermes-Studio",
   "repository": {
     "type": "git",

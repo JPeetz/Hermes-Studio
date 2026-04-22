@@ -1,22 +1,54 @@
 <div align="center">
 
-<img width="1520" height="648" alt="Gemini_Generated_Image_rlo1qerlo1qerlo1-ezremove" src="https://github.com/user-attachments/assets/7eab7817-b21d-4595-9412-ac013761dcd5" />
+<img width="1520" height="648" alt="Hermes Studio — open-source web UI and dashboard for Hermes Agent by NousResearch" src="https://github.com/user-attachments/assets/7eab7817-b21d-4595-9412-ac013761dcd5" />
 
 # Hermes Studio
 
 **The only Hermes web UI with a built-in cron job manager — schedule, monitor, and control autonomous agent tasks without touching a terminal.**
 
+[![GitHub Stars](https://img.shields.io/github/stars/JPeetz/Hermes-Studio?style=flat&color=6366F1)](https://github.com/JPeetz/Hermes-Studio/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/JPeetz/Hermes-Studio?style=flat&color=6366F1)](https://github.com/JPeetz/Hermes-Studio/network/members)
 [![Version](https://img.shields.io/badge/version-1.18.1-6366F1.svg)](CHANGELOG.md)
 [![Hermes Agent](https://img.shields.io/badge/hermes--agent-v0.9.0-orange.svg)](https://github.com/NousResearch/hermes-agent)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
 [![Tests](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JPeetz/Hermes-Studio/main/badges/tests.json)](src/test)
-[![Commits](https://img.shields.io/github/commits-since/JPeetz/Hermes-Studio/v0.0.0.svg?label=commits)](https://github.com/JPeetz/Hermes-Studio/commits/main)
+[![Last Commit](https://img.shields.io/github/last-commit/JPeetz/Hermes-Studio)](https://github.com/JPeetz/Hermes-Studio/commits/main)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366F1.svg)](CONTRIBUTING.md)
 
 > Not a chat wrapper. A complete studio — orchestrate multi-agent crews, approve actions, browse memory with a visual knowledge graph, manage skills, and schedule recurring tasks, all from one interface. Built for power users running Hermes Agent locally.
 
 </div>
+
+## What is Hermes Studio?
+
+Hermes Studio is an open-source, self-hosted web dashboard for [Hermes Agent](https://github.com/NousResearch/hermes-agent) by [NousResearch](https://nousresearch.com). It turns the Hermes AI agent into a full workspace you can control from your browser — with multi-agent orchestration, cron job scheduling, execution approvals, MCP server management, and 30+ features no other Hermes UI offers. Works with Ollama, OpenAI, Anthropic, and any OpenAI-compatible backend. Built with React, TypeScript, and TanStack. MIT licensed.
+
+---
+
+<details>
+<summary><strong>Table of Contents</strong></summary>
+
+- [What is Hermes Studio?](#what-is-hermes-studio)
+- [Features](#-features)
+- [Cron Job Manager](#-cron-job-manager--a-feature-no-other-ui-has)
+- [What's different from hermes-workspace](#whats-different-from-hermes-workspace)
+- [Screenshots](#-screenshots)
+- [Quick Start](#-quick-start)
+- [Local Models (Ollama, LM Studio, vLLM)](#-local-models-ollama-lm-studio-vllm)
+- [Docker Quickstart](#-docker-quickstart)
+- [Install as App (PWA)](#-install-as-app-recommended)
+- [Mobile Access via Tailscale](#-mobile-access-via-tailscale)
+- [Feature Details](#-feature-details)
+- [Troubleshooting](#-troubleshooting)
+- [Uninstall](#-uninstall)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+</details>
+
+---
 
 ## ✨ Features
 
@@ -728,7 +760,7 @@ This will:
 
 ---
 
-<img width="400" height="400" alt="Gemini_Generated_Image_33fkmx33fkmx33fk-ezremove" src="https://github.com/user-attachments/assets/2b24e3bc-fb37-4fd9-922a-641113e4e3a4" />
+<img width="400" height="400" alt="Hermes Studio logo — AI agent orchestration dashboard" src="https://github.com/user-attachments/assets/2b24e3bc-fb37-4fd9-922a-641113e4e3a4" />
 
 ## 🗺️ Roadmap
 
@@ -799,7 +831,7 @@ PRs are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-<img width="1520" height="648" alt="Gemini_Generated_Image_dhk6kdhk6kdhk6kd-ezremove" src="https://github.com/user-attachments/assets/2e86734f-b189-49b7-9f4d-1048fd75dbd5" />
+<img width="1520" height="648" alt="Hermes Studio footer — self-hosted web UI for Hermes Agent" src="https://github.com/user-attachments/assets/2e86734f-b189-49b7-9f4d-1048fd75dbd5" />
 
 ## 📄 License
 
