@@ -32,6 +32,7 @@ const BUILT_IN_TEMPLATES: CrewTemplate[] = [
     ],
     isBuiltIn: true,
     tags: ['research', 'analysis', 'reporting'],
+    templateType: 'crew' as const,
   },
   {
     id: 'builtin-deep-dive',
@@ -48,6 +49,7 @@ const BUILT_IN_TEMPLATES: CrewTemplate[] = [
     ],
     isBuiltIn: true,
     tags: ['research', 'investigation', 'analysis'],
+    templateType: 'crew' as const,
   },
   {
     id: 'builtin-fullstack-squad',
@@ -66,6 +68,7 @@ const BUILT_IN_TEMPLATES: CrewTemplate[] = [
     ],
     isBuiltIn: true,
     tags: ['engineering', 'fullstack', 'feature'],
+    templateType: 'crew' as const,
   },
   {
     id: 'builtin-code-review',
@@ -82,6 +85,7 @@ const BUILT_IN_TEMPLATES: CrewTemplate[] = [
     ],
     isBuiltIn: true,
     tags: ['engineering', 'review', 'quality'],
+    templateType: 'crew' as const,
   },
   {
     id: 'builtin-content-studio',
@@ -98,6 +102,7 @@ const BUILT_IN_TEMPLATES: CrewTemplate[] = [
     ],
     isBuiltIn: true,
     tags: ['creative', 'content', 'writing', 'marketing'],
+    templateType: 'crew' as const,
   },
   {
     id: 'builtin-ops-team',
@@ -114,6 +119,7 @@ const BUILT_IN_TEMPLATES: CrewTemplate[] = [
     ],
     isBuiltIn: true,
     tags: ['operations', 'devops', 'infrastructure'],
+    templateType: 'crew' as const,
   },
   {
     id: 'builtin-sprint-team',
@@ -131,6 +137,72 @@ const BUILT_IN_TEMPLATES: CrewTemplate[] = [
     ],
     isBuiltIn: true,
     tags: ['operations', 'sprint', 'delivery'],
+    templateType: 'crew' as const,
+  },
+  {
+    id: 'conductor-research',
+    name: 'Research Mission',
+    description: 'Deep research on a topic with parallel investigators and a synthesizer',
+    icon: '🔬',
+    category: 'conductor' as const,
+    defaultGoal: 'Research and synthesize findings on...',
+    defaultMembers: [
+      { persona: 'kai', role: 'coordinator' as const },
+      { persona: 'nova', role: 'executor' as const },
+    ],
+    isBuiltIn: true,
+    tags: ['research', 'analysis', 'conductor'],
+    templateType: 'conductor' as const,
+    conductorConfig: { maxParallel: 2, supervised: false },
+  },
+  {
+    id: 'conductor-build',
+    name: 'Build Mission',
+    description: 'Plan, implement, and review a feature with specialized workers',
+    icon: '🏗️',
+    category: 'conductor' as const,
+    defaultGoal: 'Build and deliver...',
+    defaultMembers: [
+      { persona: 'kai', role: 'coordinator' as const },
+      { persona: 'roger', role: 'executor' as const },
+      { persona: 'quinn', role: 'reviewer' as const },
+    ],
+    isBuiltIn: true,
+    tags: ['build', 'development', 'conductor'],
+    templateType: 'conductor' as const,
+    conductorConfig: { maxParallel: 2, supervised: false },
+  },
+  {
+    id: 'conductor-review',
+    name: 'Review Mission',
+    description: 'Audit code, docs, or architecture with parallel reviewers',
+    icon: '🔍',
+    category: 'conductor' as const,
+    defaultGoal: 'Review and audit...',
+    defaultMembers: [
+      { persona: 'quinn', role: 'reviewer' as const },
+      { persona: 'nova', role: 'specialist' as const },
+    ],
+    isBuiltIn: true,
+    tags: ['review', 'audit', 'conductor'],
+    templateType: 'conductor' as const,
+    conductorConfig: { maxParallel: 2, supervised: true },
+  },
+  {
+    id: 'conductor-deploy',
+    name: 'Deploy Mission',
+    description: 'Deploy and verify infrastructure or application changes',
+    icon: '🚀',
+    category: 'conductor' as const,
+    defaultGoal: 'Deploy and verify...',
+    defaultMembers: [
+      { persona: 'kai', role: 'coordinator' as const },
+      { persona: 'roger', role: 'executor' as const },
+    ],
+    isBuiltIn: true,
+    tags: ['deploy', 'infrastructure', 'conductor'],
+    templateType: 'conductor' as const,
+    conductorConfig: { maxParallel: 1, supervised: true },
   },
 ]
 
@@ -190,10 +262,13 @@ export function createUserTemplate(input: {
   defaultGoal: string
   defaultMembers: Array<{ persona: string; role: CrewTemplate['defaultMembers'][number]['role'] }>
   tags: string[]
+  templateType?: CrewTemplate['templateType']
+  conductorConfig?: CrewTemplate['conductorConfig']
 }): CrewTemplate {
   const template: CrewTemplate = {
     id: `user-${randomUUID()}`,
     ...input,
+    templateType: input.templateType ?? 'crew',
     isBuiltIn: false,
     createdAt: Date.now(),
   }

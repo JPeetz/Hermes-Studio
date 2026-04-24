@@ -7,11 +7,17 @@ export type CrewTemplateCategory =
   | 'engineering'
   | 'creative'
   | 'operations'
+  | 'conductor'
 
 export interface CrewTemplateMember {
   /** Lowercase persona name, e.g. 'kai' */
   persona: string
   role: 'coordinator' | 'executor' | 'reviewer' | 'specialist'
+}
+
+export interface ConductorTemplateConfig {
+  maxParallel: number
+  supervised: boolean
 }
 
 export interface CrewTemplate {
@@ -27,4 +33,8 @@ export interface CrewTemplate {
   tags: string[]
   /** Undefined for built-ins; epoch ms for user templates */
   createdAt?: number
+  /** 'crew' for traditional crews, 'conductor' for mission templates */
+  templateType: 'crew' | 'conductor'
+  /** Configuration for conductor-type templates */
+  conductorConfig?: ConductorTemplateConfig
 }
