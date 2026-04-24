@@ -21,6 +21,9 @@ import {
   Analytics01Icon,
   ConsoleIcon,
   TimelineIcon,
+  Flag01Icon,
+  Radar01Icon,
+  CheckListIcon,
 } from '@hugeicons/core-free-icons'
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
@@ -525,6 +528,9 @@ function ChatSidebarComponent({
   const isJobsActive = pathname === '/jobs'
   const isMemoryActive = pathname === '/memory'
   const isCrewsActive = pathname === '/crews' || pathname.startsWith('/crews/')
+  const isConductorActive = pathname === '/conductor'
+  const isOperationsActive = pathname === '/operations'
+  const isTasksActive = pathname === '/tasks'
   const isAgentsActive = pathname === '/agents'
   const isPatternsActive = pathname === '/patterns'
   const isAnalyticsActive = pathname === '/analytics'
@@ -775,6 +781,27 @@ function ChatSidebarComponent({
       icon: UserMultiple02Icon,
       label: 'Crews',
       active: isCrewsActive,
+    },
+    {
+      kind: 'link',
+      to: '/conductor',
+      icon: Flag01Icon,
+      label: 'Conductor',
+      active: isConductorActive,
+    },
+    {
+      kind: 'link',
+      to: '/operations',
+      icon: Radar01Icon,
+      label: 'Operations',
+      active: isOperationsActive,
+    },
+    {
+      kind: 'link',
+      to: '/tasks',
+      icon: CheckListIcon,
+      label: 'Tasks',
+      active: isTasksActive,
     },
     {
       kind: 'link',
