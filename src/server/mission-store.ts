@@ -16,6 +16,7 @@ import type {
   WorkerStatus,
   CreateMissionInput,
 } from '../types/conductor'
+import { publishChatEvent } from './chat-event-bus'
 
 const DATA_DIR = join(process.cwd(), '.runtime')
 const MISSIONS_FILE = join(DATA_DIR, 'missions.json')
@@ -95,6 +96,7 @@ export function createMission(input: CreateMissionInput): Mission {
   }
   missionsStore.missions[mission.id] = mission
   saveMissionsToDisk()
+  publishChatEvent('mission.created', { sessionKey: 'all', missionId: mission.id, goal: mission.goal })
   return mission
 }
 
@@ -116,6 +118,7 @@ export function completeMission(missionId: string): Mission | null {
   mission.completedAt = Date.now()
   mission.updatedAt = Date.now()
   saveMissionsToDisk()
+  publishChatEvent('mission.completed', { sessionKey: 'all', missionId })
   return mission
 }
 
@@ -126,6 +129,7 @@ export function abortMission(missionId: string): Mission | null {
   mission.completedAt = Date.now()
   mission.updatedAt = Date.now()
   saveMissionsToDisk()
+  publishChatEvent('mission.aborted', { sessionKey: 'all', missionId })
   return mission
 }
 

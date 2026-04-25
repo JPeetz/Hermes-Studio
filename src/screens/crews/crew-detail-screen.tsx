@@ -13,12 +13,15 @@ import {
   PlayIcon,
   Share01Icon,
   UserMultiple02Icon,
+  DashboardSpeed01Icon,
 } from '@hugeicons/core-free-icons'
 import { DispatchDialog } from './components/dispatch-dialog'
 import { WorkflowBuilder } from './components/workflow-builder'
 import { CostPanel } from './components/cost-panel'
 import { Tabs, TabsList, TabsTab, TabsPanel } from '@/components/ui/tabs'
+import { AgentGrid } from '@/screens/operations/components/agent-grid'
 import type { Crew, CrewMember, CrewMemberStatus } from '@/lib/crews-api'
+import { fetchOperationsOverview } from '@/lib/operations-api'
 import {
   cloneCrew,
   deleteCrew,
@@ -170,7 +173,7 @@ export function CrewDetailScreen() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'workflow' | 'usage'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'workflow' | 'usage' | 'operations'>('overview')
   const [dispatchOpen, setDispatchOpen] = useState(false)
   const [activity, setActivity] = useState<ActivityEntry[]>([])
   const [liveMembers, setLiveMembers] = useState<
@@ -181,6 +184,12 @@ export function CrewDetailScreen() {
     queryKey: ['crew', crewId],
     queryFn: () => fetchCrew(crewId),
     refetchInterval: 15_000,
+  })
+
+  const operationsQuery = useQuery({
+    queryKey: ['operations'],
+    queryFn: fetchOperationsOverview,
+    refetchInterval: 3_000,
   })
 
   const crew = crewQuery.data
@@ -463,6 +472,10 @@ export function CrewDetailScreen() {
               <HugeiconsIcon icon={BarChartIcon} size={13} strokeWidth={1.7} />
               Usage
             </TabsTab>
+            <TabsTab value="operations">
+              <HugeiconsIcon icon={DashboardSpeed01Icon} size={13} strokeWidth={1.7} />
+              Operations
+            </TabsTab>
           </TabsList>
         </Tabs>
       </div>
@@ -515,6 +528,22 @@ export function CrewDetailScreen() {
 
         {activeTab === 'usage' && (
           <CostPanel crewId={crewId} members={displayMembers} />
+        )}
+
+        {activeTab === 'operations' && (
+          <div className="h-full overflow-y-auto p-6">
+            <h2
+              className="mb-4 text-xs font-medium uppercase tracking-wider"
+              style={{ color: 'var(--theme-muted)' }}
+            >
+              Active Agents
+            </h2>
+            <AgentGrid
+              agents={(operationsQuery.data ?? []).filter(
+                (agent) => agent.crewId === crewId,
+              )}
+            />
+          </div>
         )}
       </div>
 

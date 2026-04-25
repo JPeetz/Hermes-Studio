@@ -15,6 +15,7 @@ import type {
   TaskColumn,
   TaskSourceType,
 } from '../types/task'
+import { publishChatEvent } from './chat-event-bus'
 
 const DATA_DIR = join(process.cwd(), '.runtime')
 const TASKS_FILE = join(DATA_DIR, 'tasks.json')
@@ -92,6 +93,7 @@ export function createTask(input: CreateTaskInput): HermesTask {
   }
   store.tasks[task.id] = task
   saveToDisk()
+  publishChatEvent('task.created', { sessionKey: 'all', taskId: task.id, title: task.title, sourceType: task.sourceType })
   return task
 }
 
@@ -112,12 +114,17 @@ export function updateTask(taskId: string, updates: UpdateTaskInput): HermesTask
 }
 
 export function moveTask(taskId: string, column: TaskColumn): HermesTask | null {
-  return updateTask(taskId, { column })
+  const result = updateTask(taskId, { column })
+  if (result) {
+    publishChatEvent('task.moved', { sessionKey: 'all', taskId, column })
+  }
+  return result
 }
 
 export function deleteTask(taskId: string): boolean {
   if (!store.tasks[taskId]) return false
   delete store.tasks[taskId]
   saveToDisk()
+  publishChatEvent('task.deleted', { sessionKey: 'all', taskId })
   return true
 }

@@ -7,6 +7,7 @@ import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
 import { requireJsonContentType } from '../../../server/rate-limit'
 import { listMissions, createMission } from '../../../server/mission-store'
+import { createTask } from '../../../server/task-store'
 
 export const Route = createFileRoute('/api/missions/')({
   server: {
@@ -39,6 +40,15 @@ export const Route = createFileRoute('/api/missions/')({
         }
 
         const mission = createMission(input)
+        // Cross-link: create a task on the Kanban board for this mission
+        createTask({
+          title: `Mission: ${goal.slice(0, 80)}`,
+          description: goal,
+          column: 'todo',
+          sourceType: 'conductor',
+          sourceId: mission.id,
+          createdBy: 'conductor',
+        })
         return json({ ok: true, mission }, { status: 201 })
       },
     },

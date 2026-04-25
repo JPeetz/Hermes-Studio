@@ -3,6 +3,10 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
+vi.mock('@/server/chat-event-bus', () => ({
+  publishChatEvent: vi.fn(),
+}))
+
 let tmpDir: string
 
 beforeEach(() => {
