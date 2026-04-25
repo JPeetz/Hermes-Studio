@@ -25,6 +25,7 @@ const CATEGORIES: Array<{ value: 'all' | CrewTemplateCategory; label: string }> 
   { value: 'engineering', label: 'Engineering' },
   { value: 'creative', label: 'Creative' },
   { value: 'operations', label: 'Operations' },
+  { value: 'conductor', label: 'Conductor' },
 ]
 
 const CATEGORY_COLORS: Record<CrewTemplateCategory, string> = {
@@ -32,6 +33,7 @@ const CATEGORY_COLORS: Record<CrewTemplateCategory, string> = {
   engineering: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
   creative: 'bg-purple-500/15 text-purple-400 border-purple-500/20',
   operations: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
+  conductor: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
 }
 
 type Props = {

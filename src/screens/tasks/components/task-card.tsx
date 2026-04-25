@@ -27,11 +27,10 @@ export function TaskCard({ task, onEdit, onDragStart }: TaskCardProps) {
       draggable
       onDragStart={(e) => onDragStart(e, task.id)}
       onClick={() => onEdit(task)}
-      style={{ cursor: 'grab' }}
+      style={{ cursor: 'grab', borderColor: 'var(--theme-border)' }}
     >
       <Card
         className="hover:border-[var(--theme-accent-border)] transition-colors"
-        style={{ borderColor: 'var(--theme-border)' } as React.CSSProperties}
       >
         <div className="flex flex-col gap-2">
           {/* Title row with source icon */}

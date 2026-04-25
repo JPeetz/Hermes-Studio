@@ -4,7 +4,7 @@ import type { CrewTemplate } from '@/types/template'
 
 interface MissionPreviewProps {
   goal: string
-  template: CrewTemplate
+  template: CrewTemplate | null
   onCancel: () => void
   onConfirm: () => void
   isPending?: boolean
