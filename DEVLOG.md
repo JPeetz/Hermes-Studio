@@ -4,6 +4,58 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-24 — Session 22
+
+### What was done
+
+**Conductor, Operations & Tasks — v1.19.0 (20 implementation tasks)**
+
+Ported the Conductor, Operations, and Tasks features from upstream hermes-workspace using an "adapted port" approach: upstream data models and API contracts preserved, but stores rewritten with file-backed persistence (matching existing crew-store.ts pattern), UI rebuilt with the Hermes Studio design system (`var(--theme-*)` CSS variables, DS components, HugeIcons).
+
+**Types & Templates (Tasks 1–2)**
+- `src/types/task.ts` — HermesTask, TaskColumn, TaskPriority, TaskSourceType, column constants
+- `src/types/conductor.ts` — Mission, MissionWorker, MissionEvent, ConductorPhase, MissionStatus, WorkerStatus
+- `src/types/operation.ts` — OperationAgent, OperationAgentStatus
+- `src/types/template.ts` — Extended with `templateType: 'crew' | 'conductor'`, `ConductorTemplateConfig`, 4 built-in conductor templates added to template-store
+
+**Server Stores (Tasks 3–5)**
+- `src/server/task-store.ts` — File-backed to `.runtime/tasks.json`; CRUD + move + filter; publishChatEvent on mutations
+- `src/server/mission-store.ts` — File-backed to `.runtime/missions.json` + `.runtime/mission-events.json`; full lifecycle with workers and events; publishChatEvent on mutations
+- `src/server/operations-aggregator.ts` — Read-only aggregator querying crew-store and mission-store
+
+**API Routes (Tasks 6–8)**
+- 8 new route files: tasks CRUD + move, missions CRUD + abort + events, operations overview
+- Client API helpers: `tasks-api.ts`, `missions-api.ts`, `operations-api.ts`
+
+**UI Screens (Tasks 9–16)**
+- Tasks screen: 4 files — Kanban board with 5 columns, HTML5 drag-and-drop, task dialog, priority badges
+- Conductor screen: 9 files — Phase state machine (home→preview→active→complete), worker cards, event log, cost tracker
+- Operations screen: 5 files — Agent grid/outputs toggle, status filter, crew detail Operations tab
+
+**Integration & Polish (Tasks 17–20)**
+- Sidebar: Conductor, Operations, Tasks nav items added
+- Cross-links: conductor missions auto-create tasks on Kanban board
+- Audit trail: all store mutations emit events via publishChatEvent
+- Workspace shell: mobile page titles for new routes
+- Templates gallery: conductor category icon/label added
+
+**Bug fixes during implementation:**
+- `conductor-screen.tsx:100` — `CrewTemplate | null` passed where `CrewTemplate` expected; fixed MissionPreview props
+- `task-card.tsx:34` — `style` prop on DS `Card` (doesn't accept it); moved to wrapping `<div>`
+- `templates-gallery.tsx:30` — Missing conductor entry in category map; added
+- Test failures from `publishChatEvent` requiring SQLite; added `vi.mock` for chat-event-bus in test files
+
+**Test results:** 199 tests across 17 files, all passing. Zero regressions.
+
+**Key technical decisions:**
+- Unified template system (crew + conductor share one `CrewTemplate` type with `templateType` discriminator) instead of parallel template stores
+- Operations aggregator is read-only (no separate store), combining crew-store + mission-store queries
+- Cross-linking via `sourceType`/`sourceId` fields on tasks — conductor missions auto-create tasks, UI links back to conductor
+- File-backed stores with in-memory cache + deferred disk writes (same pattern as crew-store.ts)
+- All new screens use 3-second react-query polling for live updates
+
+---
+
 ## 2026-04-17 — Session 21
 
 ### What was done

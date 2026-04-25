@@ -8,7 +8,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/JPeetz/Hermes-Studio?style=flat&color=6366F1)](https://github.com/JPeetz/Hermes-Studio/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/JPeetz/Hermes-Studio?style=flat&color=6366F1)](https://github.com/JPeetz/Hermes-Studio/network/members)
-[![Version](https://img.shields.io/badge/version-1.18.1-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.19.0-6366F1.svg)](CHANGELOG.md)
 [![Hermes Agent](https://img.shields.io/badge/hermes--agent-v0.9.0-orange.svg)](https://github.com/NousResearch/hermes-agent)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
@@ -67,17 +67,20 @@ Hermes Studio is an open-source, self-hosted web dashboard for [Hermes Agent](ht
 - 🔐 **Permissions & Toolsets** — Configure approvals, command allowlist, toolsets, security scanner, code limits, and reasoning from Settings UI
 - 💾 **Session Persistence** — Auth tokens, sessions, and active runs survive server restarts via Redis (auto-connects, graceful fallback)
 - 🔀 **Visual Workflow Builder** — Build and run DAG-structured task pipelines for your crews; tasks run in topological order with live per-node status
-- 📋 **Crew Templates** — 7 built-in pre-configured crew templates (Research, Engineering, Creative, Operations) plus save and manage your own custom templates
+- 📋 **Crew & Conductor Templates** — 7 built-in crew templates + 4 conductor templates (Research, Build, Review, Deploy) plus save and manage your own; unified template system with `templateType` field
 - 💰 **Cost Tracking** — per-crew token usage (input/output) and estimated API cost per agent; Usage tab on every crew with model-aware price table and reset control
 - 🔌 **MCP Server Management** — add, edit, and remove MCP servers from the Settings UI; saves directly to `~/.hermes/config.yaml` and triggers a live reload; no manual file editing required
 - 🧬 **Agent Library** — create, edit, and delete custom agents with bespoke system prompts, emoji, role labels, and model overrides; built-in agents include pre-written system prompts you can copy and customize; custom agents appear in the crew builder and template picker alongside built-in personas
 - 🕵️ **Audit Trail** — chronological timeline of every tool call, user message, and approval request across all sessions; filter by session, event type, and date range; expand tool events to inspect full args and results
 - 📋 **Clone Crew** — duplicate any existing crew in one click; mints fresh sessions for every member and opens the new crew immediately; available on the crew card (hover) and from the crew detail header
-- 🧪 **Test Suite** — vitest unit tests for core stores and utilities (23 tests, all passing); Playwright e2e smoke tests for all major pages; GitHub Actions CI with visible status badge
+- 🧪 **Test Suite** — vitest unit tests for core stores and utilities (199 tests across 17 files, all passing); Playwright e2e smoke tests for all major pages; GitHub Actions CI with visible status badge
 - ⚡ **Fast Mode** — one-click toggle in the chat composer activates Hermes v0.9.0's priority queue for OpenAI and Anthropic models; persists per-session
 - 📋 **Logs Viewer** — `/logs` screen pulls the last 500 lines from `~/.hermes/logs/` (Hermes v0.8.0 centralised logging); filter All/Errors, live search, color-coded by level, auto-scroll
 - 💾 **Backup & Import** — one-click Hermes data backup and restore from Settings (Hermes v0.9.0)
 - 📡 **iMessage, WeChat & WeCom** — BlueBubbles (iMessage), WeChat, and WeCom/Enterprise added to the platform integration settings alongside Telegram, Discord, Slack, and Signal (Hermes v0.9.0)
+- 🎯 **Conductor** — Phase-based mission launcher: set a goal, pick a conductor template, preview the plan, launch workers, and monitor progress with a live event log; abort with one click; mission summary with cost and duration on completion
+- 📊 **Operations Dashboard** — Unified view of all running agents across crews and conductor missions; grid and outputs toggle; status filters; per-crew Operations tab also available on crew detail screens
+- 📋 **Tasks / Kanban Board** — Five-column Kanban (Backlog → Todo → In Progress → Review → Done) with native HTML5 drag-and-drop; create/edit tasks with priority, tags, and source links; conductor missions auto-create cross-linked tasks
 - 📊 **Rate Limit Display** — provider usage meter now surfaces API rate-limit headers (requests/tokens remaining, reset countdown) captured by Hermes v0.9.0 from LLM provider responses
 - 🖥️ **System Health Panel** — fixed footer bar showing live CPU %, memory, disk usage, and uptime; color-coded thresholds (green/amber/red); toggle in Settings → Display
 - 📈 **Token Usage Chart** — 14-day area chart in the usage modal breaks down daily input vs output tokens across all sessions
@@ -144,6 +147,9 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 - ✅ **Clone Crew** — `POST /api/crews/:crewId/clone`; duplicates name/goal/member roster, mints fresh sessions for all members in parallel; clone button on the crew grid card (hover) and on the detail screen header; navigates directly to the new crew on success; inspired by xaspx/hermes-control-interface + karmsheel/mission-control-hermes
 - ✅ **Hermes v0.9.0 compatibility** — Fast Mode toggle (`/fast`), `/compress` and `/debug` slash commands, API_SERVER_KEY field, one-click backup/import, BlueBubbles + WeChat + WeCom platform integrations, rate-limit header display in provider usage meter
 - ✅ **Hermes v0.8.0 compatibility** — Logs viewer screen (`~/.hermes/logs/`), cron delivery failure badges, pre-run script field in job creation
+- ✅ **Conductor** — Phase-based mission launcher with goal input, conductor templates, worker monitoring, live event log, abort, and completion summary with cost tracking
+- ✅ **Operations Dashboard** — Unified agent overview across crews and conductor missions; grid/outputs toggle; status filters; also available as a per-crew Operations tab
+- ✅ **Tasks / Kanban Board** — Five-column drag-and-drop board with priority, tags, source cross-links; conductor missions auto-create linked tasks
 
 ---
 
@@ -800,6 +806,9 @@ This will:
 | Patterns & Corrections Viewer        | ✅ Shipped v1.18.0 |
 | Session History Archive              | ✅ Shipped v1.18.0 |
 | Systemd Auto-start                   | ✅ Shipped v1.18.0 |
+| Conductor (mission launcher)         | ✅ Shipped v1.19.0 |
+| Operations Dashboard                 | ✅ Shipped v1.19.0 |
+| Tasks / Kanban Board                 | ✅ Shipped v1.19.0 |
 | Native Desktop App (Electron)        | 🔜 Planned         |
 | Cloud / Hosted Version               | 🔜 Planned         |
 

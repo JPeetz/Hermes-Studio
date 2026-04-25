@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.19.0] — 2026-04-24
+
+### Added — Conductor, Operations & Tasks
+
+- **Conductor screen** — Phase-based mission launcher at `/conductor` with four phases: home (goal input + template picker), preview (plan review), active (live worker grid + event log + abort), and complete (summary with duration, cost, worker cards); 4 built-in conductor templates (Research, Build, Review, Deploy)
+- **Operations dashboard** — Unified agent overview at `/operations` aggregating crews and conductor missions; grid and outputs toggle; status filter (all/idle/running/error); also available as a per-crew Operations tab on crew detail screens
+- **Tasks / Kanban board** — Five-column board at `/tasks` (Backlog → Todo → In Progress → Review → Done) with native HTML5 drag-and-drop; create/edit dialog with title, description, priority, tags, assignee, and source links; conductor missions auto-create cross-linked tasks
+- **Mission store** — File-backed persistence (`.runtime/missions.json` + `.runtime/mission-events.json`) with full mission lifecycle: create, update, complete, abort, workers, events; all mutations emit audit trail events via `publishChatEvent`
+- **Task store** — File-backed persistence (`.runtime/tasks.json`) with CRUD, column move, filtering by column/priority/source; audit trail events on all mutations
+- **Operations aggregator** — Read-only aggregator combining crew-store and mission-store data into a unified `OperationAgent[]` view
+- **Unified template system** — Crew and conductor templates now share one system with `templateType` field; `CrewTemplate` extended with `conductorConfig`; templates gallery updated with conductor category
+- **8 new API routes** — Full REST APIs for tasks (CRUD + move), missions (CRUD + abort + events), and operations (aggregated overview)
+- **Client API helpers** — `tasks-api.ts`, `missions-api.ts`, `operations-api.ts` with typed fetch wrappers
+- **Sidebar navigation** — Conductor, Operations, and Tasks added between Crews and Agents in the sidebar
+- **24 new tests** — Task store (11), mission store (10), operations aggregator (3); total test count: 199 across 17 files
+
+### Changed
+- `package.json` version bumped to 1.19.0
+- Test suite badge updated (199 tests)
+
+---
+
 ## [1.18.1] — 2026-04-17
 
 ### Added
