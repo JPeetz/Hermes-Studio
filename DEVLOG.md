@@ -4,6 +4,31 @@ Running log of development sessions. Most recent at top.
 
 ---
 
+## 2026-04-26 — Session 23
+
+### What was done
+
+**Conductor V2 — Gateway Port (v1.20.0)**
+
+Replaced the stub v1.19.0 Conductor with a faithful adapted port of the upstream gateway conductor. The old file-backed mission-store approach was entirely removed and replaced with gateway-native integration.
+
+**Key components built:**
+- `use-conductor-gateway.ts` — 1386-line hook managing mission lifecycle, session polling, worker tracking, localStorage persistence
+- `office-view.tsx` — 957-line animated SVG office with 3 layouts (Grid, Roundtable, War Room), desk/monitor SVGs, agent wandering, speech bubbles
+- `agent-avatar.tsx` — 10 pixel-art robot variants with accent colors
+- `conductor-spawn.ts` / `conductor-stop.ts` — Server routes for Hermes cron job creation and session termination
+- Phase components: `conductor-home.tsx`, `conductor-active.tsx`, `conductor-complete.tsx`
+- `conductor-settings.tsx` — Model selectors, projects dir, max parallel, supervised toggle
+- `cost-tracker.tsx` / `mission-event-log.tsx` — Token cost display and cycling status indicators
+
+**Infrastructure changes:**
+- Deleted: mission-store.ts, 5 API routes, missions-api.ts, 2 test files, 7 old UI components
+- Updated: operations-aggregator now queries live gateway sessions (async)
+- Added: CSS office animation keyframes (glow pulses, idle float)
+- Tests: 190 passing (was 199 — deleted 13 old tests, added 4 new)
+
+---
+
 ## 2026-04-24 — Session 22
 
 ### What was done

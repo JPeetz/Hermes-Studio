@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.20.0] — 2026-04-26
+
+### Conductor V2 — Gateway Port
+
+**Replaced** the stub v1.19.0 Conductor with a faithful adapted port of the upstream gateway conductor:
+
+- **Animated SVG Office** — Three layouts (Grid, Roundtable, War Room) with desk/monitor/chair SVGs, agent wandering to social spots, speech bubbles, status glow animations
+- **Pixel-Art Agent Avatars** — 10 unique robot variants with per-agent accent colors
+- **Real Gateway Integration** — Spawns Hermes cron jobs for orchestration, polls live sessions for worker tracking
+- **Live Worker Monitoring** — Session polling every 3s, output fetching, staleness detection, completion detection
+- **Mission Settings** — Orchestrator/worker model selection, projects directory, max parallel (1-5), supervised mode
+- **Mission History** — localStorage-persisted history with restore, output preview, cost breakdown
+- **Cost Tracking** — Token count + estimated USD per worker and total ($5/1M blended)
+- **Quick Actions** — Research, Build, Review, Deploy one-click goal prefixes
+- **Mission Controls** — Abort, pause/resume, retry, continue with new instructions
+
+**Deleted:** File-backed mission-store, 5 mission API routes, missions-api client lib
+
+**Updated:** Operations aggregator queries live gateway sessions instead of deleted mission-store
+
+---
+
 ## [1.19.0] — 2026-04-24
 
 ### Added — Conductor, Operations & Tasks
