@@ -13,7 +13,7 @@ export const Route = createFileRoute('/api/operations/')({
         if (!isAuthenticated(request)) {
           return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
         }
-        return json({ ok: true, agents: getOperationsOverview() })
+        return json({ ok: true, agents: await getOperationsOverview() })
       },
     },
   },

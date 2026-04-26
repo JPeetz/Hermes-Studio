@@ -1,15 +1,14 @@
 /**
- * Operations aggregator — read-only view across crews, missions, and standalone sessions.
+ * Operations aggregator — read-only view across crews and live conductor sessions.
  *
- * No persistence of its own. Queries crew-store and mission-store to build
- * a unified OperationAgent[] list.
+ * No persistence of its own. Queries crew-store for crew agents and
+ * the Hermes sessions API for conductor workers.
  */
 
 import type { OperationAgent, OperationAgentStatus } from '../types/operation'
 import { listCrews } from './crew-store'
 import type { CrewMemberStatus } from './crew-store'
-import { listMissions } from './mission-store'
-import type { WorkerStatus } from '../types/conductor'
+import { listSessions } from './hermes-api'
 
 function crewStatusToOpStatus(status: CrewMemberStatus): OperationAgentStatus {
   switch (status) {
@@ -21,19 +20,19 @@ function crewStatusToOpStatus(status: CrewMemberStatus): OperationAgentStatus {
   }
 }
 
-function workerStatusToOpStatus(status: WorkerStatus): OperationAgentStatus {
-  switch (status) {
-    case 'running': return 'online'
-    case 'pending': return 'unknown'
-    case 'done': return 'offline'
-    case 'error': return 'error'
-    default: return 'unknown'
-  }
+function sessionStatusToOpStatus(updatedAt: number | undefined | null, totalTokens: number): OperationAgentStatus {
+  if (!updatedAt) return 'unknown'
+  const staleness = Date.now() - updatedAt * 1000
+  if (totalTokens > 0 && staleness > 30_000) return 'offline'
+  if (staleness > 120_000) return 'error'
+  if (totalTokens > 0) return 'online'
+  return 'unknown'
 }
 
-export function getOperationsOverview(): OperationAgent[] {
+export async function getOperationsOverview(): Promise<OperationAgent[]> {
   const agents: OperationAgent[] = []
 
+  // Crew agents — unchanged
   for (const crew of listCrews()) {
     for (const member of crew.members) {
       const nameMatch = member.displayName.match(/^(?:\S+\s+)?(.+)$/)
@@ -60,27 +59,44 @@ export function getOperationsOverview(): OperationAgent[] {
     }
   }
 
-  for (const mission of listMissions()) {
-    for (const worker of mission.workers) {
+  // Live conductor sessions from gateway
+  try {
+    const sessions = await listSessions()
+    const cutoff = Date.now() - 24 * 60 * 60_000
+    for (const session of sessions) {
+      const label = session.title ?? session.id ?? ''
+      const key = session.id ?? ''
+      // Match conductor worker sessions
+      if (!label.startsWith('worker-') && !label.startsWith('conductor-') && !key.includes(':subagent:')) {
+        continue
+      }
+      const updatedAt = session.last_active ?? session.started_at
+      if (updatedAt && updatedAt * 1000 < cutoff) continue
+
+      const totalTokens = (session.input_tokens ?? 0) + (session.output_tokens ?? 0)
+      const cleanLabel = label.replace(/^worker-/, '').replace(/[-_]+/g, ' ')
+
       agents.push({
-        id: worker.id,
-        name: worker.personaName,
-        emoji: worker.personaEmoji,
-        model: worker.model,
+        id: key,
+        name: cleanLabel || 'Worker',
+        emoji: '🤖',
+        model: session.model ?? null,
         profileName: null,
-        sessionKey: worker.sessionKey,
-        status: workerStatusToOpStatus(worker.status),
-        lastActivity: null,
-        totalTokens: worker.totalTokens,
+        sessionKey: key,
+        status: sessionStatusToOpStatus(updatedAt, totalTokens),
+        lastActivity: updatedAt ? updatedAt * 1000 : null,
+        totalTokens,
         totalCostUsd: 0,
         taskCount: 0,
         crewId: null,
         crewName: null,
-        missionId: mission.id,
-        missionGoal: mission.goal,
+        missionId: null,
+        missionGoal: null,
         source: 'conductor',
       })
     }
+  } catch {
+    // Gateway may be unavailable — return crew agents only
   }
 
   return agents
