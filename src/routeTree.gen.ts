@@ -10,16 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TerminalRouteImport } from './routes/terminal'
+import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SessionHistoryRouteImport } from './routes/session-history'
 import { Route as ProfilesRouteImport } from './routes/profiles'
 import { Route as PatternsRouteImport } from './routes/patterns'
+import { Route as OperationsRouteImport } from './routes/operations'
 import { Route as MemoryRouteImport } from './routes/memory'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as FilesRouteImport } from './routes/files'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ConductorRouteImport } from './routes/conductor'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AgentsRouteImport } from './routes/agents'
@@ -65,9 +68,12 @@ import { Route as ApiConnectionStatusRouteImport } from './routes/api/connection
 import { Route as ApiChatEventsRouteImport } from './routes/api/chat-events'
 import { Route as ApiAuthCheckRouteImport } from './routes/api/auth-check'
 import { Route as ApiAuthRouteImport } from './routes/api/auth'
+import { Route as ApiTasksIndexRouteImport } from './routes/api/tasks/index'
+import { Route as ApiOperationsIndexRouteImport } from './routes/api/operations/index'
 import { Route as ApiCrewsIndexRouteImport } from './routes/api/crews/index'
 import { Route as ApiAuditIndexRouteImport } from './routes/api/audit/index'
 import { Route as ApiAgentsIndexRouteImport } from './routes/api/agents/index'
+import { Route as ApiTasksTaskIdRouteImport } from './routes/api/tasks/$taskId'
 import { Route as ApiSkillsUninstallRouteImport } from './routes/api/skills/uninstall'
 import { Route as ApiSkillsSettingsRouteImport } from './routes/api/skills/settings'
 import { Route as ApiSkillsInstallRouteImport } from './routes/api/skills/install'
@@ -97,6 +103,7 @@ import { Route as ApiEventsReplayRouteImport } from './routes/api/events/replay'
 import { Route as ApiCrewsCrewIdRouteImport } from './routes/api/crews/$crewId'
 import { Route as ApiAgentsAgentIdRouteImport } from './routes/api/agents/$agentId'
 import { Route as ApiCrewsTemplatesIndexRouteImport } from './routes/api/crews/templates/index'
+import { Route as ApiTasksTaskIdMoveRouteImport } from './routes/api/tasks/$taskId.move'
 import { Route as ApiSessionsSessionKeyStatusRouteImport } from './routes/api/sessions/$sessionKey.status'
 import { Route as ApiSessionsSessionKeyActiveRunRouteImport } from './routes/api/sessions/$sessionKey.active-run'
 import { Route as ApiHermesRunsRunIdEventsRouteImport } from './routes/api/hermes-runs.$runId.events'
@@ -111,6 +118,11 @@ import { Route as ApiApprovalsApprovalIdApproveRouteImport } from './routes/api/
 const TerminalRoute = TerminalRouteImport.update({
   id: '/terminal',
   path: '/terminal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TasksRoute = TasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SkillsRoute = SkillsRouteImport.update({
@@ -138,6 +150,11 @@ const PatternsRoute = PatternsRouteImport.update({
   path: '/patterns',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OperationsRoute = OperationsRouteImport.update({
+  id: '/operations',
+  path: '/operations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MemoryRoute = MemoryRouteImport.update({
   id: '/memory',
   path: '/memory',
@@ -161,6 +178,11 @@ const FilesRoute = FilesRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConductorRoute = ConductorRouteImport.update({
+  id: '/conductor',
+  path: '/conductor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuditRoute = AuditRouteImport.update({
@@ -388,6 +410,16 @@ const ApiAuthRoute = ApiAuthRouteImport.update({
   path: '/api/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTasksIndexRoute = ApiTasksIndexRouteImport.update({
+  id: '/api/tasks/',
+  path: '/api/tasks/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOperationsIndexRoute = ApiOperationsIndexRouteImport.update({
+  id: '/api/operations/',
+  path: '/api/operations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCrewsIndexRoute = ApiCrewsIndexRouteImport.update({
   id: '/api/crews/',
   path: '/api/crews/',
@@ -401,6 +433,11 @@ const ApiAuditIndexRoute = ApiAuditIndexRouteImport.update({
 const ApiAgentsIndexRoute = ApiAgentsIndexRouteImport.update({
   id: '/api/agents/',
   path: '/api/agents/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTasksTaskIdRoute = ApiTasksTaskIdRouteImport.update({
+  id: '/api/tasks/$taskId',
+  path: '/api/tasks/$taskId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSkillsUninstallRoute = ApiSkillsUninstallRouteImport.update({
@@ -548,6 +585,11 @@ const ApiCrewsTemplatesIndexRoute = ApiCrewsTemplatesIndexRouteImport.update({
   path: '/api/crews/templates/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTasksTaskIdMoveRoute = ApiTasksTaskIdMoveRouteImport.update({
+  id: '/move',
+  path: '/move',
+  getParentRoute: () => ApiTasksTaskIdRoute,
+} as any)
 const ApiSessionsSessionKeyStatusRoute =
   ApiSessionsSessionKeyStatusRouteImport.update({
     id: '/$sessionKey/status',
@@ -610,16 +652,19 @@ export interface FileRoutesByFullPath {
   '/agents': typeof AgentsRoute
   '/analytics': typeof AnalyticsRoute
   '/audit': typeof AuditRoute
+  '/conductor': typeof ConductorRoute
   '/dashboard': typeof DashboardRoute
   '/files': typeof FilesRoute
   '/jobs': typeof JobsRoute
   '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
+  '/operations': typeof OperationsRoute
   '/patterns': typeof PatternsRoute
   '/profiles': typeof ProfilesRoute
   '/session-history': typeof SessionHistoryRoute
   '/settings': typeof SettingsRouteWithChildren
   '/skills': typeof SkillsRoute
+  '/tasks': typeof TasksRoute
   '/terminal': typeof TerminalRoute
   '/api/auth': typeof ApiAuthRoute
   '/api/auth-check': typeof ApiAuthCheckRoute
@@ -689,9 +734,12 @@ export interface FileRoutesByFullPath {
   '/api/skills/install': typeof ApiSkillsInstallRoute
   '/api/skills/settings': typeof ApiSkillsSettingsRoute
   '/api/skills/uninstall': typeof ApiSkillsUninstallRoute
+  '/api/tasks/$taskId': typeof ApiTasksTaskIdRouteWithChildren
   '/api/agents/': typeof ApiAgentsIndexRoute
   '/api/audit/': typeof ApiAuditIndexRoute
   '/api/crews/': typeof ApiCrewsIndexRoute
+  '/api/operations/': typeof ApiOperationsIndexRoute
+  '/api/tasks/': typeof ApiTasksIndexRoute
   '/api/approvals/$approvalId/approve': typeof ApiApprovalsApprovalIdApproveRoute
   '/api/approvals/$approvalId/deny': typeof ApiApprovalsApprovalIdDenyRoute
   '/api/crews/$crewId/clone': typeof ApiCrewsCrewIdCloneRoute
@@ -702,6 +750,7 @@ export interface FileRoutesByFullPath {
   '/api/hermes-runs/$runId/events': typeof ApiHermesRunsRunIdEventsRoute
   '/api/sessions/$sessionKey/active-run': typeof ApiSessionsSessionKeyActiveRunRoute
   '/api/sessions/$sessionKey/status': typeof ApiSessionsSessionKeyStatusRoute
+  '/api/tasks/$taskId/move': typeof ApiTasksTaskIdMoveRoute
   '/api/crews/templates/': typeof ApiCrewsTemplatesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -710,15 +759,18 @@ export interface FileRoutesByTo {
   '/agents': typeof AgentsRoute
   '/analytics': typeof AnalyticsRoute
   '/audit': typeof AuditRoute
+  '/conductor': typeof ConductorRoute
   '/dashboard': typeof DashboardRoute
   '/files': typeof FilesRoute
   '/jobs': typeof JobsRoute
   '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
+  '/operations': typeof OperationsRoute
   '/patterns': typeof PatternsRoute
   '/profiles': typeof ProfilesRoute
   '/session-history': typeof SessionHistoryRoute
   '/skills': typeof SkillsRoute
+  '/tasks': typeof TasksRoute
   '/terminal': typeof TerminalRoute
   '/api/auth': typeof ApiAuthRoute
   '/api/auth-check': typeof ApiAuthCheckRoute
@@ -788,9 +840,12 @@ export interface FileRoutesByTo {
   '/api/skills/install': typeof ApiSkillsInstallRoute
   '/api/skills/settings': typeof ApiSkillsSettingsRoute
   '/api/skills/uninstall': typeof ApiSkillsUninstallRoute
+  '/api/tasks/$taskId': typeof ApiTasksTaskIdRouteWithChildren
   '/api/agents': typeof ApiAgentsIndexRoute
   '/api/audit': typeof ApiAuditIndexRoute
   '/api/crews': typeof ApiCrewsIndexRoute
+  '/api/operations': typeof ApiOperationsIndexRoute
+  '/api/tasks': typeof ApiTasksIndexRoute
   '/api/approvals/$approvalId/approve': typeof ApiApprovalsApprovalIdApproveRoute
   '/api/approvals/$approvalId/deny': typeof ApiApprovalsApprovalIdDenyRoute
   '/api/crews/$crewId/clone': typeof ApiCrewsCrewIdCloneRoute
@@ -801,6 +856,7 @@ export interface FileRoutesByTo {
   '/api/hermes-runs/$runId/events': typeof ApiHermesRunsRunIdEventsRoute
   '/api/sessions/$sessionKey/active-run': typeof ApiSessionsSessionKeyActiveRunRoute
   '/api/sessions/$sessionKey/status': typeof ApiSessionsSessionKeyStatusRoute
+  '/api/tasks/$taskId/move': typeof ApiTasksTaskIdMoveRoute
   '/api/crews/templates': typeof ApiCrewsTemplatesIndexRoute
 }
 export interface FileRoutesById {
@@ -810,16 +866,19 @@ export interface FileRoutesById {
   '/agents': typeof AgentsRoute
   '/analytics': typeof AnalyticsRoute
   '/audit': typeof AuditRoute
+  '/conductor': typeof ConductorRoute
   '/dashboard': typeof DashboardRoute
   '/files': typeof FilesRoute
   '/jobs': typeof JobsRoute
   '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
+  '/operations': typeof OperationsRoute
   '/patterns': typeof PatternsRoute
   '/profiles': typeof ProfilesRoute
   '/session-history': typeof SessionHistoryRoute
   '/settings': typeof SettingsRouteWithChildren
   '/skills': typeof SkillsRoute
+  '/tasks': typeof TasksRoute
   '/terminal': typeof TerminalRoute
   '/api/auth': typeof ApiAuthRoute
   '/api/auth-check': typeof ApiAuthCheckRoute
@@ -889,9 +948,12 @@ export interface FileRoutesById {
   '/api/skills/install': typeof ApiSkillsInstallRoute
   '/api/skills/settings': typeof ApiSkillsSettingsRoute
   '/api/skills/uninstall': typeof ApiSkillsUninstallRoute
+  '/api/tasks/$taskId': typeof ApiTasksTaskIdRouteWithChildren
   '/api/agents/': typeof ApiAgentsIndexRoute
   '/api/audit/': typeof ApiAuditIndexRoute
   '/api/crews/': typeof ApiCrewsIndexRoute
+  '/api/operations/': typeof ApiOperationsIndexRoute
+  '/api/tasks/': typeof ApiTasksIndexRoute
   '/api/approvals/$approvalId/approve': typeof ApiApprovalsApprovalIdApproveRoute
   '/api/approvals/$approvalId/deny': typeof ApiApprovalsApprovalIdDenyRoute
   '/api/crews/$crewId/clone': typeof ApiCrewsCrewIdCloneRoute
@@ -902,6 +964,7 @@ export interface FileRoutesById {
   '/api/hermes-runs/$runId/events': typeof ApiHermesRunsRunIdEventsRoute
   '/api/sessions/$sessionKey/active-run': typeof ApiSessionsSessionKeyActiveRunRoute
   '/api/sessions/$sessionKey/status': typeof ApiSessionsSessionKeyStatusRoute
+  '/api/tasks/$taskId/move': typeof ApiTasksTaskIdMoveRoute
   '/api/crews/templates/': typeof ApiCrewsTemplatesIndexRoute
 }
 export interface FileRouteTypes {
@@ -912,16 +975,19 @@ export interface FileRouteTypes {
     | '/agents'
     | '/analytics'
     | '/audit'
+    | '/conductor'
     | '/dashboard'
     | '/files'
     | '/jobs'
     | '/logs'
     | '/memory'
+    | '/operations'
     | '/patterns'
     | '/profiles'
     | '/session-history'
     | '/settings'
     | '/skills'
+    | '/tasks'
     | '/terminal'
     | '/api/auth'
     | '/api/auth-check'
@@ -991,9 +1057,12 @@ export interface FileRouteTypes {
     | '/api/skills/install'
     | '/api/skills/settings'
     | '/api/skills/uninstall'
+    | '/api/tasks/$taskId'
     | '/api/agents/'
     | '/api/audit/'
     | '/api/crews/'
+    | '/api/operations/'
+    | '/api/tasks/'
     | '/api/approvals/$approvalId/approve'
     | '/api/approvals/$approvalId/deny'
     | '/api/crews/$crewId/clone'
@@ -1004,6 +1073,7 @@ export interface FileRouteTypes {
     | '/api/hermes-runs/$runId/events'
     | '/api/sessions/$sessionKey/active-run'
     | '/api/sessions/$sessionKey/status'
+    | '/api/tasks/$taskId/move'
     | '/api/crews/templates/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1012,15 +1082,18 @@ export interface FileRouteTypes {
     | '/agents'
     | '/analytics'
     | '/audit'
+    | '/conductor'
     | '/dashboard'
     | '/files'
     | '/jobs'
     | '/logs'
     | '/memory'
+    | '/operations'
     | '/patterns'
     | '/profiles'
     | '/session-history'
     | '/skills'
+    | '/tasks'
     | '/terminal'
     | '/api/auth'
     | '/api/auth-check'
@@ -1090,9 +1163,12 @@ export interface FileRouteTypes {
     | '/api/skills/install'
     | '/api/skills/settings'
     | '/api/skills/uninstall'
+    | '/api/tasks/$taskId'
     | '/api/agents'
     | '/api/audit'
     | '/api/crews'
+    | '/api/operations'
+    | '/api/tasks'
     | '/api/approvals/$approvalId/approve'
     | '/api/approvals/$approvalId/deny'
     | '/api/crews/$crewId/clone'
@@ -1103,6 +1179,7 @@ export interface FileRouteTypes {
     | '/api/hermes-runs/$runId/events'
     | '/api/sessions/$sessionKey/active-run'
     | '/api/sessions/$sessionKey/status'
+    | '/api/tasks/$taskId/move'
     | '/api/crews/templates'
   id:
     | '__root__'
@@ -1111,16 +1188,19 @@ export interface FileRouteTypes {
     | '/agents'
     | '/analytics'
     | '/audit'
+    | '/conductor'
     | '/dashboard'
     | '/files'
     | '/jobs'
     | '/logs'
     | '/memory'
+    | '/operations'
     | '/patterns'
     | '/profiles'
     | '/session-history'
     | '/settings'
     | '/skills'
+    | '/tasks'
     | '/terminal'
     | '/api/auth'
     | '/api/auth-check'
@@ -1190,9 +1270,12 @@ export interface FileRouteTypes {
     | '/api/skills/install'
     | '/api/skills/settings'
     | '/api/skills/uninstall'
+    | '/api/tasks/$taskId'
     | '/api/agents/'
     | '/api/audit/'
     | '/api/crews/'
+    | '/api/operations/'
+    | '/api/tasks/'
     | '/api/approvals/$approvalId/approve'
     | '/api/approvals/$approvalId/deny'
     | '/api/crews/$crewId/clone'
@@ -1203,6 +1286,7 @@ export interface FileRouteTypes {
     | '/api/hermes-runs/$runId/events'
     | '/api/sessions/$sessionKey/active-run'
     | '/api/sessions/$sessionKey/status'
+    | '/api/tasks/$taskId/move'
     | '/api/crews/templates/'
   fileRoutesById: FileRoutesById
 }
@@ -1212,16 +1296,19 @@ export interface RootRouteChildren {
   AgentsRoute: typeof AgentsRoute
   AnalyticsRoute: typeof AnalyticsRoute
   AuditRoute: typeof AuditRoute
+  ConductorRoute: typeof ConductorRoute
   DashboardRoute: typeof DashboardRoute
   FilesRoute: typeof FilesRoute
   JobsRoute: typeof JobsRoute
   LogsRoute: typeof LogsRoute
   MemoryRoute: typeof MemoryRoute
+  OperationsRoute: typeof OperationsRoute
   PatternsRoute: typeof PatternsRoute
   ProfilesRoute: typeof ProfilesRoute
   SessionHistoryRoute: typeof SessionHistoryRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   SkillsRoute: typeof SkillsRoute
+  TasksRoute: typeof TasksRoute
   TerminalRoute: typeof TerminalRoute
   ApiAuthRoute: typeof ApiAuthRoute
   ApiAuthCheckRoute: typeof ApiAuthCheckRoute
@@ -1277,9 +1364,12 @@ export interface RootRouteChildren {
   ApiProfilesListRoute: typeof ApiProfilesListRoute
   ApiProfilesReadRoute: typeof ApiProfilesReadRoute
   ApiProfilesRenameRoute: typeof ApiProfilesRenameRoute
+  ApiTasksTaskIdRoute: typeof ApiTasksTaskIdRouteWithChildren
   ApiAgentsIndexRoute: typeof ApiAgentsIndexRoute
   ApiAuditIndexRoute: typeof ApiAuditIndexRoute
   ApiCrewsIndexRoute: typeof ApiCrewsIndexRoute
+  ApiOperationsIndexRoute: typeof ApiOperationsIndexRoute
+  ApiTasksIndexRoute: typeof ApiTasksIndexRoute
   ApiApprovalsApprovalIdApproveRoute: typeof ApiApprovalsApprovalIdApproveRoute
   ApiApprovalsApprovalIdDenyRoute: typeof ApiApprovalsApprovalIdDenyRoute
   ApiCrewsTemplatesIdRoute: typeof ApiCrewsTemplatesIdRoute
@@ -1293,6 +1383,13 @@ declare module '@tanstack/react-router' {
       path: '/terminal'
       fullPath: '/terminal'
       preLoaderRoute: typeof TerminalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tasks': {
+      id: '/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/skills': {
@@ -1330,6 +1427,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatternsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/operations': {
+      id: '/operations'
+      path: '/operations'
+      fullPath: '/operations'
+      preLoaderRoute: typeof OperationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/memory': {
       id: '/memory'
       path: '/memory'
@@ -1363,6 +1467,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conductor': {
+      id: '/conductor'
+      path: '/conductor'
+      fullPath: '/conductor'
+      preLoaderRoute: typeof ConductorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/audit': {
@@ -1680,6 +1791,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/tasks/': {
+      id: '/api/tasks/'
+      path: '/api/tasks'
+      fullPath: '/api/tasks/'
+      preLoaderRoute: typeof ApiTasksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/operations/': {
+      id: '/api/operations/'
+      path: '/api/operations'
+      fullPath: '/api/operations/'
+      preLoaderRoute: typeof ApiOperationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/crews/': {
       id: '/api/crews/'
       path: '/api/crews'
@@ -1699,6 +1824,13 @@ declare module '@tanstack/react-router' {
       path: '/api/agents'
       fullPath: '/api/agents/'
       preLoaderRoute: typeof ApiAgentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tasks/$taskId': {
+      id: '/api/tasks/$taskId'
+      path: '/api/tasks/$taskId'
+      fullPath: '/api/tasks/$taskId'
+      preLoaderRoute: typeof ApiTasksTaskIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/skills/uninstall': {
@@ -1904,6 +2036,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCrewsTemplatesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/tasks/$taskId/move': {
+      id: '/api/tasks/$taskId/move'
+      path: '/move'
+      fullPath: '/api/tasks/$taskId/move'
+      preLoaderRoute: typeof ApiTasksTaskIdMoveRouteImport
+      parentRoute: typeof ApiTasksTaskIdRoute
+    }
     '/api/sessions/$sessionKey/status': {
       id: '/api/sessions/$sessionKey/status'
       path: '/$sessionKey/status'
@@ -2099,22 +2238,37 @@ const ApiCrewsCrewIdRouteWithChildren = ApiCrewsCrewIdRoute._addFileChildren(
   ApiCrewsCrewIdRouteChildren,
 )
 
+interface ApiTasksTaskIdRouteChildren {
+  ApiTasksTaskIdMoveRoute: typeof ApiTasksTaskIdMoveRoute
+}
+
+const ApiTasksTaskIdRouteChildren: ApiTasksTaskIdRouteChildren = {
+  ApiTasksTaskIdMoveRoute: ApiTasksTaskIdMoveRoute,
+}
+
+const ApiTasksTaskIdRouteWithChildren = ApiTasksTaskIdRoute._addFileChildren(
+  ApiTasksTaskIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
   AgentsRoute: AgentsRoute,
   AnalyticsRoute: AnalyticsRoute,
   AuditRoute: AuditRoute,
+  ConductorRoute: ConductorRoute,
   DashboardRoute: DashboardRoute,
   FilesRoute: FilesRoute,
   JobsRoute: JobsRoute,
   LogsRoute: LogsRoute,
   MemoryRoute: MemoryRoute,
+  OperationsRoute: OperationsRoute,
   PatternsRoute: PatternsRoute,
   ProfilesRoute: ProfilesRoute,
   SessionHistoryRoute: SessionHistoryRoute,
   SettingsRoute: SettingsRouteWithChildren,
   SkillsRoute: SkillsRoute,
+  TasksRoute: TasksRoute,
   TerminalRoute: TerminalRoute,
   ApiAuthRoute: ApiAuthRoute,
   ApiAuthCheckRoute: ApiAuthCheckRoute,
@@ -2170,9 +2324,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProfilesListRoute: ApiProfilesListRoute,
   ApiProfilesReadRoute: ApiProfilesReadRoute,
   ApiProfilesRenameRoute: ApiProfilesRenameRoute,
+  ApiTasksTaskIdRoute: ApiTasksTaskIdRouteWithChildren,
   ApiAgentsIndexRoute: ApiAgentsIndexRoute,
   ApiAuditIndexRoute: ApiAuditIndexRoute,
   ApiCrewsIndexRoute: ApiCrewsIndexRoute,
+  ApiOperationsIndexRoute: ApiOperationsIndexRoute,
+  ApiTasksIndexRoute: ApiTasksIndexRoute,
   ApiApprovalsApprovalIdApproveRoute: ApiApprovalsApprovalIdApproveRoute,
   ApiApprovalsApprovalIdDenyRoute: ApiApprovalsApprovalIdDenyRoute,
   ApiCrewsTemplatesIdRoute: ApiCrewsTemplatesIdRoute,
