@@ -1,113 +1,71 @@
-import { useState, useCallback } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { MissionHome } from './components/mission-home'
-import { MissionPreview } from './components/mission-preview'
-import { MissionActive } from './components/mission-active'
-import { MissionComplete } from './components/mission-complete'
-import { createMission, abortMission as apiAbortMission } from '@/lib/missions-api'
-import { fetchTemplates } from '@/lib/templates-api'
-import type { ConductorPhase, Mission } from '@/types/conductor'
+/**
+ * Conductor screen — phase router wiring use-conductor-gateway to child components.
+ *
+ * Phases: home → decomposing/running (active) → complete
+ */
+import { useMemo, useState } from 'react'
+import { useConductorGateway } from './hooks/use-conductor-gateway'
+import { ConductorHome } from './components/conductor-home'
+import { ConductorActive } from './components/conductor-active'
+import { ConductorComplete } from './components/conductor-complete'
+import { ConductorSettingsDrawer } from './components/conductor-settings'
+
+type ScreenPhase = 'home' | 'active' | 'complete'
 
 export function ConductorScreen() {
-  const queryClient = useQueryClient()
-  const [phase, setPhase] = useState<ConductorPhase>('home')
-  const [currentGoal, setCurrentGoal] = useState('')
-  const [currentTemplateId, setCurrentTemplateId] = useState<string | null>(null)
-  const [activeMissionId, setActiveMissionId] = useState<string | null>(null)
+  const conductor = useConductorGateway()
+  const [goalDraft, setGoalDraft] = useState('')
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
-  const { data: templates = [] } = useQuery({
-    queryKey: ['templates'],
-    queryFn: fetchTemplates,
-  })
+  const screenPhase: ScreenPhase = useMemo(() => {
+    if (conductor.phase === 'idle') return 'home'
+    if (conductor.phase === 'decomposing' || conductor.phase === 'running') return 'active'
+    return 'complete'
+  }, [conductor.phase])
 
-  const createMutation = useMutation({
-    mutationFn: createMission,
-    onSuccess: (mission) => {
-      setActiveMissionId(mission.id)
-      setPhase('active')
-      queryClient.invalidateQueries({ queryKey: ['missions'] })
-    },
-  })
+  const handleSubmit = async () => {
+    const trimmed = goalDraft.trim()
+    if (!trimmed) return
+    await conductor.sendMission(trimmed)
+  }
 
-  const abortMutation = useMutation({
-    mutationFn: (id: string) => apiAbortMission(id),
-    onSuccess: () => {
-      setPhase('complete')
-      queryClient.invalidateQueries({ queryKey: ['missions'] })
-    },
-  })
+  const handleNewMission = () => {
+    conductor.resetMission()
+    setGoalDraft('')
+  }
 
-  const handleStartMission = useCallback(
-    (goal: string, templateId?: string) => {
-      setCurrentGoal(goal)
-      setCurrentTemplateId(templateId ?? null)
-      if (templateId) {
-        setPhase('preview')
-      } else {
-        createMutation.mutate({ goal })
-      }
-    },
-    [createMutation],
-  )
-
-  const handleViewMission = useCallback((mission: Mission) => {
-    setActiveMissionId(mission.id)
-    if (mission.status === 'running') {
-      setPhase('active')
-    } else {
-      setPhase('complete')
-    }
-  }, [])
-
-  const handleConfirmPreview = useCallback(() => {
-    createMutation.mutate({
-      goal: currentGoal,
-      templateId: currentTemplateId ?? undefined,
-    })
-  }, [currentGoal, currentTemplateId, createMutation])
-
-  const handleAbort = useCallback(() => {
-    if (activeMissionId) {
-      abortMutation.mutate(activeMissionId)
-    }
-  }, [activeMissionId, abortMutation])
-
-  const handleNewMission = useCallback(() => {
-    setPhase('home')
-    setActiveMissionId(null)
-    setCurrentGoal('')
-    setCurrentTemplateId(null)
-  }, [])
-
-  const selectedTemplate = currentTemplateId
-    ? templates.find((t) => t.id === currentTemplateId) ?? null
-    : null
+  const updateSettings = (patch: Partial<typeof conductor.conductorSettings>) => {
+    conductor.setConductorSettings({ ...conductor.conductorSettings, ...patch })
+  }
 
   return (
-    <div
-      className="flex flex-col h-full overflow-y-auto p-6"
-      style={{ background: 'var(--theme-bg)' }}
-    >
-      {phase === 'home' && (
-        <MissionHome
-          onStartMission={handleStartMission}
-          onViewMission={handleViewMission}
-        />
-      )}
-      {phase === 'preview' && (
-        <MissionPreview
-          goal={currentGoal}
-          template={selectedTemplate}
-          onConfirm={handleConfirmPreview}
-          onCancel={handleNewMission}
-        />
-      )}
-      {phase === 'active' && activeMissionId && (
-        <MissionActive missionId={activeMissionId} onAbort={handleAbort} />
-      )}
-      {phase === 'complete' && activeMissionId && (
-        <MissionComplete missionId={activeMissionId} onNewMission={handleNewMission} />
-      )}
-    </div>
+    <>
+      <div
+        className="flex h-full flex-col overflow-y-auto"
+        style={{ background: 'var(--theme-bg)', color: 'var(--theme-text)' }}
+      >
+        {screenPhase === 'home' && (
+          <ConductorHome
+            conductor={conductor}
+            goalDraft={goalDraft}
+            setGoalDraft={setGoalDraft}
+            onSubmit={handleSubmit}
+            onSettingsOpen={() => setSettingsOpen(true)}
+          />
+        )}
+        {screenPhase === 'active' && (
+          <ConductorActive conductor={conductor} />
+        )}
+        {screenPhase === 'complete' && (
+          <ConductorComplete conductor={conductor} onNewMission={handleNewMission} />
+        )}
+      </div>
+      <ConductorSettingsDrawer
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        settings={conductor.conductorSettings}
+        onUpdate={updateSettings}
+      />
+    </>
   )
 }
