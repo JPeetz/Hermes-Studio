@@ -84,7 +84,7 @@ export async function getOperationsOverview(): Promise<OperationAgent[]> {
         profileName: null,
         sessionKey: key,
         status: sessionStatusToOpStatus(updatedAt, totalTokens),
-        lastActivity: updatedAt ? updatedAt * 1000 : null,
+        lastActivity: updatedAt ? new Date(updatedAt * 1000).toISOString() : null,
         totalTokens,
         totalCostUsd: 0,
         taskCount: 0,
