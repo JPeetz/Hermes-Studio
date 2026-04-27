@@ -8,7 +8,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/JPeetz/Hermes-Studio?style=flat&color=6366F1)](https://github.com/JPeetz/Hermes-Studio/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/JPeetz/Hermes-Studio?style=flat&color=6366F1)](https://github.com/JPeetz/Hermes-Studio/network/members)
-[![Version](https://img.shields.io/badge/version-1.19.0-6366F1.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.20.0-6366F1.svg)](CHANGELOG.md)
 [![Hermes Agent](https://img.shields.io/badge/hermes--agent-v0.9.0-orange.svg)](https://github.com/NousResearch/hermes-agent)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
@@ -78,7 +78,7 @@ Hermes Studio is an open-source, self-hosted web dashboard for [Hermes Agent](ht
 - 📋 **Logs Viewer** — `/logs` screen pulls the last 500 lines from `~/.hermes/logs/` (Hermes v0.8.0 centralised logging); filter All/Errors, live search, color-coded by level, auto-scroll
 - 💾 **Backup & Import** — one-click Hermes data backup and restore from Settings (Hermes v0.9.0)
 - 📡 **iMessage, WeChat & WeCom** — BlueBubbles (iMessage), WeChat, and WeCom/Enterprise added to the platform integration settings alongside Telegram, Discord, Slack, and Signal (Hermes v0.9.0)
-- 🎯 **Conductor** — Phase-based mission launcher: set a goal, pick a conductor template, preview the plan, launch workers, and monitor progress with a live event log; abort with one click; mission summary with cost and duration on completion
+- 🎯 **Conductor V2** — Gateway-native mission orchestration with animated SVG office (3 layouts: Grid, Roundtable, War Room), pixel-art agent avatars, real Hermes gateway integration, live session polling, worker monitoring, settings drawer (model selection, max parallel, supervised mode), mission history with cost tracking, quick actions (Research/Build/Review/Deploy), abort/pause/retry controls
 - 📊 **Operations Dashboard** — Unified view of all running agents across crews and conductor missions; grid and outputs toggle; status filters; per-crew Operations tab also available on crew detail screens
 - 📋 **Tasks / Kanban Board** — Five-column Kanban (Backlog → Todo → In Progress → Review → Done) with native HTML5 drag-and-drop; create/edit tasks with priority, tags, and source links; conductor missions auto-create cross-linked tasks
 - 📊 **Rate Limit Display** — provider usage meter now surfaces API rate-limit headers (requests/tokens remaining, reset countdown) captured by Hermes v0.9.0 from LLM provider responses
@@ -147,7 +147,7 @@ Hermes Studio is a fork of [hermes-workspace](https://github.com/outsourc-e/herm
 - ✅ **Clone Crew** — `POST /api/crews/:crewId/clone`; duplicates name/goal/member roster, mints fresh sessions for all members in parallel; clone button on the crew grid card (hover) and on the detail screen header; navigates directly to the new crew on success; inspired by xaspx/hermes-control-interface + karmsheel/mission-control-hermes
 - ✅ **Hermes v0.9.0 compatibility** — Fast Mode toggle (`/fast`), `/compress` and `/debug` slash commands, API_SERVER_KEY field, one-click backup/import, BlueBubbles + WeChat + WeCom platform integrations, rate-limit header display in provider usage meter
 - ✅ **Hermes v0.8.0 compatibility** — Logs viewer screen (`~/.hermes/logs/`), cron delivery failure badges, pre-run script field in job creation
-- ✅ **Conductor** — Phase-based mission launcher with goal input, conductor templates, worker monitoring, live event log, abort, and completion summary with cost tracking
+- ✅ **Conductor V2** — Gateway-native orchestration with animated SVG office, pixel-art avatars, live worker monitoring, settings, mission history, cost tracking, quick actions, abort/pause/retry
 - ✅ **Operations Dashboard** — Unified agent overview across crews and conductor missions; grid/outputs toggle; status filters; also available as a per-crew Operations tab
 - ✅ **Tasks / Kanban Board** — Five-column drag-and-drop board with priority, tags, source cross-links; conductor missions auto-create linked tasks
 
@@ -806,7 +806,7 @@ This will:
 | Patterns & Corrections Viewer        | ✅ Shipped v1.18.0 |
 | Session History Archive              | ✅ Shipped v1.18.0 |
 | Systemd Auto-start                   | ✅ Shipped v1.18.0 |
-| Conductor (mission launcher)         | ✅ Shipped v1.19.0 |
+| Conductor V2 (gateway orchestration) | ✅ Shipped v1.20.0 |
 | Operations Dashboard                 | ✅ Shipped v1.19.0 |
 | Tasks / Kanban Board                 | ✅ Shipped v1.19.0 |
 | Native Desktop App (Electron)        | 🔜 Planned         |
