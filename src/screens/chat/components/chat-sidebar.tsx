@@ -24,6 +24,8 @@ import {
   Flag01Icon,
   Radar01Icon,
   CheckListIcon,
+  HelpCircleIcon,
+  BookOpen01Icon,
 } from '@hugeicons/core-free-icons'
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
@@ -537,6 +539,8 @@ function ChatSidebarComponent({
   const isSessionHistoryActive = pathname === '/session-history'
   const isAuditActive = pathname === '/audit'
   const isLogsActive = pathname === '/logs'
+  const isHelpActive = pathname === '/help'
+  const isDocsActive = pathname === '/docs'
   const mainRoutes = ['/chat', '/new', '/files', '/terminal']
   const knowledgeRoutes = ['/memory', '/skills']
   const systemRoutes = ['/settings', '/logs']
@@ -872,7 +876,22 @@ function ChatSidebarComponent({
     },
   ]
 
-  const systemItems: Array<NavItemDef> = []
+  const systemItems: Array<NavItemDef> = [
+    {
+      kind: 'link',
+      to: '/help',
+      icon: HelpCircleIcon,
+      label: 'Help',
+      active: isHelpActive,
+    },
+    {
+      kind: 'link',
+      to: '/docs',
+      icon: BookOpen01Icon,
+      label: 'Documentation',
+      active: isDocsActive,
+    },
+  ]
 
   return (
     <motion.aside

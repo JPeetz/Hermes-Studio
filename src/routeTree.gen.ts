@@ -20,7 +20,9 @@ import { Route as OperationsRouteImport } from './routes/operations'
 import { Route as MemoryRouteImport } from './routes/memory'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as FilesRouteImport } from './routes/files'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConductorRouteImport } from './routes/conductor'
 import { Route as AuditRouteImport } from './routes/audit'
@@ -172,9 +174,19 @@ const JobsRoute = JobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FilesRoute = FilesRouteImport.update({
   id: '/files',
   path: '/files',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -666,7 +678,9 @@ export interface FileRoutesByFullPath {
   '/audit': typeof AuditRoute
   '/conductor': typeof ConductorRoute
   '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
   '/files': typeof FilesRoute
+  '/help': typeof HelpRoute
   '/jobs': typeof JobsRoute
   '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
@@ -775,7 +789,9 @@ export interface FileRoutesByTo {
   '/audit': typeof AuditRoute
   '/conductor': typeof ConductorRoute
   '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
   '/files': typeof FilesRoute
+  '/help': typeof HelpRoute
   '/jobs': typeof JobsRoute
   '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
@@ -884,7 +900,9 @@ export interface FileRoutesById {
   '/audit': typeof AuditRoute
   '/conductor': typeof ConductorRoute
   '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
   '/files': typeof FilesRoute
+  '/help': typeof HelpRoute
   '/jobs': typeof JobsRoute
   '/logs': typeof LogsRoute
   '/memory': typeof MemoryRoute
@@ -995,7 +1013,9 @@ export interface FileRouteTypes {
     | '/audit'
     | '/conductor'
     | '/dashboard'
+    | '/docs'
     | '/files'
+    | '/help'
     | '/jobs'
     | '/logs'
     | '/memory'
@@ -1104,7 +1124,9 @@ export interface FileRouteTypes {
     | '/audit'
     | '/conductor'
     | '/dashboard'
+    | '/docs'
     | '/files'
+    | '/help'
     | '/jobs'
     | '/logs'
     | '/memory'
@@ -1212,7 +1234,9 @@ export interface FileRouteTypes {
     | '/audit'
     | '/conductor'
     | '/dashboard'
+    | '/docs'
     | '/files'
+    | '/help'
     | '/jobs'
     | '/logs'
     | '/memory'
@@ -1322,7 +1346,9 @@ export interface RootRouteChildren {
   AuditRoute: typeof AuditRoute
   ConductorRoute: typeof ConductorRoute
   DashboardRoute: typeof DashboardRoute
+  DocsRoute: typeof DocsRoute
   FilesRoute: typeof FilesRoute
+  HelpRoute: typeof HelpRoute
   JobsRoute: typeof JobsRoute
   LogsRoute: typeof LogsRoute
   MemoryRoute: typeof MemoryRoute
@@ -1481,11 +1507,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/files': {
       id: '/files'
       path: '/files'
       fullPath: '/files'
       preLoaderRoute: typeof FilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -2298,7 +2338,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuditRoute: AuditRoute,
   ConductorRoute: ConductorRoute,
   DashboardRoute: DashboardRoute,
+  DocsRoute: DocsRoute,
   FilesRoute: FilesRoute,
+  HelpRoute: HelpRoute,
   JobsRoute: JobsRoute,
   LogsRoute: LogsRoute,
   MemoryRoute: MemoryRoute,
