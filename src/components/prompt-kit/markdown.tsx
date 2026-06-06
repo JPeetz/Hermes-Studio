@@ -3,6 +3,9 @@ import { createContext, memo, useContext, useId, useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkBreaks from 'remark-breaks'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
+import 'katex/dist/katex.min.css'
 import { CodeBlock } from './code-block'
 import type { Components } from 'react-markdown'
 import { cn } from '@/lib/utils'
@@ -260,98 +263,72 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   },
   th: function ThComponent({ children }) {
     const context = useTableRenderContext()
-    if (context) {
-      const index = context.columnIndexRef.current
-      context.columnIndexRef.current += 1
-      if (context.collectingHeaderRef.current) {
-        context.headersRef.current[index] = textFromNode(children).trim()
-      }
+    const isCollecting = context?.collectingHeaderRef.current
+    const index = context?.columnIndexRef.current ?? 0
+
+    if (context && isCollecting) {
+      const headerText = textFromNode(children)
+      context.headersRef.current[index] = headerText
+      context.columnIndexRef.current = index + 1
     }
+
     return (
-      <th className="px-3 py-2 text-left font-medium text-primary-950 whitespace-nowrap">
+      <th className="border-b border-primary-200 px-3 py-2 text-left font-medium text-primary-900 max-sm:hidden">
         {children}
       </th>
     )
   },
   td: function TdComponent({ children }) {
     const context = useTableRenderContext()
-    let label = ''
+    const index = context?.columnIndexRef.current ?? 0
+    const headers = context?.headersRef.current ?? []
+
     if (context) {
-      const index = context.columnIndexRef.current
-      context.columnIndexRef.current += 1
-      label = context.headersRef.current[index] ?? `Column ${index + 1}`
+      context.columnIndexRef.current = index + 1
     }
+
+    const headerLabel = headers[index]
+
     return (
-      <td
-        data-label={label}
-        className="px-3 py-2 text-primary-950 align-top max-sm:grid max-sm:grid-cols-[minmax(0,9rem)_1fr] max-sm:gap-3 max-sm:border-b max-sm:border-primary-100 max-sm:px-3 max-sm:py-2 max-sm:last:border-b-0 max-sm:before:content-[attr(data-label)] max-sm:before:text-xs max-sm:before:font-medium max-sm:before:text-primary-700"
-      >
-        {children}
-      </td>
-    )
-  },
-  tfoot: function TfootComponent({ children }) {
-    return (
-      <tfoot className="border-t border-primary-200 bg-primary-100/40">
-        {children}
-      </tfoot>
+      <>
+        <td className="border-b border-primary-100 px-3 py-2 text-primary-900 max-sm:hidden">
+          {children}
+        </td>
+        {headerLabel ? (
+          <div className="mb-1 flex items-baseline gap-2 text-xs text-primary-600 sm:hidden">
+            <span className="font-medium">{headerLabel}</span>
+          </div>
+        ) : null}
+        <div className="border-b border-primary-100 px-3 py-2 text-primary-900 sm:hidden">
+          {children}
+        </div>
+      </>
     )
   },
 }
 
-const MemoizedMarkdownBlock = memo(
-  function MarkdownBlock({
-    content,
-    components = INITIAL_COMPONENTS,
-  }: {
-    content: string
-    components?: Partial<Components>
-  }) {
-    return (
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkBreaks]}
-        components={components}
-      >
-        {content}
-      </ReactMarkdown>
-    )
-  },
-  function propsAreEqual(prevProps, nextProps) {
-    return prevProps.content === nextProps.content
-  },
-)
-
-MemoizedMarkdownBlock.displayName = 'MemoizedMarkdownBlock'
-
-function MarkdownComponent({
+export const Markdown = memo(function MarkdownComponent({
   children,
   id,
   className,
-  components = INITIAL_COMPONENTS,
+  components,
 }: MarkdownProps) {
-  const generatedId = useId()
-  const blockId = id ?? generatedId
+  const mergedComponents = useMemo(
+    () => ({ ...INITIAL_COMPONENTS, ...components }),
+    [components],
+  )
+
   const blocks = useMemo(() => parseMarkdownIntoBlocks(children), [children])
 
   return (
-    <div
-      className={cn(
-        'flex flex-col gap-2 break-words overflow-hidden',
-        className,
-      )}
-    >
-      {blocks.map((block, index) => (
-        <MemoizedMarkdownBlock
-          key={`${blockId}-block-${index}`}
-          content={block}
-          components={components}
-        />
-      ))}
+    <div id={id} className={cn('prose prose-primary max-w-none', className)}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={mergedComponents}
+      >
+        {children}
+      </ReactMarkdown>
     </div>
   )
-}
-
-const Markdown = memo(MarkdownComponent)
-Markdown.displayName = 'Markdown'
-
-export { Markdown }
+})
