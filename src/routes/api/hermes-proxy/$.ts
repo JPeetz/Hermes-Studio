@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { HERMES_API } from '../../../server/gateway-capabilities'
+import { BEARER_TOKEN, HERMES_API } from '../../../server/gateway-capabilities'
 import { isAuthenticated } from '../../../server/auth-middleware'
 
 async function proxyRequest(request: Request, splat: string) {
@@ -11,6 +11,10 @@ async function proxyRequest(request: Request, splat: string) {
   const headers = new Headers(request.headers)
   headers.delete('host')
   headers.delete('content-length')
+  // The Hermes gateway requires a bearer token; forward the workspace's
+  // configured token so client-side calls can hit authenticated endpoints
+  // (memory, skills, config, jobs, sessions, etc.) without a 401.
+  if (BEARER_TOKEN) headers.set('Authorization', `Bearer ${BEARER_TOKEN}`)
 
   const init: RequestInit = {
     method: request.method,

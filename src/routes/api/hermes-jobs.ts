@@ -4,6 +4,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { isAuthenticated } from '../../server/auth-middleware'
 import {
+  BEARER_TOKEN,
   HERMES_API,
   HERMES_UPGRADE_INSTRUCTIONS,
   ensureGatewayProbed,
@@ -34,7 +35,13 @@ export const Route = createFileRoute('/api/hermes-jobs')({
         const url = new URL(request.url)
         const params = url.searchParams.toString()
         const target = `${HERMES_API}/api/jobs${params ? `?${params}` : ''}`
-        const res = await fetch(target)
+        // The Hermes gateway requires a bearer token; forward it so the
+        // /api/jobs call doesn't bounce off a 401.
+        const res = await fetch(target, {
+          headers: BEARER_TOKEN
+            ? { Authorization: `Bearer ${BEARER_TOKEN}` }
+            : undefined,
+        })
         return new Response(res.body, {
           status: res.status,
           headers: { 'Content-Type': 'application/json' },
@@ -60,7 +67,12 @@ export const Route = createFileRoute('/api/hermes-jobs')({
         const body = await request.text()
         const res = await fetch(`${HERMES_API}/api/jobs`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            ...(BEARER_TOKEN
+              ? { Authorization: `Bearer ${BEARER_TOKEN}` }
+              : {}),
+            'Content-Type': 'application/json',
+          },
           body,
         })
         return new Response(await res.text(), {

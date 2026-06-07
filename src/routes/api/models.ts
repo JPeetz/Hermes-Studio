@@ -4,6 +4,7 @@ import os from 'node:os'
 import { json } from '@tanstack/react-start'
 import { createFileRoute } from '@tanstack/react-router'
 import { isAuthenticated } from '../../server/auth-middleware'
+import { BEARER_TOKEN } from '../../server/gateway-capabilities'
 import {
   ensureGatewayProbed,
   getGatewayCapabilities,
@@ -110,7 +111,13 @@ function normalizeHermesModel(entry: unknown): ModelEntry | null {
 }
 
 async function fetchHermesModels(): Promise<Array<ModelEntry>> {
-  const response = await fetch(`${HERMES_API_URL}/v1/models`)
+  // The Hermes gateway requires a bearer token for /v1/models.
+  // Without it, every call returned 401 and bubbled up as a 503 to the UI,
+  // which then left the model selector empty and the dashboard offline.
+  const headers: Record<string, string> = BEARER_TOKEN
+    ? { Authorization: `Bearer ${BEARER_TOKEN}` }
+    : {}
+  const response = await fetch(`${HERMES_API_URL}/v1/models`, { headers })
   if (!response.ok)
     throw new Error(`Hermes models request failed (${response.status})`)
   const payload = asRecord(await response.json())
