@@ -63,6 +63,7 @@ Hermes Studio is an open-source, self-hosted web dashboard for [Hermes Agent](ht
 - 🧠 **Memory & Skills** — Browse, search, and edit agent memory; explore 2,000+ skills
 - ✅ **Execution Approvals** — Approve, deny, or always-allow agent shell commands from the UI; resolved receipts shown inline
 - 📦 **Skill Installation** — Install/uninstall/toggle skills directly from the browser
+- 🐦 **X/Twitter Plugin Example** — Use Hermes Tweet as a native Hermes Agent plugin for X/Twitter search, read, and guarded action workflows: `hermes plugins install Xquik-dev/hermes-tweet --enable`
 - ⏰ **Cron Job Manager** — The only agent UI with a full scheduler: create, edit, pause, trigger, and monitor jobs; manual triggers stream live tool events via SSE directly into the job card
 - 🔐 **Permissions & Toolsets** — Configure approvals, command allowlist, toolsets, security scanner, code limits, and reasoning from Settings UI
 - 💾 **Session Persistence** — Auth tokens, sessions, and active runs survive server restarts via Redis (auto-connects, graceful fallback)
