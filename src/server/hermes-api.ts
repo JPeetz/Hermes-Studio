@@ -117,10 +117,10 @@ export async function listSessions(
   limit = 50,
   offset = 0,
 ): Promise<Array<HermesSession>> {
-  const resp = await hermesGet<{ items: Array<HermesSession>; total: number }>(
+  const resp = await hermesGet<{ data?: Array<HermesSession>; items?: Array<HermesSession>; total?: number }>(
     `/api/sessions?limit=${limit}&offset=${offset}`,
   )
-  return resp.items
+  return (resp.data ?? resp.items ?? []) as Array<HermesSession>
 }
 
 export async function getSession(sessionId: string): Promise<HermesSession> {
@@ -160,10 +160,10 @@ export async function deleteSession(sessionId: string): Promise<void> {
 export async function getMessages(
   sessionId: string,
 ): Promise<Array<HermesMessage>> {
-  const resp = await hermesGet<{ items: Array<HermesMessage>; total: number }>(
+  const resp = await hermesGet<{ data?: Array<HermesMessage>; items?: Array<HermesMessage>; total?: number }>(
     `/api/sessions/${sessionId}/messages`,
   )
-  return resp.items
+  return (resp.data ?? resp.items ?? []) as Array<HermesMessage>
 }
 
 export async function searchSessions(

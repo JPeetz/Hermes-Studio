@@ -34,7 +34,10 @@ export const Route = createFileRoute('/api/hermes-jobs')({
         const url = new URL(request.url)
         const params = url.searchParams.toString()
         const target = `${HERMES_API}/api/jobs${params ? `?${params}` : ''}`
-        const res = await fetch(target)
+        const token = process.env.HERMES_API_TOKEN || process.env.HERMES_API_SERVER_KEY || ''
+        const res = await fetch(target, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
         return new Response(res.body, {
           status: res.status,
           headers: { 'Content-Type': 'application/json' },
@@ -58,9 +61,13 @@ export const Route = createFileRoute('/api/hermes-jobs')({
           )
         }
         const body = await request.text()
+        const token = process.env.HERMES_API_TOKEN || process.env.HERMES_API_SERVER_KEY || ''
         const res = await fetch(`${HERMES_API}/api/jobs`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body,
         })
         return new Response(await res.text(), {
