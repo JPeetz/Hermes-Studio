@@ -8,6 +8,8 @@
  *   - Enhanced: Hermes-native extras (sessions, skills, memory, config, jobs)
  */
 
+import { gatewayAuthHeaders } from './gateway-session'
+
 export let HERMES_API = process.env.HERMES_API_URL || 'http://127.0.0.1:8642'
 
 export const HERMES_UPGRADE_INSTRUCTIONS =
@@ -71,16 +73,12 @@ let lastLoggedSummary = ''
 /** Optional bearer token for authenticated endpoints. */
 export const BEARER_TOKEN = process.env.HERMES_API_TOKEN || ''
 
-function authHeaders(): Record<string, string> {
-  return BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
-}
-
 // ── Probing ───────────────────────────────────────────────────────
 
 async function probe(path: string): Promise<boolean> {
   try {
     const res = await fetch(`${HERMES_API}${path}`, {
-      headers: authHeaders(),
+      headers: await gatewayAuthHeaders(),
       signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
     })
     // 404 = endpoint doesn't exist.
@@ -101,7 +99,7 @@ async function probeChatCompletions(): Promise<boolean> {
     // Fast path: GET returns 405 Method Not Allowed = endpoint exists
     const getRes = await fetch(`${HERMES_API}/v1/chat/completions`, {
       method: 'GET',
-      headers: authHeaders(),
+      headers: await gatewayAuthHeaders(),
       signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
     })
     // 405 = endpoint exists but wrong method (expected for POST-only routes)

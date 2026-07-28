@@ -6,11 +6,11 @@ import YAML from 'yaml'
 import { isAuthenticated } from '../../../server/auth-middleware'
 import { requireJsonContentType } from '../../../server/rate-limit'
 import {
-  BEARER_TOKEN,
   HERMES_API,
   ensureGatewayProbed,
   getCapabilities,
 } from '../../../server/gateway-capabilities'
+import { gatewayFetch } from '../../../server/gateway-session'
 import { createCapabilityUnavailablePayload } from '@/lib/feature-gates'
 
 type AuthResult = Response | true
@@ -72,7 +72,7 @@ type McpServerRecord = {
 }
 
 function authHeaders(): Record<string, string> {
-  return BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
+  return {}
 }
 
 function toStringRecord(value: unknown): Record<string, string> | undefined {
@@ -158,7 +158,7 @@ export const Route = createFileRoute('/api/mcp/servers')({
         }
 
         try {
-          const response = await fetch(`${HERMES_API}/api/config`, {
+          const response = await gatewayFetch(`${HERMES_API}/api/config`, {
             headers: authHeaders(),
           })
 

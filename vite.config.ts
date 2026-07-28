@@ -1,5 +1,6 @@
 import { URL, fileURLToPath } from 'node:url'
 import { execSync, spawn } from 'node:child_process'
+import { gatewayFetch } from './src/server/gateway-session'
 import type { ChildProcess } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
 import net from 'node:net'
@@ -473,74 +474,6 @@ const config = defineConfig(({ mode, command }) => {
               res.statusCode = 200
               res.setHeader('content-type', 'application/json')
               res.end(JSON.stringify({ ok: true }))
-              return
-            }
-
-            // Portable-aware health check — returns ok if any chat backend is available
-            if (
-              req.method === 'GET' &&
-              requestPath === '/api/connection-status'
-            ) {
-              try {
-                // Check for enhanced Hermes gateway first (has /api/sessions)
-                const [modelsRes, sessionsRes] = await Promise.all([
-                  fetch(`${hermesApiUrl}/v1/models`, {
-                    signal: AbortSignal.timeout(3000),
-                  }).catch(() => null),
-                  fetch(`${hermesApiUrl}/api/sessions?limit=1`, {
-                    signal: AbortSignal.timeout(3000),
-                  }).catch(() => null),
-                ])
-                const hasModels = modelsRes?.ok ?? false
-                const hasSessions = sessionsRes?.ok ?? false
-                if (hasModels && hasSessions) {
-                  res.statusCode = 200
-                  res.setHeader('content-type', 'application/json')
-                  res.end(
-                    JSON.stringify({
-                      ok: true,
-                      mode: 'enhanced',
-                      backend: hermesApiUrl,
-                    }),
-                  )
-                  return
-                }
-                if (hasModels) {
-                  res.statusCode = 200
-                  res.setHeader('content-type', 'application/json')
-                  res.end(
-                    JSON.stringify({
-                      ok: true,
-                      mode: 'portable',
-                      backend: hermesApiUrl,
-                    }),
-                  )
-                  return
-                }
-                // Fall back to /health for full Hermes backends
-                const healthRes = await fetch(`${hermesApiUrl}/health`, {
-                  signal: AbortSignal.timeout(3000),
-                })
-                res.statusCode = healthRes.ok ? 200 : 502
-                res.setHeader('content-type', 'application/json')
-                res.end(
-                  JSON.stringify({
-                    ok: healthRes.ok,
-                    mode: 'enhanced',
-                    backend: hermesApiUrl,
-                  }),
-                )
-              } catch {
-                res.statusCode = 502
-                res.setHeader('content-type', 'application/json')
-                res.end(
-                  JSON.stringify({
-                    ok: false,
-                    mode: 'disconnected',
-                    backend: hermesApiUrl,
-                  }),
-                )
-              }
               return
             }
 

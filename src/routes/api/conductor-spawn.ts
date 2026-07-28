@@ -9,9 +9,9 @@ import { isAuthenticated } from '../../server/auth-middleware'
 import { requireJsonContentType } from '../../server/rate-limit'
 import {
   HERMES_API,
-  BEARER_TOKEN,
   ensureGatewayProbed,
 } from '../../server/gateway-capabilities'
+import { gatewayFetch } from '../../server/gateway-session'
 
 let cachedSkill: string | null = null
 
@@ -122,10 +122,6 @@ function buildOrchestratorPrompt(
   ].join('\n')
 }
 
-function authHeaders(): Record<string, string> {
-  return BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
-}
-
 function nowPlusSecondsIso(seconds: number): string {
   const t = new Date(Date.now() + seconds * 1000)
   return t.toISOString().replace(/\.\d{3}Z$/, 'Z')
@@ -144,9 +140,9 @@ async function createHermesJob(payload: {
     deliver: payload.deliver ?? 'local',
   })
   await ensureGatewayProbed()
-  const res = await fetch(`${HERMES_API}/api/jobs`, {
+  const res = await gatewayFetch(`${HERMES_API}/api/jobs`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json' },
     body,
   })
   const text = await res.text()

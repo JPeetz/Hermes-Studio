@@ -8,9 +8,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import {
   HERMES_API,
-  BEARER_TOKEN,
 } from '../../server/gateway-capabilities'
 import { isAuthenticated } from '../../server/auth-middleware'
+import { gatewayFetch } from '../../server/gateway-session'
 
 type UsageLine = {
   type: 'progress' | 'text' | 'badge'
@@ -181,12 +181,8 @@ function mapEntry(entry: HermesProviderUsage): ProviderUsageEntry {
 }
 
 async function fetchProviderUsage(force: boolean): Promise<Array<ProviderUsageEntry>> {
-  const authHeaders: Record<string, string> = BEARER_TOKEN
-    ? { Authorization: `Bearer ${BEARER_TOKEN}` }
-    : {}
-
   const url = `${HERMES_API}/api/usage${force ? '?force=1' : ''}`
-  const res = await fetch(url, { headers: authHeaders })
+  const res = await gatewayFetch(url)
   if (!res.ok) return []
 
   const raw = (await res.json().catch(() => null)) as HermesUsageResponse | null

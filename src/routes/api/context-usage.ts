@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '@/server/auth-middleware'
-import { BEARER_TOKEN, HERMES_API } from '@/server/gateway-capabilities'
+import { HERMES_API } from '@/server/gateway-capabilities'
+import { gatewayFetch } from '@/server/gateway-session'
 
 const MODEL_CONTEXT_WINDOWS: Record<string, number> = {
   'claude-opus-4-6': 200_000,
@@ -38,7 +39,7 @@ function getContextWindow(model: string): number {
 }
 
 function authHeaders(): Record<string, string> {
-  return BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
+  return {}
 }
 
 const CHARS_PER_TOKEN = 3.5
@@ -60,7 +61,7 @@ export const Route = createFileRoute('/api/context-usage')({
 
           if (sessionId) {
             try {
-              const res = await fetch(
+              const res = await gatewayFetch(
                 `${HERMES_API}/api/sessions/${encodeURIComponent(sessionId)}`,
                 {
                   headers: authHeaders(),
@@ -81,7 +82,7 @@ export const Route = createFileRoute('/api/context-usage')({
           // Fallback: most recent active session
           if (!sessionData) {
             try {
-              const listRes = await fetch(
+              const listRes = await gatewayFetch(
                 `${HERMES_API}/api/sessions?limit=1`,
                 {
                   headers: authHeaders(),
@@ -149,7 +150,7 @@ export const Route = createFileRoute('/api/context-usage')({
             try {
               const targetSessionId = sessionId || String(sessionData.id || '')
               if (targetSessionId) {
-                const msgRes = await fetch(
+                const msgRes = await gatewayFetch(
                   `${HERMES_API}/api/sessions/${encodeURIComponent(targetSessionId)}/messages`,
                   {
                     headers: authHeaders(),

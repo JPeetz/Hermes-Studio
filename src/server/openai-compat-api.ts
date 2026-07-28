@@ -1,7 +1,5 @@
 import { HERMES_API } from './gateway-capabilities'
-
-/** Optional bearer token for authenticated OpenAI-compatible endpoints (e.g. Codex OAuth). */
-const BEARER_TOKEN = process.env.HERMES_API_TOKEN || ''
+import { gatewayFetch } from './gateway-session'
 
 /** Cached first available model from /v1/models — used as fallback when no model is specified. */
 let _cachedDefaultModel: string | null = null
@@ -13,10 +11,7 @@ async function getDefaultModel(): Promise<string> {
     return _cachedDefaultModel
   }
   try {
-    const headers: Record<string, string> = {}
-    if (BEARER_TOKEN) headers['Authorization'] = `Bearer ${BEARER_TOKEN}`
-    const res = await fetch(`${HERMES_API}/v1/models`, {
-      headers,
+    const res = await gatewayFetch(`${HERMES_API}/v1/models`, {
       signal: AbortSignal.timeout(3_000),
     })
     if (res.ok) {
@@ -158,14 +153,11 @@ export async function openaiChat(
   options: OpenAIChatOptions = {},
 ): Promise<string | AsyncGenerator<StreamChunkType, void, void>> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (BEARER_TOKEN) {
-    headers['Authorization'] = `Bearer ${BEARER_TOKEN}`
-  }
   if (options.sessionId) {
     headers['X-Hermes-Session-Id'] = options.sessionId
   }
 
-  const response = await fetch(`${HERMES_API}/v1/chat/completions`, {
+  const response = await gatewayFetch(`${HERMES_API}/v1/chat/completions`, {
     method: 'POST',
     headers,
     body: JSON.stringify(await buildRequestBody(messages, options)),
