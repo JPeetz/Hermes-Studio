@@ -89,11 +89,18 @@ export const Route = createFileRoute('/api/context-usage')({
                 },
               )
               if (listRes.ok) {
-                const listData = (await listRes.json()) as {
-                  items?: Array<Record<string, unknown>>
-                }
-                if (listData.items && listData.items.length > 0) {
-                  sessionData = listData.items[0]
+                const listData = await listRes.json()
+                // The gateway returns OpenAI-list shape { object, data: [...] };
+                // accept items | data | messages | array (see issue #18).
+                const fallbackList: Array<Record<string, unknown>> =
+                  Array.isArray(listData)
+                    ? listData
+                    : (listData?.items ??
+                      listData?.data ??
+                      listData?.messages ??
+                      [])
+                if (Array.isArray(fallbackList) && fallbackList.length > 0) {
+                  sessionData = fallbackList[0]
                 }
               }
             } catch {
@@ -157,14 +164,19 @@ export const Route = createFileRoute('/api/context-usage')({
                   },
                 )
                 if (msgRes.ok) {
-                  const msgData = (await msgRes.json()) as {
-                    items?: Array<{
-                      content?: string
-                      tool_calls?: unknown
-                      reasoning?: string
-                    }>
-                  }
-                  const messages = msgData.items || []
+                  const msgData = await msgRes.json()
+                  // The gateway returns { object, session_id, data: [...] };
+                  // accept items | data | messages | array (see issue #18).
+                  const messages: Array<{
+                    content?: string
+                    tool_calls?: unknown
+                    reasoning?: string
+                  }> = Array.isArray(msgData)
+                    ? msgData
+                    : (msgData?.items ??
+                      msgData?.data ??
+                      msgData?.messages ??
+                      [])
                   let totalChars = 0
                   for (const msg of messages) {
                     totalChars += (msg.content || '').length
