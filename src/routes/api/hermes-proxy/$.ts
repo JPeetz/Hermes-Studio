@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { HERMES_API } from '../../../server/gateway-capabilities'
+import { BEARER_TOKEN, HERMES_API } from '../../../server/gateway-capabilities'
 import { isAuthenticated } from '../../../server/auth-middleware'
 
 async function proxyRequest(request: Request, splat: string) {
@@ -11,6 +11,13 @@ async function proxyRequest(request: Request, splat: string) {
   const headers = new Headers(request.headers)
   headers.delete('host')
   headers.delete('content-length')
+  // The browser authenticates with a hermes-auth cookie, not the gateway bearer,
+  // so forward HERMES_API_TOKEN explicitly. Without this the gateway rejects
+  // proxied requests with 401 when API_SERVER_KEY is configured. See issue #17.
+  headers.delete('authorization')
+  if (BEARER_TOKEN) {
+    headers.set('Authorization', `Bearer ${BEARER_TOKEN}`)
+  }
 
   const init: RequestInit = {
     method: request.method,

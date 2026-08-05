@@ -5,7 +5,12 @@
  */
 import { createFileRoute } from '@tanstack/react-router'
 import { isAuthenticated } from '../../server/auth-middleware'
-import { HERMES_API } from '../../server/gateway-capabilities'
+import { BEARER_TOKEN, HERMES_API } from '../../server/gateway-capabilities'
+
+// Forward HERMES_API_TOKEN to the gateway so requests aren't rejected with 401
+// when API_SERVER_KEY is configured. See issue #17.
+const authHeaders = (): Record<string, string> =>
+  BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
 
 export const Route = createFileRoute('/api/hermes-runs/$runId/events')({
   server: {
@@ -21,6 +26,7 @@ export const Route = createFileRoute('/api/hermes-runs/$runId/events')({
         try {
           upstream = await fetch(
             `${HERMES_API}/v1/runs/${params.runId}/events`,
+            { headers: authHeaders() },
           )
         } catch {
           return new Response(

@@ -8,8 +8,14 @@ import {
   ensureGatewayProbed,
   getGatewayCapabilities,
 } from '../../server/hermes-api'
+import { BEARER_TOKEN } from '../../server/gateway-capabilities'
 
 const HERMES_API_URL = process.env.HERMES_API_URL || 'http://127.0.0.1:8642'
+
+// Forward HERMES_API_TOKEN to the gateway so requests aren't rejected with 401
+// when API_SERVER_KEY is configured. See issue #17.
+const authHeaders = (): Record<string, string> =>
+  BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
 
 // Well-known models for providers available via auth store
 const AUTH_STORE_MODELS: Record<string, Array<ModelEntry>> = {
@@ -110,7 +116,9 @@ function normalizeHermesModel(entry: unknown): ModelEntry | null {
 }
 
 async function fetchHermesModels(): Promise<Array<ModelEntry>> {
-  const response = await fetch(`${HERMES_API_URL}/v1/models`)
+  const response = await fetch(`${HERMES_API_URL}/v1/models`, {
+    headers: authHeaders(),
+  })
   if (!response.ok)
     throw new Error(`Hermes models request failed (${response.status})`)
   const payload = asRecord(await response.json())
