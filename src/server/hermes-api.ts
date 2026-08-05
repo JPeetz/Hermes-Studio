@@ -68,6 +68,26 @@ async function hermesGet<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/**
+ * Pull a list of items out of a gateway response regardless of which key the
+ * payload uses. The Hermes gateway (v0.18/0.20) returns the OpenAI-list shape
+ * `{ object: "list", data: [...] }` for sessions and
+ * `{ object: "list", session_id, data: [...] }` for messages, but older or
+ * alternate endpoints have used `items`/`messages`. Return the first array we
+ * find, falling back to the payload itself when it is already an array. See
+ * issue #18 — reading `resp.items` only left session/message history empty.
+ */
+function extractList<T>(resp: unknown): Array<T> {
+  if (Array.isArray(resp)) return resp
+  if (resp && typeof resp === 'object') {
+    const record = resp as Record<string, unknown>
+    for (const key of ['items', 'data', 'messages', 'results']) {
+      if (Array.isArray(record[key])) return record[key] as Array<T>
+    }
+  }
+  return []
+}
+
 async function hermesPost<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${HERMES_API}${path}`, {
     method: 'POST',
@@ -117,10 +137,10 @@ export async function listSessions(
   limit = 50,
   offset = 0,
 ): Promise<Array<HermesSession>> {
-  const resp = await hermesGet<{ items: Array<HermesSession>; total: number }>(
+  const resp = await hermesGet<unknown>(
     `/api/sessions?limit=${limit}&offset=${offset}`,
   )
-  return resp.items
+  return extractList<HermesSession>(resp)
 }
 
 export async function getSession(sessionId: string): Promise<HermesSession> {
@@ -160,10 +180,8 @@ export async function deleteSession(sessionId: string): Promise<void> {
 export async function getMessages(
   sessionId: string,
 ): Promise<Array<HermesMessage>> {
-  const resp = await hermesGet<{ items: Array<HermesMessage>; total: number }>(
-    `/api/sessions/${sessionId}/messages`,
-  )
-  return resp.items
+  const resp = await hermesGet<unknown>(`/api/sessions/${sessionId}/messages`)
+  return extractList<HermesMessage>(resp)
 }
 
 export async function searchSessions(
