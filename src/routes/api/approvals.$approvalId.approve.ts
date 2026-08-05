@@ -19,6 +19,12 @@ import {
   sendChat,
   HERMES_API,
 } from '../../server/hermes-api'
+import { BEARER_TOKEN } from '../../server/gateway-capabilities'
+
+// Forward HERMES_API_TOKEN to the gateway so requests aren't rejected with 401
+// when API_SERVER_KEY is configured. See issue #17.
+const authHeaders = (): Record<string, string> =>
+  BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
 
 export const Route = createFileRoute('/api/approvals/$approvalId/approve')({
   server: {
@@ -60,8 +66,7 @@ export const Route = createFileRoute('/api/approvals/$approvalId/approve')({
 
         // The approvalId may encode sessionKey as "<sessionKey>:<uuid>"
         const colonIdx = approvalId.indexOf(':')
-        const sessionKey =
-          colonIdx > 0 ? approvalId.slice(0, colonIdx) : 'main'
+        const sessionKey = colonIdx > 0 ? approvalId.slice(0, colonIdx) : 'main'
 
         // Strategy 1: try the gateway's native approval endpoint first
         const caps = getGatewayCapabilities()
@@ -71,7 +76,10 @@ export const Route = createFileRoute('/api/approvals/$approvalId/approve')({
               `${HERMES_API}/api/sessions/${sessionKey}/approve`,
               {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  ...authHeaders(),
+                  'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({ scope }),
                 signal: AbortSignal.timeout(5_000),
               },
