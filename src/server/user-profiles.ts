@@ -118,3 +118,19 @@ export function getAccessibleProfiles(userId: string): string[] {
   if (profile.role === 'super_admin') return [] // null = all profiles
   return profile.profileIds
 }
+
+/**
+ * Check if a user may act on a task. Super admins may act on any task;
+ * regular admins only on tasks they created. A missing userId means
+ * single-user mode, where no per-user filtering applies — mirrors the
+ * list filtering in /api/tasks (Issue #8).
+ */
+export function canAccessTask(
+  userId: string | null | undefined,
+  task: { createdBy?: string | null },
+): boolean {
+  if (!userId) return true
+  const profile = getUserProfile(userId)
+  if (profile.role === 'super_admin') return true
+  return task.createdBy === userId
+}
