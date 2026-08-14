@@ -18,13 +18,16 @@ const APP_CSP = [
   "base-uri 'self'",
   "object-src 'none'",
   "form-action 'self'",
-  "frame-ancestors 'none'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
+  // frame-ancestors can't be set via <meta> (ignored by browsers); it's sent
+  // as an X-Frame-Options header instead (see vite.config + server-entry.js).
+  // cdn.jsdelivr.net: @monaco-editor/react loads the editor from the CDN.
+  // fonts.googleapis.com / fonts.gstatic.com: Google Fonts used by several screens.
+  "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+  "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
+  "font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com",
   "connect-src 'self' ws: wss: http: https:",
-  "worker-src 'self' blob:",
+  "worker-src 'self' blob: https://cdn.jsdelivr.net",
   "media-src 'self' blob: data:",
   "frame-src 'self' http: https:",
 ].join('; ')

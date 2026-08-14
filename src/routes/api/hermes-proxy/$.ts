@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { HERMES_API } from '../../../server/gateway-capabilities'
 import { isAuthenticated } from '../../../server/auth-middleware'
 
+const HERMES_API_TOKEN = process.env.HERMES_API_TOKEN || ''
+
 async function proxyRequest(request: Request, splat: string) {
   const incomingUrl = new URL(request.url)
   const targetPath = splat.startsWith('/') ? splat : `/${splat}`
@@ -11,6 +13,11 @@ async function proxyRequest(request: Request, splat: string) {
   const headers = new Headers(request.headers)
   headers.delete('host')
   headers.delete('content-length')
+
+  // The browser never holds the gateway token — authenticate server-side.
+  if (HERMES_API_TOKEN && !headers.has('authorization')) {
+    headers.set('Authorization', `Bearer ${HERMES_API_TOKEN}`)
+  }
 
   const init: RequestInit = {
     method: request.method,
