@@ -6,6 +6,7 @@ import { isAuthenticated } from '../../server/auth-middleware'
 import {
   HERMES_API,
   HERMES_UPGRADE_INSTRUCTIONS,
+  authHeaders,
   ensureGatewayProbed,
   getCapabilities,
 } from '../../server/gateway-capabilities'
@@ -34,7 +35,7 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
         const target = subPath
           ? `${HERMES_API}/api/jobs/${params.jobId}/${subPath}${url.search}`
           : `${HERMES_API}/api/jobs/${params.jobId}`
-        const res = await fetch(target)
+        const res = await fetch(target, { headers: authHeaders() })
         return new Response(await res.text(), {
           status: res.status,
           headers: { 'Content-Type': 'application/json' },
@@ -63,7 +64,7 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
           : `${HERMES_API}/api/jobs/${params.jobId}`
         const res = await fetch(target, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
           body: body || undefined,
         })
         return new Response(await res.text(), {
@@ -89,7 +90,7 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
         const body = await request.text()
         const res = await fetch(`${HERMES_API}/api/jobs/${params.jobId}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
           body,
         })
         return new Response(await res.text(), {
@@ -114,6 +115,7 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
         }
         const res = await fetch(`${HERMES_API}/api/jobs/${params.jobId}`, {
           method: 'DELETE',
+          headers: authHeaders(),
         })
         return new Response(await res.text(), {
           status: res.status,

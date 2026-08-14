@@ -8,10 +8,11 @@ import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
 import { hermesHome } from '../../../server/hermes-home'
 import {
-  HERMES_API,
-  ensureGatewayProbed,
-  getCapabilities,
-} from '../../../server/gateway-capabilities'
+    HERMES_API,
+    authHeaders,
+    ensureGatewayProbed,
+    getCapabilities,
+  } from '../../../server/gateway-capabilities'
 
 const execFileAsync = promisify(execFile)
 
@@ -205,7 +206,7 @@ export const Route = createFileRoute('/api/skills/install')({
             try {
               const res = await fetch(`${HERMES_API}/api/skills/install`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { ...authHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ skillId }),
                 signal: AbortSignal.timeout(30_000),
               })

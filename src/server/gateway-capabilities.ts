@@ -71,7 +71,7 @@ let lastLoggedSummary = ''
 /** Optional bearer token for authenticated endpoints. */
 export const BEARER_TOKEN = process.env.HERMES_API_TOKEN || ''
 
-function authHeaders(): Record<string, string> {
+export function authHeaders(): Record<string, string> {
   return BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
 }
 
