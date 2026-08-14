@@ -6,6 +6,7 @@ import { promisify } from 'node:util'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
+import { hermesHome } from '../../../server/hermes-home'
 import {
   HERMES_API,
   ensureGatewayProbed,
@@ -170,7 +171,7 @@ export const Route = createFileRoute('/api/skills/install')({
           }
 
           const source = (body.source || '').trim()
-          const skillsBase = path.join(os.homedir(), '.hermes', 'skills')
+          const skillsBase = path.join(hermesHome(), 'skills')
 
           // ── Strategy 1: skillsmp / skills-sh — download from GitHub ─────────
           if (source === 'skillsmp' || source === 'skills-sh') {
@@ -219,10 +220,10 @@ export const Route = createFileRoute('/api/skills/install')({
           // ── Strategy 3: clawhub CLI ───────────────────────────────────────
           const clawhubAvailable = await isBinaryAvailable('clawhub')
           if (clawhubAvailable) {
-            const hermesHome = path.join(os.homedir(), '.hermes')
+            const home = hermesHome()
             await execFileAsync(
               'clawhub',
-              ['install', skillId, '--workdir', hermesHome, '--dir', 'skills'],
+              ['install', skillId, '--workdir', home, '--dir', 'skills'],
               {
                 cwd: os.homedir(),
                 timeout: 120_000,

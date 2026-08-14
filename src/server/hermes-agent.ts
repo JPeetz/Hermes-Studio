@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
-import { homedir } from 'node:os'
+import { hermesHome } from './hermes-home'
 
 const HERMES_HEALTH_TIMEOUT_MS = 2_000
 const HERMES_START_PORT = 8642
@@ -24,7 +24,7 @@ export type StartHermesAgentResult =
  * Silently returns {} if the file doesn't exist or can't be parsed.
  */
 function readHermesEnv(): Record<string, string> {
-  const envPath = join(homedir(), '.hermes', '.env')
+  const envPath = join(hermesHome(), '.env')
   try {
     const raw = readFileSync(envPath, 'utf-8')
     const result: Record<string, string> = {}

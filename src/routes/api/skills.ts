@@ -1,9 +1,9 @@
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../server/auth-middleware'
+import { hermesHome } from '../../server/hermes-home'
 import {
   ensureGatewayProbed,
   getCapabilities,
@@ -106,7 +106,7 @@ function slugify(input: string): string {
 
 type StudioPrefs = { disabled: Array<string> }
 
-const PREFS_PATH = path.join(os.homedir(), '.hermes', 'skills', '.studio-prefs.json')
+const PREFS_PATH = path.join(hermesHome(), 'skills', '.studio-prefs.json')
 
 function readLocalPrefs(): StudioPrefs {
   try {
@@ -132,7 +132,7 @@ function writeLocalPrefs(prefs: StudioPrefs): void {
 // Reads skills installed at ~/.hermes/skills/{category}/{skill-name}/SKILL.md
 // Used when the Hermes gateway doesn't expose /api/skills.
 
-const LOCAL_SKILLS_DIR = path.join(os.homedir(), '.hermes', 'skills')
+const LOCAL_SKILLS_DIR = path.join(hermesHome(), 'skills')
 
 function parseFrontmatter(content: string): { meta: Record<string, unknown>; body: string } {
   const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)

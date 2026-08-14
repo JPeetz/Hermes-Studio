@@ -1,9 +1,9 @@
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
+import { hermesHome } from '../../../server/hermes-home'
 
 export const Route = createFileRoute('/api/skills/uninstall')({
   server: {
@@ -21,7 +21,7 @@ export const Route = createFileRoute('/api/skills/uninstall')({
               { status: 400 },
             )
 
-          const skillsBase = path.join(os.homedir(), '.hermes', 'skills')
+          const skillsBase = path.join(hermesHome(), 'skills')
           const skillPath = path.join(skillsBase, skillId)
 
           // Path traversal guard — resolved path must be within skills dir

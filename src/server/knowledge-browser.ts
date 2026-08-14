@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import YAML from 'yaml'
+import { hermesHome } from './hermes-home'
 
 export type WikiPageMeta = {
   path: string
@@ -115,8 +116,8 @@ function extractWikilinks(content: string): Array<string> {
 
 export function getKnowledgeRoot(): string {
   if (process.env.KNOWLEDGE_DIR) return path.resolve(process.env.KNOWLEDGE_DIR)
-  const hermesHome = path.join(os.homedir(), '.hermes')
-  const hermesKnowledge = path.join(hermesHome, 'knowledge')
+  const hermesRoot = hermesHome()
+  const hermesKnowledge = path.join(hermesRoot, 'knowledge')
   if (fs.existsSync(hermesKnowledge)) return hermesKnowledge
   const homeKnowledge = path.join(os.homedir(), 'knowledge', 'wiki')
   if (fs.existsSync(homeKnowledge)) return homeKnowledge

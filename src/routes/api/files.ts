@@ -1,4 +1,3 @@
-import os from 'node:os'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { execFile } from 'node:child_process'
@@ -9,6 +8,7 @@ import {
   isAuthenticated,
   requireLocalOrAuth,
 } from '../../server/auth-middleware'
+import { hermesHome } from '../../server/hermes-home'
 import {
   getClientIp,
   rateLimit,
@@ -22,8 +22,7 @@ const execFileAsync = promisify(execFile)
 
 const WORKSPACE_ROOT = (
   process.env.HERMES_WORKSPACE_DIR ||
-  process.env.HERMES_WORKSPACE_DIR ||
-  path.join(os.homedir(), '.hermes')
+  path.join(hermesHome())
 ).trim()
 
 type FileEntry = {

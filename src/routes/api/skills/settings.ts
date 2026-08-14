@@ -4,15 +4,14 @@
  * The skillsmpApiKey is never returned in plaintext — only a masked preview.
  */
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
+import { hermesHome } from '../../../server/hermes-home'
 
 const SETTINGS_PATH = path.join(
-  os.homedir(),
-  '.hermes',
+  hermesHome(),
   'skills',
   '.studio-settings.json',
 )

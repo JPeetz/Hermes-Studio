@@ -3,16 +3,17 @@
  * Gives the web UI the same config power as `hermes setup`
  */
 import fs from 'node:fs'
-import path from 'node:path'
 import os from 'node:os'
+import path from 'node:path'
 import { createFileRoute } from '@tanstack/react-router'
 import YAML from 'yaml'
 import { isAuthenticated } from '../../server/auth-middleware'
 import { ensureGatewayProbed } from '../../server/gateway-capabilities'
+import { hermesHome } from '../../server/hermes-home'
 
 type AuthResult = Response | true
 
-const HERMES_HOME = path.join(os.homedir(), '.hermes')
+const HERMES_HOME = hermesHome()
 const CONFIG_PATH = path.join(HERMES_HOME, 'config.yaml')
 const ENV_PATH = path.join(HERMES_HOME, '.env')
 
@@ -124,7 +125,7 @@ function checkAuthStore(providerId: string): {
 } {
   // Check Hermes auth store
   for (const storePath of [
-    path.join(os.homedir(), '.hermes', 'auth-profiles.json'),
+    path.join(HERMES_HOME, 'auth-profiles.json'),
     path.join(
       os.homedir(),
       '.openclaw',
@@ -132,8 +133,7 @@ function checkAuthStore(providerId: string): {
       'main',
       'agent',
       'auth-profiles.json',
-    ),
-  ]) {
+    ),  ]) {
     try {
       if (!fs.existsSync(storePath)) continue
       const store = JSON.parse(fs.readFileSync(storePath, 'utf-8'))

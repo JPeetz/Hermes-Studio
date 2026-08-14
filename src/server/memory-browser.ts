@@ -1,6 +1,6 @@
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
+import { hermesHome } from './hermes-home'
 
 export type MemoryFileMeta = {
   path: string
@@ -24,7 +24,7 @@ function isBrowserMemoryPath(relativePath: string): boolean {
 }
 
 function normalizeWorkspaceRoot(): string {
-  return path.join(os.homedir(), '.hermes')
+  return hermesHome()
 }
 
 export function getMemoryWorkspaceRoot(): string {
