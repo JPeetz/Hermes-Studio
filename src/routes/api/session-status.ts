@@ -1,14 +1,43 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
+import fs from 'node:fs'
+import path from 'node:path'
+import YAML from 'yaml'
 import {
   ensureGatewayProbed,
-  getConfig,
   getGatewayCapabilities,
   getSession,
   listSessions,
 } from '../../server/hermes-api'
+import { hermesHome } from '../../server/hermes-home'
 import { isSyntheticSessionKey } from '../../server/session-utils'
 import { isAuthenticated } from '@/server/auth-middleware'
+
+/** Read the configured default model/provider from ~/.hermes/config.yaml. */
+function readLocalConfig(): { model: string; provider: string } {
+  try {
+    const raw = fs.readFileSync(
+      path.join(hermesHome(), 'config.yaml'),
+      'utf-8',
+    )
+    const config = (YAML.parse(raw) as Record<string, unknown>) || {}
+    const modelField = config.model
+    if (typeof modelField === 'string') {
+      return { model: modelField, provider: (config.provider as string) || '' }
+    }
+    if (modelField && typeof modelField === 'object') {
+      const nested = modelField as Record<string, unknown>
+      return {
+        model: (nested.default as string) || '',
+        provider:
+          (nested.provider as string) || (config.provider as string) || '',
+      }
+    }
+    return { model: '', provider: (config.provider as string) || '' }
+  } catch {
+    return { model: '', provider: '' }
+  }
+}
 
 export const Route = createFileRoute('/api/session-status')({
   server: {
@@ -62,9 +91,15 @@ export const Route = createFileRoute('/api/session-status')({
           }
 
           const session = await getSession(sessionKey)
-          const config = capabilities.config
-            ? await getConfig()
-            : ({ model: '', provider: '' } as const)
+          const localConfig = readLocalConfig()
+          // The gateway persists its virtual model name ("hermes-agent") on the
+          // session row; surface the real configured model instead.
+          const sessionModel = session.model ?? ''
+          const model =
+            sessionModel && sessionModel !== 'hermes-agent'
+              ? sessionModel
+              : localConfig.model
+          const modelProvider = localConfig.provider
 
           const inputTokens = session.input_tokens ?? 0
           const outputTokens = session.output_tokens ?? 0
@@ -75,8 +110,8 @@ export const Route = createFileRoute('/api/session-status')({
               status: session.ended_at ? 'ended' : 'idle',
               sessionKey: session.id,
               sessionLabel: session.title ?? '',
-              model: session.model ?? config.model ?? '',
-              modelProvider: config.provider ?? '',
+              model,
+              modelProvider,
               inputTokens,
               outputTokens,
               totalTokens: inputTokens + outputTokens,
@@ -85,8 +120,8 @@ export const Route = createFileRoute('/api/session-status')({
                   key: session.id,
                   agentId: session.id,
                   label: session.title ?? session.id,
-                  model: session.model ?? config.model ?? '',
-                  modelProvider: config.provider ?? '',
+                  model,
+                  modelProvider,
                   updatedAt: session.last_active ?? session.started_at ?? 0,
                   usage: {
                     input: inputTokens,

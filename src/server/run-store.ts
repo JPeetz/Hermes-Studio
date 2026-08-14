@@ -1,6 +1,6 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
-import { homedir } from 'node:os'
 import path from 'node:path'
+import { hermesHome } from './hermes-home'
 
 export type PersistedRunToolCall = {
   id: string
@@ -33,7 +33,7 @@ export type PersistedRunState = {
   errorMessage?: string
 }
 
-const RUNS_ROOT = path.join(homedir(), '.hermes', 'webui-mvp', 'runs')
+const RUNS_ROOT = path.join(hermesHome(), 'webui-mvp', 'runs')
 
 function encodeSessionKey(sessionKey: string): string {
   return encodeURIComponent(sessionKey || 'main')

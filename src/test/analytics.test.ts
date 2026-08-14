@@ -11,8 +11,11 @@ beforeEach(() => {
   vi.resetModules()
 })
 
-afterEach(() => {
+afterEach(async () => {
   vi.restoreAllMocks()
+  // Close the sqlite handle first — Windows can't delete an open file.
+  const store = await import('@/server/event-store')
+  store.closeEventStore()
   rmSync(tmpDir, { recursive: true, force: true })
 })
 

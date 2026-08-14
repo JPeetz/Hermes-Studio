@@ -33,6 +33,9 @@ function normalizeFeature(
 }
 
 export function isFeatureAvailable(feature: EnhancedFeature): boolean {
+  // 'config' is served locally (/api/hermes-config reads/writes config.yaml),
+  // so it never depends on the gateway's optional config API.
+  if (feature === 'config') return true
   const caps = getCapabilities()
   return caps[feature] === true
 }

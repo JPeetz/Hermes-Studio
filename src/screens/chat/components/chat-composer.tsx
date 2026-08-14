@@ -118,8 +118,6 @@ type ModelSwitchNotice = {
   retryProvider?: string
 }
 
-const HERMES_API_URL = process.env.HERMES_API_URL || 'http://127.0.0.1:8642'
-
 function readModelText(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
 }
@@ -159,32 +157,42 @@ async function fetchModels(): Promise<{
   providerLabels?: Record<string, string>
   providers?: Array<HermesProviderOption>
 }> {
-  // Prefer Hermes' current provider models; fetch other providers lazily if needed.
+  // Prefer Hermes' full provider/model inventory (dashboard picker endpoint);
+  // fall back to /v1/models when the gateway lacks it.
   try {
-    const richRes = await fetch('/api/hermes-proxy/api/available-models')
+    const richRes = await fetch('/api/hermes-proxy/api/model/options')
     if (richRes.ok) {
-      const richData = (await richRes.json()) as HermesAvailableModelsResponse
+      const richData = (await richRes.json()) as {
+        provider?: string
+        model?: string
+        providers?: Array<{
+          slug: string
+          name: string
+          authenticated?: boolean
+          models?: Array<string>
+        }>
+      }
+      const currentProvider = readModelText(richData.provider)
+      const currentProviderEntry = (richData.providers || []).find(
+        (p) => p.slug === currentProvider,
+      )
       const authenticatedProviders = (richData.providers || []).filter(
         (p) => p.authenticated,
       )
-      const configuredProviders = authenticatedProviders.map((p) => p.id)
+      const configuredProviders = authenticatedProviders.map((p) => p.slug)
       const providerLabels = authenticatedProviders.reduce<
         Record<string, string>
       >((acc, provider) => {
-        acc[provider.id] = provider.label || provider.id
+        acc[provider.slug] = provider.name || provider.slug
         return acc
       }, {})
-      const currentProvider = readModelText(richData.provider)
-      let models = (richData.models || []).map((model) => ({
-        id: model.id,
-        name: model.id,
-        provider:
-          ((model as Record<string, unknown>).provider as string) ||
-          currentProvider ||
-          undefined,
+      let models = (currentProviderEntry?.models ?? []).map((id) => ({
+        id,
+        name: id,
+        provider: currentProvider || undefined,
       }))
 
-      // If gateway returns no models, try /v1/models as fallback
+      // If inventory has no models for the current provider, try /v1/models
       if (models.length === 0) {
         try {
           const fallbackRes = await fetch('/api/hermes-proxy/v1/models')
@@ -211,20 +219,11 @@ async function fetchModels(): Promise<{
 
       // Always include current configured model so it appears in the list
       if (currentProvider && models.length === 0) {
-        // Fetch current model from config
-        try {
-          const cfgRes = await fetch('/api/hermes-proxy/api/config')
-          if (cfgRes.ok) {
-            const cfg = (await cfgRes.json()) as Record<string, unknown>
-            const cfgModel = readModelText(cfg.model)
-            if (cfgModel) {
-              models = [
-                { id: cfgModel, name: cfgModel, provider: currentProvider },
-              ]
-            }
-          }
-        } catch {
-          /* ignore */
+        const configured = readModelText(richData.model)
+        if (configured) {
+          models = [
+            { id: configured, name: configured, provider: currentProvider },
+          ]
         }
       }
 
@@ -234,14 +233,19 @@ async function fetchModels(): Promise<{
         configuredProviders,
         currentProvider,
         providerLabels,
-        providers: authenticatedProviders,
+        providers: authenticatedProviders.map((p) => ({
+          id: p.slug,
+          label: p.name,
+          authenticated: Boolean(p.authenticated),
+        })),
       }
     }
   } catch {
     // Fall back to /v1/models
   }
 
-  const response = await fetch(`${HERMES_API_URL}/v1/models`)
+  // Route through the studio proxy so the gateway token is attached server-side.
+  const response = await fetch('/api/hermes-proxy/v1/models')
   if (!response.ok) {
     throw new Error(`Hermes models request failed (${response.status})`)
   }

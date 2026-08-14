@@ -227,12 +227,11 @@ function HermesContent() {
   const [userProfileEnabled, setUserProfileEnabled] = useState(true)
 
   const fetchModelsForProvider = useCallback((providerId: string) => {
-    fetch(
-      `/api/hermes-proxy/api/available-models?provider=${encodeURIComponent(providerId)}`,
-    )
+    fetch(`/api/hermes-proxy/api/model/options`)
       .then((r) => r.json())
-      .then((d: { models?: Array<{ id: string }> }) => {
-        setAvailableModels((d.models || []).map((m) => m.id))
+      .then((d: { providers?: Array<{ slug: string; models?: Array<string> }> }) => {
+        const provider = (d.providers || []).find((p) => p.slug === providerId)
+        setAvailableModels(provider?.models || [])
       })
       .catch(() => {
         // Fall back to hardcoded

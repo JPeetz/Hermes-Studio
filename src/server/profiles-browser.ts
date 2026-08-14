@@ -1,7 +1,7 @@
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import YAML from 'yaml'
+import { hermesHome } from './hermes-home'
 
 export type ProfileSummary = {
   name: string
@@ -28,7 +28,7 @@ export type ProfileDetail = {
 }
 
 function getHermesRoot(): string {
-  return path.join(os.homedir(), '.hermes')
+  return hermesHome()
 }
 
 export function getProfilesRoot(): string {

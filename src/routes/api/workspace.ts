@@ -2,13 +2,13 @@
  * Phase 2.6: Workspace detection API
  * Auto-detects workspace from Hermes config, env, or default paths
  */
-import os from 'node:os'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../server/auth-middleware'
 import { getProfileWorkspaceRoot } from '../../server/profiles-browser'
+import { hermesHome } from '../../server/hermes-home'
 
 function extractFolderName(fullPath: string): string {
   const parts = fullPath.replace(/\\/g, '/').split('/')
@@ -61,7 +61,7 @@ async function detectWorkspace(savedPath?: string): Promise<{
   }
 
   // Priority 3: Default Hermes workspace path
-  const defaultPath = path.join(os.homedir(), '.hermes')
+  const defaultPath = hermesHome()
   const defaultValid = await isValidDirectory(defaultPath)
   if (defaultValid) {
     return {
@@ -73,7 +73,7 @@ async function detectWorkspace(savedPath?: string): Promise<{
   }
 
   // Priority 4: Hermes home directory
-  const hermesDir = path.join(os.homedir(), '.hermes')
+  const hermesDir = hermesHome()
   const hermesDirValid = await isValidDirectory(hermesDir)
   if (hermesDirValid) {
     return {

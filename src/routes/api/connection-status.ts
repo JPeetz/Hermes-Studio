@@ -4,7 +4,6 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import os from 'node:os'
 import { createFileRoute } from '@tanstack/react-router'
 import YAML from 'yaml'
 import {
@@ -12,9 +11,10 @@ import {
   ensureGatewayProbed,
   getChatMode,
 } from '../../server/gateway-capabilities'
+import { hermesHome } from '../../server/hermes-home'
 import { isAuthenticated } from '../../server/auth-middleware'
 
-const CONFIG_PATH = path.join(os.homedir(), '.hermes', 'config.yaml')
+const CONFIG_PATH = path.join(hermesHome(), 'config.yaml')
 
 function readActiveModel(): string {
   try {

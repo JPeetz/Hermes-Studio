@@ -92,6 +92,10 @@ async function tryServeStatic(req, res) {
 }
 
 const httpServer = createServer(async (req, res) => {
+  // frame-ancestors can't be expressed in a <meta> CSP, so send the
+  // equivalent clickjacking guard as a real HTTP header.
+  res.setHeader('X-Frame-Options', 'DENY')
+
   // Try static files first (client assets)
   if (req.method === 'GET' || req.method === 'HEAD') {
     const served = await tryServeStatic(req, res)

@@ -1,23 +1,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import os from 'node:os'
 import { createFileRoute } from '@tanstack/react-router'
 import YAML from 'yaml'
 import { isAuthenticated } from '../../../server/auth-middleware'
 import { requireJsonContentType } from '../../../server/rate-limit'
-import {
-  BEARER_TOKEN,
-  HERMES_API,
-  ensureGatewayProbed,
-  getCapabilities,
-} from '../../../server/gateway-capabilities'
-import { createCapabilityUnavailablePayload } from '@/lib/feature-gates'
+import { hermesHome } from '../../../server/hermes-home'
 
 type AuthResult = Response | true
 
 // ─── Local config file I/O (mirrors hermes-config.ts) ────────────────────────
 
-const HERMES_HOME = path.join(os.homedir(), '.hermes')
+const HERMES_HOME = hermesHome()
 const CONFIG_PATH = path.join(HERMES_HOME, 'config.yaml')
 
 function readConfig(): Record<string, unknown> {
@@ -69,10 +62,6 @@ type McpServerRecord = {
   timeout?: number
   connectTimeout?: number
   auth?: unknown
-}
-
-function authHeaders(): Record<string, string> {
-  return BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
 }
 
 function toStringRecord(value: unknown): Record<string, string> | undefined {
@@ -146,37 +135,13 @@ export const Route = createFileRoute('/api/mcp/servers')({
         const authResult = isAuthenticated(request) as AuthResult
         if (authResult !== true) return authResult
 
-        await ensureGatewayProbed()
-        if (!getCapabilities().config) {
-          return Response.json({
-            ...createCapabilityUnavailablePayload('config', {
-              message:
-                'Gateway config API unavailable. You can still draft MCP config snippets locally.',
-            }),
-            servers: [],
-          })
-        }
-
         try {
-          const response = await fetch(`${HERMES_API}/api/config`, {
-            headers: authHeaders(),
-          })
-
-          if (!response.ok) {
-            return Response.json({
-              servers: [],
-              ok: false,
-              message: `Failed to load MCP servers from gateway config (${response.status}).`,
-            })
-          }
-
-          const payload = (await response.json().catch(() => ({}))) as unknown
-          return Response.json({ ok: true, servers: readServers(payload) })
-        } catch {
+          return Response.json({ ok: true, servers: readServers(readConfig()) })
+        } catch (err) {
           return Response.json({
             servers: [],
             ok: false,
-            message: 'Could not reach Hermes gateway config endpoint.',
+            message: err instanceof Error ? err.message : String(err),
           })
         }
       },

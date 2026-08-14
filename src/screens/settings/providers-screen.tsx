@@ -12,20 +12,16 @@ import { ProviderIcon } from './components/provider-icon'
 import { ProviderWizard } from './components/provider-wizard'
 import type { ModelCatalogEntry } from '@/lib/model-types'
 import type { ProviderSummaryForEdit } from './components/provider-wizard'
-import BackendUnavailableState from '@/components/backend-unavailable-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from '@/components/ui/toast'
-import { getUnavailableReason } from '@/lib/feature-gates'
-import { useFeatureAvailable } from '@/hooks/use-feature-available'
 import {
   getProviderDisplayName,
   getProviderInfo,
   normalizeProviderId,
 } from '@/lib/provider-catalog'
-import { getConfig, patchConfig } from '@/server/hermes-api'
 import { cn } from '@/lib/utils'
 
 /**
@@ -76,15 +72,65 @@ type ProvidersScreenProps = {
 
 type HermesConfig = Record<string, unknown>
 
-type ConfigQueryResponse = {
-  ok?: boolean
-  payload?: HermesConfig
-  error?: string
-}
-
 type ConfigPatchResponse = {
   ok?: boolean
   error?: string
+}
+
+type HermesConfigResponse = {
+  ok?: boolean
+  config?: HermesConfig
+  error?: string
+}
+
+/** Read the local ~/.hermes/config.yaml via the studio's own config route. */
+async function fetchLocalConfig(): Promise<HermesConfig> {
+  const response = await fetch('/api/hermes-config')
+  const payload = (await response
+    .json()
+    .catch(() => ({}))) as HermesConfigResponse
+  if (!response.ok || payload.ok === false) {
+    throw new Error(payload.error || `HTTP ${response.status}`)
+  }
+  return payload.config ?? {}
+}
+
+/** Persist a config patch to ~/.hermes/config.yaml via the local config route. */
+async function saveLocalConfig(config: Record<string, unknown>): Promise<void> {
+  const response = await fetch('/api/hermes-config', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ config }),
+  })
+  const payload = (await response
+    .json()
+    .catch(() => ({}))) as ConfigPatchResponse
+  if (!response.ok || payload.ok === false) {
+    throw new Error(payload.error || `HTTP ${response.status}`)
+  }
+}
+
+/** Build a nested object from a dot-path, e.g. 'agents.defaults.contextTokens'. */
+function setByPath(
+  target: Record<string, unknown>,
+  path: string,
+  value: unknown,
+): Record<string, unknown> {
+  const parts = path.split('.').filter(Boolean)
+  let node = target
+  for (let i = 0; i < parts.length - 1; i += 1) {
+    const key = parts[i]
+    if (
+      typeof node[key] !== 'object' ||
+      node[key] === null ||
+      Array.isArray(node[key])
+    ) {
+      node[key] = {}
+    }
+    node = node[key] as Record<string, unknown>
+  }
+  node[parts[parts.length - 1]] = value
+  return target
 }
 
 type SelectOption = {
@@ -999,7 +1045,7 @@ function ActiveModelCard({
 
   const configQuery = useQuery({
     queryKey: ['hermes', 'active-config'],
-    queryFn: getConfig,
+    queryFn: fetchLocalConfig,
   })
 
   const saveMutation = useMutation({
@@ -1039,7 +1085,7 @@ function ActiveModelCard({
           }
         : null
 
-      await patchConfig(patch)
+      await saveLocalConfig(patch)
     },
     onSuccess: async () => {
       await Promise.all([
@@ -1386,7 +1432,6 @@ function ProviderManagementSection(props: {
 
 export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
   const queryClient = useQueryClient()
-  const configAvailable = useFeatureAvailable('config')
   const [activeTab, setActiveTab] = useState<SettingsTabId>('providers')
   const [search, setSearch] = useState('')
   const [draftValues, setDraftValues] = useState<Record<string, string>>({})
@@ -1400,31 +1445,20 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
     queryFn: fetchModels,
     refetchInterval: 60_000,
     retry: false,
-    enabled: configAvailable,
   })
 
   const configQuery = useQuery({
     queryKey: ['hermes', 'config'],
-    queryFn: async () => {
-      const response = await fetch('/api/config-get')
-      const payload = (await response
-        .json()
-        .catch(() => ({}))) as ConfigQueryResponse
-      if (!response.ok || payload.ok === false) {
-        throw new Error(payload.error || `HTTP ${response.status}`)
-      }
-      return payload.payload ?? {}
-    },
+    queryFn: fetchLocalConfig,
     retry: 1,
-    enabled: configAvailable,
   })
 
   const saveMutation = useMutation({
     mutationFn: async ({ path, value }: SaveSettingPayload) => {
-      const response = await fetch('/api/config-patch', {
-        method: 'POST',
+      const response = await fetch('/api/hermes-config', {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path, value }),
+        body: JSON.stringify({ config: setByPath({}, path, value) }),
       })
       const payload = (await response
         .json()
@@ -1553,21 +1587,6 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
   }
 
   const totalSearchMatches = filteredSettings.length
-
-  if (!configAvailable) {
-    return (
-      <div
-        className={cn(
-          embedded ? 'h-full bg-[var(--theme-bg)]' : 'min-h-full bg-[var(--theme-bg)]',
-        )}
-      >
-        <BackendUnavailableState
-          feature="Provider Setup"
-          description={getUnavailableReason('config')}
-        />
-      </div>
-    )
-  }
 
   return (
     <div

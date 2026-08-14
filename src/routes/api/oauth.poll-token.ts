@@ -1,9 +1,9 @@
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { z } from 'zod'
+import { hermesHome } from '../../server/hermes-home'
 
 const BodySchema = z.object({
   provider: z.string(),
@@ -11,7 +11,7 @@ const BodySchema = z.object({
 })
 
 function saveNousTokens(accessToken: string, refreshToken?: string) {
-  const hermesDir = path.join(os.homedir(), '.hermes')
+  const hermesDir = hermesHome()
   const authPath = path.join(hermesDir, 'auth.json')
 
   let existing: Record<string, unknown> = {}

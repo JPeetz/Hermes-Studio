@@ -7,6 +7,10 @@ interface GatewayStatus {
 }
 
 export function useFeatureAvailable(feature: EnhancedFeature): boolean {
+  // Config is served locally (/api/hermes-config reads/writes config.yaml),
+  // so it never depends on the gateway's optional config API.
+  if (feature === 'config') return true
+
   const { data } = useQuery({
     queryKey: ['gateway-status'],
     queryFn: async () => {

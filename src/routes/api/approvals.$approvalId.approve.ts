@@ -13,6 +13,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../server/auth-middleware'
 import { requireJsonContentType } from '../../server/rate-limit'
+import { authHeaders } from '../../server/gateway-capabilities'
 import {
   ensureGatewayProbed,
   getGatewayCapabilities,
@@ -71,7 +72,7 @@ export const Route = createFileRoute('/api/approvals/$approvalId/approve')({
               `${HERMES_API}/api/sessions/${sessionKey}/approve`,
               {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { ...authHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ scope }),
                 signal: AbortSignal.timeout(5_000),
               },
