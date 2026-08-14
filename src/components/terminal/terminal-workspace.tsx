@@ -516,7 +516,14 @@ export function TerminalWorkspace({
       terminal.loadAddon(fitAddon)
       terminal.loadAddon(webLinks)
       terminal.open(container)
-      fitAddon.fit()
+      // Container may be display:none (inactive tab) at mount → fit() throws
+      // in xterm's renderer ("reading 'dimensions'"). The refit-on-visible
+      // effect handles sizing once the tab becomes active.
+      try {
+        fitAddon.fit()
+      } catch {
+        /* ignore zero-size fit */
+      }
 
       terminal.onData(function onData(data) {
         void sendInput(tab.id, data)

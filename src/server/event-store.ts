@@ -431,3 +431,20 @@ export function getLatestSeq(sessionKey: string): number {
     return 0
   }
 }
+
+/**
+ * Close the underlying SQLite handle. Needed on Windows so temp-dir
+ * cleanup in tests can delete the database file (open files can't be
+ * removed there). Safe to call anytime; a later call reopens the DB.
+ */
+export function closeEventStore(): void {
+  if (_db) {
+    try {
+      _db.close()
+    } catch {
+      // ignore
+    }
+    _db = null
+    _initAttempted = false
+  }
+}
