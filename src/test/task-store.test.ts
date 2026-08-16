@@ -154,4 +154,35 @@ describe('task-store', () => {
     const { updateTaskOwner } = await getStore()
     expect(updateTaskOwner('nope', 'alice', () => true)).toBeNull()
   })
+
+  // canSeeTaskEvent() filters on createdBy, so the filter is only as good as
+  // the payloads task-store emits. Nothing else asserts on publishChatEvent —
+  // without this, task-store could stop sending createdBy and the SSE filter
+  // would silently starve, hiding every task event instead of the right ones.
+  it('create/move/delete publish task events carrying createdBy', async () => {
+    const { createTask, moveTask, deleteTask } = await getStore()
+    const { publishChatEvent } = await import('@/server/chat-event-bus')
+
+    const task = createTask({ title: 'Owned', createdBy: 'user-1' })
+    expect(publishChatEvent).toHaveBeenCalledWith(
+      'task.created',
+      expect.objectContaining({ taskId: task.id, createdBy: 'user-1' }),
+    )
+
+    moveTask(task.id, 'todo')
+    expect(publishChatEvent).toHaveBeenCalledWith(
+      'task.moved',
+      expect.objectContaining({
+        taskId: task.id,
+        column: 'todo',
+        createdBy: 'user-1',
+      }),
+    )
+
+    deleteTask(task.id)
+    expect(publishChatEvent).toHaveBeenCalledWith(
+      'task.deleted',
+      expect.objectContaining({ taskId: task.id, createdBy: 'user-1' }),
+    )
+  })
 })
