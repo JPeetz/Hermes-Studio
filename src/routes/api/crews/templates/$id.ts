@@ -5,11 +5,15 @@ import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../../server/auth-middleware'
 import { getTemplate, deleteUserTemplate } from '../../../../server/template-store'
+import { rejectCrossSiteMutation } from '../../../../server/rate-limit'
 
 export const Route = createFileRoute('/api/crews/templates/$id')({
   server: {
     handlers: {
       DELETE: async ({ request, params }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         if (!isAuthenticated(request)) {
           return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
         }

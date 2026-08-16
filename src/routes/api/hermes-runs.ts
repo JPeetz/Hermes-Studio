@@ -9,11 +9,15 @@ import {
   ensureGatewayProbed,
   getCapabilities,
 } from '../../server/gateway-capabilities'
+import { rejectCrossSiteMutation } from '../../server/rate-limit'
 
 export const Route = createFileRoute('/api/hermes-runs')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         if (!isAuthenticated(request)) {
           return new Response(JSON.stringify({ error: 'Unauthorized' }), {
             status: 401,

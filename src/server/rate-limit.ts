@@ -83,6 +83,38 @@ export function requireJsonContentType(request: Request): Response | null {
 }
 
 /**
+ * CSRF defense for mutating routes that cannot require application/json.
+ *
+ * requireJsonContentType() only works when the route is guaranteed a JSON
+ * body. Plenty of mutations here are not: bodiless DELETEs and action POSTs
+ * (`/api/hermes-jobs/{id}?action=pause`, `/api/crews/templates/{id}`,
+ * `/api/mcp/reload`) send no Content-Type at all, and /api/hermes-proxy
+ * forwards whatever it is given, including multipart bodies. Requiring JSON
+ * on those would 415 the app's own callers.
+ *
+ * So check the initiator instead. Browsers set Sec-Fetch-Site on every
+ * request and page JavaScript cannot forge it, so `cross-site`/`same-site`
+ * reliably mean some other origin started the request. Non-browser clients
+ * (curl, scripts, the CLI) send no Sec-Fetch-* header at all, so an absent
+ * value is allowed and command-line use keeps working.
+ *
+ * `none` is a user-initiated load (typed URL, bookmark) and is allowed too,
+ * though it essentially cannot occur on a mutating method.
+ */
+export function rejectCrossSiteMutation(request: Request): Response | null {
+  const method = request.method.toUpperCase()
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return null
+
+  const site = request.headers.get('sec-fetch-site')
+  if (!site || site === 'same-origin' || site === 'none') return null
+
+  return new Response(
+    JSON.stringify({ error: 'Cross-site requests are not allowed' }),
+    { status: 403, headers: { 'Content-Type': 'application/json' } },
+  )
+}
+
+/**
  * Sanitize error for response — hide details in production.
  */
 export function safeErrorMessage(err: unknown): string {

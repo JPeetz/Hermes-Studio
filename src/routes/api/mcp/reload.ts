@@ -1,6 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { isAuthenticated } from '../../../server/auth-middleware'
 import { BEARER_TOKEN, HERMES_API } from '../../../server/gateway-capabilities'
+import {
+  getClientIp,
+  rateLimit,
+  rateLimitResponse,
+  rejectCrossSiteMutation,
+} from '../../../server/rate-limit'
 
 type AuthResult = Response | true
 
@@ -14,6 +20,14 @@ export const Route = createFileRoute('/api/mcp/reload')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+        // Rate limited: triggers an MCP reload on the agent.
+        const ip = getClientIp(request)
+        if (!rateLimit(`mcp-reload:${ip}`, 10, 60_000)) {
+          return rateLimitResponse()
+        }
+
         const authResult = isAuthenticated(request) as AuthResult
         if (authResult !== true) return authResult
 

@@ -9,6 +9,7 @@ import path from 'node:path'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
+import { rejectCrossSiteMutation } from '../../../server/rate-limit'
 
 const SETTINGS_PATH = path.join(
   os.homedir(),
@@ -60,6 +61,9 @@ export const Route = createFileRoute('/api/skills/settings')({
       },
 
       PATCH: async ({ request }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         if (!isAuthenticated(request)) {
           return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
         }

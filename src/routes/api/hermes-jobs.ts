@@ -10,6 +10,7 @@ import {
   getCapabilities,
 } from '../../server/gateway-capabilities'
 import { createCapabilityUnavailablePayload } from '@/lib/feature-gates'
+import { rejectCrossSiteMutation } from '../../server/rate-limit'
 
 export const Route = createFileRoute('/api/hermes-jobs')({
   server: {
@@ -41,6 +42,9 @@ export const Route = createFileRoute('/api/hermes-jobs')({
         })
       },
       POST: async ({ request }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         if (!isAuthenticated(request)) {
           return new Response(JSON.stringify({ error: 'Unauthorized' }), {
             status: 401,

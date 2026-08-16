@@ -4,6 +4,7 @@ import path from 'node:path'
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { z } from 'zod'
+import { rejectCrossSiteMutation } from '../../server/rate-limit'
 
 const BodySchema = z.object({
   provider: z.string(),
@@ -42,6 +43,9 @@ export const Route = createFileRoute('/api/oauth/poll-token')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         let body: unknown
         try {
           body = await request.json()

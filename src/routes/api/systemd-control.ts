@@ -12,6 +12,12 @@ import { existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { isAuthenticated } from '../../server/auth-middleware'
+import {
+  getClientIp,
+  rateLimit,
+  rateLimitResponse,
+  rejectCrossSiteMutation,
+} from '../../server/rate-limit'
 
 const execFileAsync = promisify(execFile)
 
@@ -69,6 +75,14 @@ export const Route = createFileRoute('/api/systemd-control')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+        // Rate limited: installs/starts/stops a user systemd unit.
+        const ip = getClientIp(request)
+        if (!rateLimit(`systemd:${ip}`, 10, 60_000)) {
+          return rateLimitResponse()
+        }
+
         if (!isAuthenticated(request)) {
           return Response.json({ ok: false }, { status: 401 })
         }

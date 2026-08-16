@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { HERMES_API } from '../../../server/gateway-capabilities'
 import { isAuthenticated } from '../../../server/auth-middleware'
+import { rejectCrossSiteMutation } from '../../../server/rate-limit'
 
 async function proxyRequest(request: Request, splat: string) {
   const incomingUrl = new URL(request.url)
@@ -46,6 +47,9 @@ export const Route = createFileRoute('/api/hermes-proxy/$')({
         return proxyRequest(request, params._splat || '')
       },
       POST: async ({ request, params }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         if (!isAuthenticated(request)) {
           return new Response(
             JSON.stringify({ ok: false, error: 'Unauthorized' }),
@@ -55,6 +59,9 @@ export const Route = createFileRoute('/api/hermes-proxy/$')({
         return proxyRequest(request, params._splat || '')
       },
       PATCH: async ({ request, params }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         if (!isAuthenticated(request)) {
           return new Response(
             JSON.stringify({ ok: false, error: 'Unauthorized' }),
@@ -64,6 +71,9 @@ export const Route = createFileRoute('/api/hermes-proxy/$')({
         return proxyRequest(request, params._splat || '')
       },
       DELETE: async ({ request, params }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         if (!isAuthenticated(request)) {
           return new Response(
             JSON.stringify({ ok: false, error: 'Unauthorized' }),

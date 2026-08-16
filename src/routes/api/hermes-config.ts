@@ -9,6 +9,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import YAML from 'yaml'
 import { isAuthenticated } from '../../server/auth-middleware'
 import { ensureGatewayProbed } from '../../server/gateway-capabilities'
+import { rejectCrossSiteMutation } from '../../server/rate-limit'
 
 type AuthResult = Response | true
 
@@ -217,6 +218,10 @@ export const Route = createFileRoute('/api/hermes-config')({
       },
 
       PATCH: async ({ request }) => {
+        const csrf = rejectCrossSiteMutation(request)
+
+        if (csrf) return csrf
+
         const authResult = isAuthenticated(request) as AuthResult
         if (authResult !== true) return authResult
         await ensureGatewayProbed()

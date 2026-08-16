@@ -9,6 +9,7 @@ import {
   ensureGatewayProbed,
   getCapabilities,
 } from '../../server/gateway-capabilities'
+import { rejectCrossSiteMutation } from '../../server/rate-limit'
 
 export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
   server: {
@@ -41,6 +42,9 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
         })
       },
       POST: async ({ request, params }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         if (!isAuthenticated(request)) {
           return new Response(JSON.stringify({ error: 'Unauthorized' }), {
             status: 401,
@@ -72,6 +76,9 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
         })
       },
       PATCH: async ({ request, params }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         if (!isAuthenticated(request)) {
           return new Response(JSON.stringify({ error: 'Unauthorized' }), {
             status: 401,
@@ -98,6 +105,9 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
         })
       },
       DELETE: async ({ request, params }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+
         if (!isAuthenticated(request)) {
           return new Response(JSON.stringify({ error: 'Unauthorized' }), {
             status: 401,

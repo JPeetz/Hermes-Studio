@@ -11,6 +11,12 @@ import {
   ensureGatewayProbed,
   getCapabilities,
 } from '../../../server/gateway-capabilities'
+import {
+  getClientIp,
+  rateLimit,
+  rateLimitResponse,
+  rejectCrossSiteMutation,
+} from '../../../server/rate-limit'
 
 const execFileAsync = promisify(execFile)
 
@@ -155,6 +161,14 @@ export const Route = createFileRoute('/api/skills/install')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const csrf = rejectCrossSiteMutation(request)
+        if (csrf) return csrf
+        // Rate limited: downloads from GitHub and writes skill files to disk.
+        const ip = getClientIp(request)
+        if (!rateLimit(`skill-install:${ip}`, 10, 60_000)) {
+          return rateLimitResponse()
+        }
+
         if (!isAuthenticated(request)) {
           return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
         }
