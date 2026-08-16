@@ -1,13 +1,30 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { isAuthenticated } from '../../server/auth-middleware'
 import {
   ensureBusStarted,
   subscribeToChatEvents,
 } from '../../server/chat-event-bus'
 
+/**
+ * Global SSE stream.
+ *
+ * This subscribes with no session key, so it receives every event on the bus —
+ * including task events, which task-store publishes under the shared 'all'
+ * session key with the task id and title in the payload. Without an auth check
+ * it streamed those to any unauthenticated caller. /api/chat-events,
+ * /api/events/replay and /api/audit all already guard; this one was missed.
+ */
 export const Route = createFileRoute('/api/events')({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        if (!isAuthenticated(request)) {
+          return new Response(
+            JSON.stringify({ ok: false, error: 'Unauthorized' }),
+            { status: 401, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
+
         await ensureBusStarted()
 
         const encoder = new TextEncoder()
