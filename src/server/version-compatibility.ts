@@ -23,7 +23,9 @@ const CACHE_TTL_MS = 60_000 // Cache version for 1 minute
  * Tries multiple endpoints for compatibility with different versions.
  */
 async function fetchVersionInfo(): Promise<VersionInfo | null> {
-  const authHeaders = BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
+  const authHeaders: Record<string, string> = BEARER_TOKEN
+    ? { Authorization: `Bearer ${BEARER_TOKEN}` }
+    : {}
 
   // Try different version endpoints for compatibility
   const endpoints = [
