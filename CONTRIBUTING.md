@@ -6,6 +6,11 @@ Thanks for your interest in contributing! Here's how to get started.
 
 1. Fork the repo and clone your fork
 2. Install dependencies: `pnpm install`
+   - pnpm is the only supported package manager (pinned via `packageManager` in
+     `package.json`; `pnpm-lock.yaml` is the only lockfile). Don't use
+     `npm install` — it ignores `pnpm.onlyBuiltDependencies`, which is what
+     allows better-sqlite3's native build to run, and it produces an
+     out-of-sync `package-lock.json`.
 3. Set up environment:
    ```bash
    cp .env.example .env

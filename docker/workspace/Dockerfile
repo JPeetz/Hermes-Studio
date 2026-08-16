@@ -1,6 +1,12 @@
 FROM node:22-slim
 
-RUN npm install -g pnpm
+# Pin the pnpm major — see the note in the root Dockerfile. The glibc prebuild
+# is what keeps better-sqlite3 green here, so also carry the toolchain in case
+# the prebuild download is unavailable.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 make g++ \
+  && rm -rf /var/lib/apt/lists/* \
+  && npm install -g pnpm@10
 
 WORKDIR /app
 

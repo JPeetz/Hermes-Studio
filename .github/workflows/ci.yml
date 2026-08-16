@@ -18,10 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No `version:` here on purpose — the pnpm version comes from
+      # package.json's `packageManager` field, so CI and Docker can't drift.
+      # Specifying both makes action-setup fail with "Multiple versions of
+      # pnpm specified".
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -56,10 +58,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No `version:` here on purpose — the pnpm version comes from
+      # package.json's `packageManager` field, so CI and Docker can't drift.
+      # Specifying both makes action-setup fail with "Multiple versions of
+      # pnpm specified".
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

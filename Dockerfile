@@ -4,8 +4,16 @@ WORKDIR /app
 
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
+# better-sqlite3 ships no musl prebuild, so on alpine it always falls back to
+# building from source with node-gyp. Without these the install fails.
+RUN apk add --no-cache python3 make g++
+
 COPY package.json pnpm-lock.yaml .npmrc ./
-RUN npm install -g pnpm && pnpm install --no-frozen-lockfile
+# Pin the pnpm major: package.json's `pnpm.onlyBuiltDependencies` is what lets
+# better-sqlite3 run its build script, and an unpinned `npm install -g pnpm`
+# would silently reintroduce ERR_PNPM_IGNORED_BUILDS (issue #11) the next time
+# pnpm changes how those settings are read.
+RUN npm install -g pnpm@10 && pnpm install --no-frozen-lockfile
 
 COPY . .
 RUN pnpm build
