@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { LocalePreference } from '@/i18n'
 import { getTheme, setTheme } from '@/lib/theme'
+import { DEFAULT_LOCALE_PREFERENCE } from '@/i18n'
 
 export type SettingsThemeMode = 'system' | 'dark'
 export type AccentColor = 'orange' | 'purple' | 'blue' | 'green'
@@ -11,6 +13,8 @@ export type StudioSettings = {
   /** API_SERVER_KEY for non-loopback Hermes instances (v0.9.0) */
   hermesApiKey: string
   theme: SettingsThemeMode
+  /** UI language. 'auto' follows the browser's Accept-Language. */
+  locale: LocalePreference
   accentColor: AccentColor
   editorFontSize: number
   editorWordWrap: boolean
@@ -36,6 +40,7 @@ export const defaultStudioSettings: StudioSettings = {
   hermesToken: '',
   hermesApiKey: '',
   theme: 'system',
+  locale: DEFAULT_LOCALE_PREFERENCE,
   accentColor: 'blue',
   editorFontSize: 13,
   editorWordWrap: true,

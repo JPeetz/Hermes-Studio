@@ -1,7 +1,7 @@
 {
   "name": "hermes-studio",
   "version": "1.20.0",
-  "description": "A full-featured web UI for Hermes Agent — chat, memory, skills, terminal, approvals and multi-agent orchestration in your browser.",
+  "description": "A full-featured web UI for Hermes Agent \u2014 chat, memory, skills, terminal, approvals and multi-agent orchestration in your browser.",
   "author": "JPeetz (https://github.com/JPeetz)",
   "license": "MIT",
   "private": true,
@@ -37,6 +37,7 @@
     "better-sqlite3": "^12.8.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "i18next": "^26.3.6",
     "ioredis": "^5.10.1",
     "marked": "^17.0.1",
     "motion": "^12.29.2",
@@ -45,6 +46,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-i18next": "^17.0.11",
     "react-joyride": "^2.9.3",
     "react-markdown": "^10.1.0",
     "recharts": "^3.7.0",
@@ -109,6 +111,10 @@
     "url": "https://github.com/JPeetz/Hermes-Studio.git"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["better-sqlite3", "esbuild", "unrs-resolver"]
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild",
+      "unrs-resolver"
+    ]
   }
 }

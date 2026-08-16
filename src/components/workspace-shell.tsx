@@ -19,6 +19,7 @@ import type { SessionMeta } from '@/screens/chat/types'
 import type { AuthStatus } from '@/lib/hermes-auth'
 import { cn } from '@/lib/utils'
 import { ConnectionStartupScreen } from '@/components/connection-startup-screen'
+import { LocaleSync } from '@/components/locale-sync'
 import { ChatSidebar } from '@/screens/chat/components/chat-sidebar'
 import { chatQueryKeys } from '@/screens/chat/chat-queries'
 import { useWorkspaceStore } from '@/stores/workspace-store'
@@ -257,7 +258,12 @@ export function WorkspaceShell() {
 
   // Show login screen if auth is required and not authenticated
   if (authState.authRequired && !authState.authenticated) {
-    return <LoginScreen />
+    return (
+      <>
+        <LocaleSync />
+        <LoginScreen />
+      </>
+    )
   }
 
   const shellStyle: React.CSSProperties & Record<'--titlebar-h', string> = {
@@ -268,6 +274,7 @@ export function WorkspaceShell() {
 
   return (
     <>
+      <LocaleSync />
       <div
         className="relative overflow-hidden theme-bg theme-text flex flex-col"
         style={shellStyle}
