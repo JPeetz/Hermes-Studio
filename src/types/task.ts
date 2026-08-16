@@ -13,12 +13,15 @@ export interface HermesTask {
   column: TaskColumn
   priority: TaskPriority
   assignee: string | null
-  tags: string[]
+  tags: Array<string>
   dueDate: string | null
   position: number
   sourceType: TaskSourceType
   sourceId: string | null
   createdBy: string
+  /** Optional Hermes profile this task belongs to (Issue #8 Phase 2) —
+   *  regular admins see tasks of profiles bound to their account. */
+  profileId?: string | null
   createdAt: number
   updatedAt: number
 }
@@ -29,11 +32,12 @@ export interface CreateTaskInput {
   column?: TaskColumn
   priority?: TaskPriority
   assignee?: string | null
-  tags?: string[]
+  tags?: Array<string>
   dueDate?: string | null
   sourceType?: TaskSourceType
   sourceId?: string | null
   createdBy?: string
+  profileId?: string | null
 }
 
 export interface UpdateTaskInput {
@@ -42,12 +46,17 @@ export interface UpdateTaskInput {
   column?: TaskColumn
   priority?: TaskPriority
   assignee?: string | null
-  tags?: string[]
+  tags?: Array<string>
   dueDate?: string | null
   position?: number
+  /** Re-bind (or unbind, with null) the task's profile — Issue #8 Phase 2d.
+   *  A task could previously only be bound at creation, so a mis-filed task
+   *  was stuck in the wrong profile forever. The PATCH route validates the
+   *  caller can access the target profile, same rule as create. */
+  profileId?: string | null
 }
 
-export const TASK_COLUMNS: readonly TaskColumn[] = ['backlog', 'todo', 'in_progress', 'review', 'done'] as const
+export const TASK_COLUMNS: ReadonlyArray<TaskColumn> = ['backlog', 'todo', 'in_progress', 'review', 'done'] as const
 
 export const TASK_COLUMN_LABELS: Record<TaskColumn, string> = {
   backlog: 'Backlog',

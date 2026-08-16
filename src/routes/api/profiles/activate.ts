@@ -1,6 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
-import { isAuthenticated } from '../../../server/auth-middleware'
+import {
+  getUserIdFromRequest,
+  isAuthenticated,
+} from '../../../server/auth-middleware'
+import { canAccessProfileScoped } from '../../../server/user-profiles'
 import { setActiveProfile } from '../../../server/profiles-browser'
 import { requireJsonContentType } from '../../../server/rate-limit'
 
@@ -15,6 +19,11 @@ export const Route = createFileRoute('/api/profiles/activate')({
         if (csrfCheck) return csrfCheck
         try {
           const body = (await request.json()) as { name?: string }
+          if (!canAccessProfileScoped(getUserIdFromRequest(request), (body.name || '').trim())) {
+            // 404, not 403 — matches the task routes, so profile names of
+            // other accounts are not enumerable (Issue #8).
+            return json({ error: 'Profile not found' }, { status: 404 })
+          }
           setActiveProfile(body.name || '')
           return json({ ok: true })
         } catch (error) {

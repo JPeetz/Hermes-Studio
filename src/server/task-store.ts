@@ -8,14 +8,14 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { publishChatEvent } from './chat-event-bus'
 import type {
-  HermesTask,
   CreateTaskInput,
-  UpdateTaskInput,
+  HermesTask,
   TaskColumn,
   TaskSourceType,
+  UpdateTaskInput,
 } from '../types/task'
-import { publishChatEvent } from './chat-event-bus'
 
 const DATA_DIR = join(process.cwd(), '.runtime')
 const TASKS_FILE = join(DATA_DIR, 'tasks.json')
@@ -59,7 +59,7 @@ function scheduleSave(): void {
 
 loadFromDisk()
 
-export function listTasks(filter?: TaskFilter): HermesTask[] {
+export function listTasks(filter?: TaskFilter): Array<HermesTask> {
   let tasks = Object.values(store.tasks)
   if (filter?.column) tasks = tasks.filter((t) => t.column === filter.column)
   if (filter?.assignee) tasks = tasks.filter((t) => t.assignee === filter.assignee)
@@ -88,12 +88,22 @@ export function createTask(input: CreateTaskInput): HermesTask {
     sourceType: input.sourceType ?? 'manual',
     sourceId: input.sourceId ?? null,
     createdBy: input.createdBy ?? 'user',
+    profileId: input.profileId ?? null,
     createdAt: now,
     updatedAt: now,
   }
   store.tasks[task.id] = task
   saveToDisk()
-  publishChatEvent('task.created', { sessionKey: 'all', taskId: task.id, title: task.title, sourceType: task.sourceType })
+  // createdBy/profileId ride along so role-aware event surfaces can filter
+  // task events per user without a store lookup (Issue #8 Phase 2).
+  publishChatEvent('task.created', {
+    sessionKey: 'all',
+    taskId: task.id,
+    title: task.title,
+    sourceType: task.sourceType,
+    createdBy: task.createdBy,
+    profileId: task.profileId ?? null,
+  })
   return task
 }
 
@@ -108,6 +118,30 @@ export function updateTask(taskId: string, updates: UpdateTaskInput): HermesTask
   if (updates.tags !== undefined) task.tags = updates.tags
   if (updates.dueDate !== undefined) task.dueDate = updates.dueDate
   if (updates.position !== undefined) task.position = updates.position
+  if (updates.profileId !== undefined) task.profileId = updates.profileId
+  task.updatedAt = Date.now()
+  scheduleSave()
+  return task
+}
+
+/**
+ * Reassign a task's creator (Issue #8 Phase 2d migration).
+ *
+ * `createdBy` is deliberately not part of UpdateTaskInput — the task routes
+ * always stamp it from the session so it cannot be spoofed. This is the one
+ * sanctioned way to change it, and the caller must supply a predicate saying
+ * which current owners are eligible, so the super-admin migration endpoint
+ * cannot be used to take over a task that already belongs to a real user.
+ */
+export function updateTaskOwner(
+  taskId: string,
+  createdBy: string,
+  isEligible: (currentOwner: string) => boolean,
+): HermesTask | null {
+  const task = store.tasks[taskId]
+  if (!task) return null
+  if (!isEligible(task.createdBy)) return null
+  task.createdBy = createdBy
   task.updatedAt = Date.now()
   scheduleSave()
   return task
@@ -116,15 +150,28 @@ export function updateTask(taskId: string, updates: UpdateTaskInput): HermesTask
 export function moveTask(taskId: string, column: TaskColumn): HermesTask | null {
   const result = updateTask(taskId, { column })
   if (result) {
-    publishChatEvent('task.moved', { sessionKey: 'all', taskId, column })
+    publishChatEvent('task.moved', {
+      sessionKey: 'all',
+      taskId,
+      column,
+      createdBy: result.createdBy,
+      profileId: result.profileId ?? null,
+    })
   }
   return result
 }
 
 export function deleteTask(taskId: string): boolean {
-  if (!store.tasks[taskId]) return false
+  const task = store.tasks[taskId]
+  if (!task) return false
   delete store.tasks[taskId]
   saveToDisk()
-  publishChatEvent('task.deleted', { sessionKey: 'all', taskId })
+  // The task is gone — carry its last ownership so filters still apply.
+  publishChatEvent('task.deleted', {
+    sessionKey: 'all',
+    taskId,
+    createdBy: task.createdBy,
+    profileId: task.profileId ?? null,
+  })
   return true
 }

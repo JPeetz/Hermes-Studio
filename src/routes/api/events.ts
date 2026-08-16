@@ -1,13 +1,36 @@
 import { createFileRoute } from '@tanstack/react-router'
 import {
+  getUserIdFromRequest,
+  isAuthenticated,
+} from '../../server/auth-middleware'
+import {
   ensureBusStarted,
   subscribeToChatEvents,
 } from '../../server/chat-event-bus'
+import { canSeeTaskEvent } from '../../server/user-profiles'
 
+/**
+ * Global SSE stream for the chat screen.
+ *
+ * This subscribes with no session key, so it receives every event on the bus —
+ * including task events, which are published under the shared 'all' key. It
+ * therefore needs the same two guards as /api/chat-events: authentication, and
+ * a per-user filter on task events (Issue #8 Phase 2). Without them this route
+ * streamed every user's task activity to any unauthenticated caller.
+ */
 export const Route = createFileRoute('/api/events')({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        if (!isAuthenticated(request)) {
+          return new Response(
+            JSON.stringify({ ok: false, error: 'Unauthorized' }),
+            { status: 401, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
+
+        const userId = getUserIdFromRequest(request)
+
         await ensureBusStarted()
 
         const encoder = new TextEncoder()
@@ -25,6 +48,7 @@ export const Route = createFileRoute('/api/events')({
 
             // Subscribe to chat event bus
             unsubscribe = subscribeToChatEvents((event) => {
+              if (!canSeeTaskEvent(userId, event.event, event.data)) return
               try {
                 controller.enqueue(
                   encoder.encode(

@@ -1,6 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
-import { isAuthenticated } from '../../../server/auth-middleware'
+import {
+  getUserIdFromRequest,
+  isAuthenticated,
+} from '../../../server/auth-middleware'
+import { canAccessProfileScoped } from '../../../server/user-profiles'
 import { renameProfile } from '../../../server/profiles-browser'
 import { requireJsonContentType } from '../../../server/rate-limit'
 
@@ -17,6 +21,11 @@ export const Route = createFileRoute('/api/profiles/rename')({
           const body = (await request.json()) as {
             oldName?: string
             newName?: string
+          }
+          if (!canAccessProfileScoped(getUserIdFromRequest(request), (body.oldName || '').trim())) {
+            // 404, not 403 — matches the task routes, so profile names of
+            // other accounts are not enumerable (Issue #8).
+            return json({ error: 'Profile not found' }, { status: 404 })
           }
           return json({
             ok: true,

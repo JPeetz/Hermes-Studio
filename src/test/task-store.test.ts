@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/server/chat-event-bus', () => ({
   publishChatEvent: vi.fn(),
@@ -108,5 +108,50 @@ describe('task-store', () => {
   it('getTask() returns null for unknown id', async () => {
     const { getTask } = await getStore()
     expect(getTask('unknown')).toBeNull()
+  })
+
+  // ── Issue #8 Phase 2d ────────────────────────────────────────────────────
+
+  it('updateTask() can re-bind and unbind profileId', async () => {
+    const { createTask, updateTask } = await getStore()
+    const task = createTask({ title: 'Bound', profileId: 'alpha' })
+    expect(task.profileId).toBe('alpha')
+
+    // A task could previously only be bound at creation, so a mis-filed task
+    // was stuck in the wrong profile forever.
+    expect(updateTask(task.id, { profileId: 'beta' })?.profileId).toBe('beta')
+    expect(updateTask(task.id, { profileId: null })?.profileId).toBeNull()
+  })
+
+  it('updateTask() leaves profileId alone when it is not in the patch', async () => {
+    const { createTask, updateTask } = await getStore()
+    const task = createTask({ title: 'Bound', profileId: 'alpha' })
+    expect(updateTask(task.id, { title: 'Renamed' })?.profileId).toBe('alpha')
+  })
+
+  it('updateTaskOwner() reassigns a task whose owner is eligible', async () => {
+    const { createTask, updateTaskOwner } = await getStore()
+    // 'user' is the pre-identity placeholder the store still defaults to.
+    const task = createTask({ title: 'Orphan' })
+    expect(task.createdBy).toBe('user')
+
+    const moved = updateTaskOwner(task.id, 'alice', (owner) => owner === 'user')
+    expect(moved?.createdBy).toBe('alice')
+  })
+
+  it('updateTaskOwner() refuses a task that already belongs to a real user', async () => {
+    const { createTask, getTask, updateTaskOwner } = await getStore()
+    const task = createTask({ title: 'Owned', createdBy: 'bob' })
+
+    // Without the eligibility predicate the migration endpoint would be a way
+    // for a super admin to quietly take over another user's tasks.
+    const result = updateTaskOwner(task.id, 'alice', (owner) => owner === 'user')
+    expect(result).toBeNull()
+    expect(getTask(task.id)?.createdBy).toBe('bob')
+  })
+
+  it('updateTaskOwner() returns null for an unknown task', async () => {
+    const { updateTaskOwner } = await getStore()
+    expect(updateTaskOwner('nope', 'alice', () => true)).toBeNull()
   })
 })

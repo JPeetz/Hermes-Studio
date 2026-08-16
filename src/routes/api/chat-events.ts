@@ -1,10 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { isAuthenticated } from '../../server/auth-middleware'
+import {
+  getUserIdFromRequest,
+  isAuthenticated,
+} from '../../server/auth-middleware'
 import {
   ensureBusStarted,
   subscribeToChatEvents,
 } from '../../server/chat-event-bus'
 import { getEventsSince } from '../../server/event-store'
+import { canSeeTaskEvent } from '../../server/user-profiles'
 
 /**
  * SSE endpoint for chat events.
@@ -34,6 +38,11 @@ export const Route = createFileRoute('/api/chat-events')({
         const sessionKeyParam =
           url.searchParams.get('sessionKey')?.trim() || undefined
 
+        // Task events are published under the shared 'all' session key —
+        // filter them per user so regular admins only see activity on their
+        // own/bound-profile tasks (Issue #8 Phase 2).
+        const userId = getUserIdFromRequest(request)
+
         // Standard SSE reconnect: browser sends Last-Event-ID header
         const lastEventIdHeader = request.headers.get('last-event-id')
         const lastSeq =
@@ -52,11 +61,7 @@ export const Route = createFileRoute('/api/chat-events')({
              * Emit an SSE event, optionally with an id: field for replay.
              * seq === undefined → id: line is omitted (heartbeats, connected).
              */
-            const sendEvent = (
-              event: string,
-              data: unknown,
-              seq?: number,
-            ) => {
+            const sendEvent = (event: string, data: unknown, seq?: number) => {
               if (streamClosed) return
               try {
                 let payload = ''
@@ -94,7 +99,9 @@ export const Route = createFileRoute('/api/chat-events')({
               // sessionKey to query, replay stored events before going live.
               let replayedCount = 0
               if (lastSeq > 0 && sessionKeyParam) {
-                const missed = getEventsSince(sessionKeyParam, lastSeq)
+                const missed = getEventsSince(sessionKeyParam, lastSeq).filter(
+                  (ev) => canSeeTaskEvent(userId, ev.eventType, ev.payload),
+                )
                 replayedCount = missed.length
                 for (const ev of missed) {
                   sendEvent(ev.eventType, ev.payload, ev.seq)
@@ -111,6 +118,7 @@ export const Route = createFileRoute('/api/chat-events')({
               // ── Subscribe to live events ──────────────────────────────────
               unsubscribe = subscribeToChatEvents((evt) => {
                 if (streamClosed) return
+                if (!canSeeTaskEvent(userId, evt.event, evt.data)) return
                 // Pass the seq from the event store so the browser can track
                 // its Last-Event-ID for future reconnects.
                 sendEvent(evt.event, evt.data, evt.seq)

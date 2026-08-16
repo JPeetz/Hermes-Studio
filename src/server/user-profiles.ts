@@ -3,13 +3,14 @@
  * Tracks user roles (super_admin vs regular_admin) and profile bindings.
  */
 import { getRedisClient, getRedisClientSync } from './redis-client'
+import { isMultiUserMode } from './user-credentials'
 
 export type UserRole = 'super_admin' | 'regular_admin'
 
 export interface UserProfile {
   userId: string
   role: UserRole
-  profileIds: string[] // Profiles this user can access
+  profileIds: Array<string> // Profiles this user can access
 }
 
 const USERS_KEY = 'hermes:studio:users'
@@ -111,10 +112,101 @@ export function canAccessProfile(userId: string, profileId: string): boolean {
 }
 
 /**
- * Get all profiles a user can access.
+ * Get all profiles a user can access. `null` means unrestricted (super
+ * admin) — callers must treat null as "all", never as "none". The previous
+ * `[]` sentinel read as "no access" to naive callers and would have
+ * silently inverted the rule (Issue #8 Phase 2).
  */
-export function getAccessibleProfiles(userId: string): string[] {
+export function getAccessibleProfiles(userId: string): Array<string> | null {
   const profile = getUserProfile(userId)
-  if (profile.role === 'super_admin') return [] // null = all profiles
+  if (profile.role === 'super_admin') return null
   return profile.profileIds
+}
+
+/**
+ * Identity-aware profile check for the /api/profiles/* routes, with the same
+ * open/closed rule as canAccessTask(): single-user installs keep the legacy
+ * behaviour (everything visible), multi-user installs fail closed.
+ *
+ * The issue's expected behaviour is "regular administrators should only see
+ * profiles bound to their account", but nothing enforced it: every
+ * /api/profiles route checked only isAuthenticated, and getAccessibleProfiles
+ * had no production callers at all. Task-level filtering was correct while any
+ * regular admin could still list, read, rename, delete and activate every
+ * profile in the install.
+ */
+export function canAccessProfileScoped(
+  userId: string | null | undefined,
+  profileId: string,
+): boolean {
+  if (!userId) return !isMultiUserMode()
+  return canAccessProfile(userId, profileId)
+}
+
+/**
+ * Filter a list of profile names to those the user may see. `null` from
+ * getAccessibleProfiles() means unrestricted — returning `[]` for a super
+ * admin would invert the rule and hide everything from the one account that
+ * is supposed to see all of it.
+ */
+export function filterAccessibleProfiles<T extends { name: string }>(
+  userId: string | null | undefined,
+  profiles: Array<T>,
+): Array<T> {
+  if (!userId) return isMultiUserMode() ? [] : profiles
+  const allowed = getAccessibleProfiles(userId)
+  if (allowed === null) return profiles
+  const allowedSet = new Set(allowed)
+  return profiles.filter((p) => allowedSet.has(p.name))
+}
+
+/**
+ * Check if a user may act on a task. Super admins may act on any task;
+ * regular admins on tasks they created or tasks belonging to a profile
+ * bound to their account (Issue #8 Phase 2).
+ *
+ * A missing userId means:
+ *  - single-user mode: no per-user filtering — allow (legacy behavior);
+ *  - multi-user mode (HERMES_USERS set): DENY. Identity should always be
+ *    present here; failing open would silently reopen the all-tasks leak.
+ */
+export function canAccessTask(
+  userId: string | null | undefined,
+  task: { createdBy?: string | null; profileId?: string | null },
+): boolean {
+  if (!userId) return !isMultiUserMode()
+  const profile = getUserProfile(userId)
+  if (profile.role === 'super_admin') return true
+  if (task.createdBy === userId) return true
+  if (task.profileId && profile.profileIds.includes(task.profileId)) return true
+  return false
+}
+
+/**
+ * Whether a user may see a task event (task.created/moved/deleted) on the
+ * event surfaces (/api/chat-events, /api/events/replay, /api/audit). Task
+ * events are published under the shared session key 'all', so without this
+ * check any authenticated user would watch every user's task activity
+ * (Issue #8 Phase 2).
+ *
+ * Payloads carry createdBy/profileId since Phase 2; older stored events
+ * don't — those are visible only to super admins / single-user mode
+ * (fail closed for regular admins).
+ */
+export function canSeeTaskEvent(
+  userId: string | null | undefined,
+  eventType: string,
+  payload: unknown,
+): boolean {
+  if (!eventType.startsWith('task.')) return true
+  if (!userId) return !isMultiUserMode()
+  const profile = getUserProfile(userId)
+  if (profile.role === 'super_admin') return true
+  if (!payload || typeof payload !== 'object') return false
+  const record = payload as { createdBy?: unknown; profileId?: unknown }
+  if (typeof record.createdBy !== 'string') return false
+  return canAccessTask(userId, {
+    createdBy: record.createdBy,
+    profileId: typeof record.profileId === 'string' ? record.profileId : null,
+  })
 }

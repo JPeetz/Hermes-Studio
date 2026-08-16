@@ -106,6 +106,8 @@ import { Route as ApiHermesJobsJobIdRouteImport } from './routes/api/hermes-jobs
 import { Route as ApiEventsReplayRouteImport } from './routes/api/events/replay'
 import { Route as ApiCrewsCrewIdRouteImport } from './routes/api/crews/$crewId'
 import { Route as ApiAgentsAgentIdRouteImport } from './routes/api/agents/$agentId'
+import { Route as ApiAdminUsersRouteImport } from './routes/api/admin/users'
+import { Route as ApiAdminOrphanTasksRouteImport } from './routes/api/admin/orphan-tasks'
 import { Route as ApiCrewsTemplatesIndexRouteImport } from './routes/api/crews/templates/index'
 import { Route as ApiTasksTaskIdMoveRouteImport } from './routes/api/tasks/$taskId.move'
 import { Route as ApiSessionsSessionKeyStatusRouteImport } from './routes/api/sessions/$sessionKey.status'
@@ -604,6 +606,16 @@ const ApiAgentsAgentIdRoute = ApiAgentsAgentIdRouteImport.update({
   path: '/api/agents/$agentId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminUsersRoute = ApiAdminUsersRouteImport.update({
+  id: '/api/admin/users',
+  path: '/api/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminOrphanTasksRoute = ApiAdminOrphanTasksRouteImport.update({
+  id: '/api/admin/orphan-tasks',
+  path: '/api/admin/orphan-tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCrewsTemplatesIndexRoute = ApiCrewsTemplatesIndexRouteImport.update({
   id: '/api/crews/templates/',
   path: '/api/crews/templates/',
@@ -734,6 +746,8 @@ export interface FileRoutesByFullPath {
   '/chat/': typeof ChatIndexRoute
   '/crews/': typeof CrewsIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/api/admin/orphan-tasks': typeof ApiAdminOrphanTasksRoute
+  '/api/admin/users': typeof ApiAdminUsersRoute
   '/api/agents/$agentId': typeof ApiAgentsAgentIdRoute
   '/api/crews/$crewId': typeof ApiCrewsCrewIdRouteWithChildren
   '/api/events/replay': typeof ApiEventsReplayRoute
@@ -844,6 +858,8 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatIndexRoute
   '/crews': typeof CrewsIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/api/admin/orphan-tasks': typeof ApiAdminOrphanTasksRoute
+  '/api/admin/users': typeof ApiAdminUsersRoute
   '/api/agents/$agentId': typeof ApiAgentsAgentIdRoute
   '/api/crews/$crewId': typeof ApiCrewsCrewIdRouteWithChildren
   '/api/events/replay': typeof ApiEventsReplayRoute
@@ -956,6 +972,8 @@ export interface FileRoutesById {
   '/chat/': typeof ChatIndexRoute
   '/crews/': typeof CrewsIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/api/admin/orphan-tasks': typeof ApiAdminOrphanTasksRoute
+  '/api/admin/users': typeof ApiAdminUsersRoute
   '/api/agents/$agentId': typeof ApiAgentsAgentIdRoute
   '/api/crews/$crewId': typeof ApiCrewsCrewIdRouteWithChildren
   '/api/events/replay': typeof ApiEventsReplayRoute
@@ -1069,6 +1087,8 @@ export interface FileRouteTypes {
     | '/chat/'
     | '/crews/'
     | '/settings/'
+    | '/api/admin/orphan-tasks'
+    | '/api/admin/users'
     | '/api/agents/$agentId'
     | '/api/crews/$crewId'
     | '/api/events/replay'
@@ -1179,6 +1199,8 @@ export interface FileRouteTypes {
     | '/chat'
     | '/crews'
     | '/settings'
+    | '/api/admin/orphan-tasks'
+    | '/api/admin/users'
     | '/api/agents/$agentId'
     | '/api/crews/$crewId'
     | '/api/events/replay'
@@ -1290,6 +1312,8 @@ export interface FileRouteTypes {
     | '/chat/'
     | '/crews/'
     | '/settings/'
+    | '/api/admin/orphan-tasks'
+    | '/api/admin/users'
     | '/api/agents/$agentId'
     | '/api/crews/$crewId'
     | '/api/events/replay'
@@ -1399,6 +1423,8 @@ export interface RootRouteChildren {
   CrewsCrewIdRoute: typeof CrewsCrewIdRoute
   ChatIndexRoute: typeof ChatIndexRoute
   CrewsIndexRoute: typeof CrewsIndexRoute
+  ApiAdminOrphanTasksRoute: typeof ApiAdminOrphanTasksRoute
+  ApiAdminUsersRoute: typeof ApiAdminUsersRoute
   ApiAgentsAgentIdRoute: typeof ApiAgentsAgentIdRoute
   ApiCrewsCrewIdRoute: typeof ApiCrewsCrewIdRouteWithChildren
   ApiHermesProxySplatRoute: typeof ApiHermesProxySplatRoute
@@ -2109,6 +2135,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAgentsAgentIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/users': {
+      id: '/api/admin/users'
+      path: '/api/admin/users'
+      fullPath: '/api/admin/users'
+      preLoaderRoute: typeof ApiAdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/orphan-tasks': {
+      id: '/api/admin/orphan-tasks'
+      path: '/api/admin/orphan-tasks'
+      fullPath: '/api/admin/orphan-tasks'
+      preLoaderRoute: typeof ApiAdminOrphanTasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/crews/templates/': {
       id: '/api/crews/templates/'
       path: '/api/crews/templates'
@@ -2391,6 +2431,8 @@ const rootRouteChildren: RootRouteChildren = {
   CrewsCrewIdRoute: CrewsCrewIdRoute,
   ChatIndexRoute: ChatIndexRoute,
   CrewsIndexRoute: CrewsIndexRoute,
+  ApiAdminOrphanTasksRoute: ApiAdminOrphanTasksRoute,
+  ApiAdminUsersRoute: ApiAdminUsersRoute,
   ApiAgentsAgentIdRoute: ApiAgentsAgentIdRoute,
   ApiCrewsCrewIdRoute: ApiCrewsCrewIdRouteWithChildren,
   ApiHermesProxySplatRoute: ApiHermesProxySplatRoute,

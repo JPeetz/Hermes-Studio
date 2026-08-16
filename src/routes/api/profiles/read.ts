@@ -1,6 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
-import { isAuthenticated } from '../../../server/auth-middleware'
+import {
+  getUserIdFromRequest,
+  isAuthenticated,
+} from '../../../server/auth-middleware'
+import { canAccessProfileScoped } from '../../../server/user-profiles'
 import { readProfile } from '../../../server/profiles-browser'
 
 export const Route = createFileRoute('/api/profiles/read')({
@@ -13,6 +17,11 @@ export const Route = createFileRoute('/api/profiles/read')({
         try {
           const url = new URL(request.url)
           const name = (url.searchParams.get('name') || '').trim() || 'default'
+          if (!canAccessProfileScoped(getUserIdFromRequest(request), name)) {
+            // 404, not 403 — matches the task routes, so profile names of
+            // other accounts are not enumerable (Issue #8).
+            return json({ error: 'Profile not found' }, { status: 404 })
+          }
           return json({ profile: readProfile(name) })
         } catch (error) {
           return json(

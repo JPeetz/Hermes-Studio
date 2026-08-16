@@ -11,8 +11,12 @@
  */
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
-import { isAuthenticated } from '../../../server/auth-middleware'
+import {
+  getUserIdFromRequest,
+  isAuthenticated,
+} from '../../../server/auth-middleware'
 import { queryAuditEvents } from '../../../server/event-store'
+import { canSeeTaskEvent } from '../../../server/user-profiles'
 
 const DEFAULT_TYPES = ['tool', 'user_message', 'approval']
 const MAX_LIMIT = 500
@@ -26,11 +30,15 @@ export const Route = createFileRoute('/api/audit/')({
         }
 
         const url = new URL(request.url)
-        const sessionKey = url.searchParams.get('sessionKey')?.trim() || undefined
+        const sessionKey =
+          url.searchParams.get('sessionKey')?.trim() || undefined
 
         const typesParam = url.searchParams.get('types')
         const eventTypes = typesParam
-          ? typesParam.split(',').map((t) => t.trim()).filter(Boolean)
+          ? typesParam
+              .split(',')
+              .map((t) => t.trim())
+              .filter(Boolean)
           : DEFAULT_TYPES
 
         const sinceParam = url.searchParams.get('since')
@@ -38,21 +46,42 @@ export const Route = createFileRoute('/api/audit/')({
         const limitParam = url.searchParams.get('limit') ?? '100'
         const offsetParam = url.searchParams.get('offset') ?? '0'
 
-        const since = sinceParam && /^\d+$/.test(sinceParam) ? parseInt(sinceParam, 10) : undefined
-        const until = untilParam && /^\d+$/.test(untilParam) ? parseInt(untilParam, 10) : undefined
+        const since =
+          sinceParam && /^\d+$/.test(sinceParam)
+            ? parseInt(sinceParam, 10)
+            : undefined
+        const until =
+          untilParam && /^\d+$/.test(untilParam)
+            ? parseInt(untilParam, 10)
+            : undefined
         const limit = Math.min(
           /^\d+$/.test(limitParam) ? parseInt(limitParam, 10) : 100,
           MAX_LIMIT,
         )
         const offset = /^\d+$/.test(offsetParam) ? parseInt(offsetParam, 10) : 0
 
-        const result = queryAuditEvents({ sessionKey, eventTypes, since, until, limit, offset })
+        const result = queryAuditEvents({
+          sessionKey,
+          eventTypes,
+          since,
+          until,
+          limit,
+          offset,
+        })
+
+        // Per-user task-event filtering (Issue #8 Phase 2) — task.* types are
+        // queryable by any authenticated user, so drop foreign task events
+        // for non-super admins. total still reflects the unfiltered count.
+        const userId = getUserIdFromRequest(request)
+        const visibleEvents = result.events.filter((ev) =>
+          canSeeTaskEvent(userId, ev.eventType, ev.payload),
+        )
 
         return json({
           ok: true,
           total: result.total,
           sessions: result.sessions,
-          events: result.events.map((ev) => ({
+          events: visibleEvents.map((ev) => ({
             seq: ev.seq,
             sessionKey: ev.sessionKey,
             runId: ev.runId,

@@ -10,6 +10,7 @@ import {
   Settings02Icon,
   SourceCodeSquareIcon,
   SparklesIcon,
+  UserGroupIcon,
   UserIcon,
   VolumeHighIcon,
 } from '@hugeicons/core-free-icons'
@@ -34,6 +35,7 @@ import { Input } from '@/components/ui/input'
 import { LogoLoader } from '@/components/logo-loader'
 import { BrailleSpinner } from '@/components/ui/braille-spinner'
 import { ThreeDotsSpinner } from '@/components/ui/three-dots-spinner'
+import { UserAdminPanel } from '@/screens/settings/components/user-admin-panel'
 // useWorkspaceStore removed — hamburger eliminated on mobile
 
 export const Route = createFileRoute('/settings/')({
@@ -237,6 +239,7 @@ type SettingsSectionId =
   | 'integrations'
   | 'identity'
   | 'autostart'
+  | 'users'
   | 'advanced'
 
 type SettingsNavItem = {
@@ -258,6 +261,7 @@ const SETTINGS_NAV_ITEMS: Array<SettingsNavItem> = [
   { id: 'integrations', label: 'Integrations' },
   { id: 'identity', label: 'Identity' },
   { id: 'autostart', label: 'Auto-start' },
+  { id: 'users', label: 'Users & Access' },
   { id: 'mcp', label: 'MCP Servers', to: '/settings/mcp' },
 ]
 
@@ -393,6 +397,17 @@ function SettingsRoute() {
           )}
           {activeSection === 'permissions' && (
             <HermesConfigSection activeView="permissions" />
+          )}
+
+          {/* ── Users & Access (Issue #8) ────────────────────────── */}
+          {activeSection === 'users' && (
+            <SettingsSection
+              title="Users & Access"
+              description="Roles, profile bindings, and task ownership."
+              icon={UserGroupIcon}
+            >
+              <UserAdminPanel />
+            </SettingsSection>
           )}
 
           {/* ── Appearance ──────────────────────────────────────── */}

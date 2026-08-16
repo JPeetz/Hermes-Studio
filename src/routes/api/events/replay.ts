@@ -10,8 +10,12 @@
  */
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
-import { isAuthenticated } from '../../../server/auth-middleware'
+import {
+  getUserIdFromRequest,
+  isAuthenticated,
+} from '../../../server/auth-middleware'
 import { getEventsSince, getLatestSeq } from '../../../server/event-store'
+import { canSeeTaskEvent } from '../../../server/user-profiles'
 
 const MAX_LIMIT = 1_000
 
@@ -42,7 +46,13 @@ export const Route = createFileRoute('/api/events/replay')({
           MAX_LIMIT,
         )
 
-        const events = getEventsSince(sessionKey, since, limit)
+        // Per-user task-event filtering (Issue #8 Phase 2): task events live
+        // under the shared 'all' session key, so replaying them unfiltered
+        // dumped every user's task ids/titles to any authenticated caller.
+        const userId = getUserIdFromRequest(request)
+        const events = getEventsSince(sessionKey, since, limit).filter((ev) =>
+          canSeeTaskEvent(userId, ev.eventType, ev.payload),
+        )
         const latestSeq = getLatestSeq(sessionKey)
 
         return json({

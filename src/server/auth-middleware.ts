@@ -1,5 +1,6 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto'
 import { getRedisClient, getRedisClientSync } from './redis-client'
+import { isMultiUserMode } from './user-credentials'
 
 const TOKENS_KEY = 'hermes:studio:tokens'
 const TOKEN_USER_KEY = 'hermes:studio:token:user'
@@ -88,11 +89,16 @@ export function revokeSessionToken(token: string): void {
 }
 
 /**
- * Check if password protection is enabled.
+ * Check if password protection is enabled — either the legacy shared
+ * HERMES_PASSWORD or per-user HERMES_USERS credentials (Issue #8 Phase 2).
+ * Multi-user mode MUST count as protected: it exists to isolate users, so
+ * "no shared password → no auth" would let anyone in with no identity.
  */
 export function isPasswordProtectionEnabled(): boolean {
-  return Boolean(
-    process.env.HERMES_PASSWORD && process.env.HERMES_PASSWORD.length > 0,
+  return (
+    Boolean(
+      process.env.HERMES_PASSWORD && process.env.HERMES_PASSWORD.length > 0,
+    ) || isMultiUserMode()
   )
 }
 

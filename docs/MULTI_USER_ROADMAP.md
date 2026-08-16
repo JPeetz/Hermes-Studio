@@ -1,8 +1,45 @@
 # Multi-User Access Control Roadmap
 
-**Status:** Foundation implemented (Phase 1), full RBAC pending (Phase 2)  
+**Status:** Phase 1 + Phase 2 core implemented (2026-08-13) — see "Phase 2 delivered" below; remaining: management UI, session/chat isolation  
 **Issue:** #8 — Kanban board shows all tasks to all users  
-**Date:** 2026-07-03
+**Date:** 2026-07-03 (updated 2026-08-13)
+
+## Phase 2 delivered (2026-08-13)
+
+- **Per-user identity (2a):** `HERMES_USERS='alice:pw1,bob:pw2'` enables
+  multi-user logins (username + password, `src/server/user-credentials.ts`);
+  `/api/auth` associates the session token with the userId;
+  `HERMES_SUPER_ADMINS='alice'` grants super_admin at login. Multi-user mode
+  counts as password protection even without `HERMES_PASSWORD`, and the
+  legacy shared password is rejected in this mode. Login form gains a
+  username field (driven by `multiUser` from `/api/auth-check`).
+- **Fail-closed defaults:** in multi-user mode, requests with no resolvable
+  identity are denied on `/api/tasks` (list + create) and by
+  `canAccessTask()` — a misconfiguration can no longer silently reopen the
+  all-tasks leak.
+- **Event-surface leak closure (2b):** task events now carry
+  `createdBy`/`profileId` and are filtered per user by `canSeeTaskEvent()` on
+  all four event surfaces — `/api/events`, `/api/chat-events`,
+  `/api/events/replay`, and `/api/audit`. Legacy stored events without
+  ownership are visible only to super admins.
+
+  > `/api/events` was the last one closed. An earlier revision of this document
+  > claimed its auth was "fixed in a separate branch"; that was wrong — no such
+  > branch existed, and the route had been unauthenticated and unfiltered since
+  > the initial release, streaming every user's task activity to any caller. It
+  > is fixed here, and covered by route-level tests so a green suite can no
+  > longer hide it.
+- **Admin surface (2c):** `GET/PATCH /api/admin/users` (super_admin only) —
+  list users from `HERMES_USERS`, set roles, manage profile bindings.
+- **Profile-bound tasks (2d):** tasks accept an optional `profileId`
+  (validated against the creator's bindings); regular admins see tasks they
+  created OR tasks of profiles bound to their account.
+  `getAccessibleProfiles()` now returns `null` for "all" (was a misleading
+  `[]`).
+
+Remaining: user management UI in settings (roles/bindings are API-only),
+extending isolation to sessions/chat (item 4 below), and a migration story
+for orphan tasks (`createdBy: 'user' | 'unknown'` — super admins see them).
 
 ## What's Implemented (Phase 1)
 
