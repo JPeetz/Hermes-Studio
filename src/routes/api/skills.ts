@@ -5,8 +5,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../server/auth-middleware'
 import {
+  HERMES_API,
   ensureGatewayProbed,
+  getAuthHeaders,
   getCapabilities,
+  getCapabilityTarget,
 } from '../../server/gateway-capabilities'
 import { requireJsonContentType } from '../../server/rate-limit'
 
@@ -39,8 +42,6 @@ type SkillSummary = {
   featuredGroup?: string
   security: SecurityRisk
 }
-
-const HERMES_API_URL = process.env.HERMES_API_URL || 'http://127.0.0.1:8642'
 
 const KNOWN_CATEGORIES = [
   'All',
@@ -332,7 +333,18 @@ function normalizeSkill(value: unknown): SkillSummary | null {
 }
 
 async function fetchHermesSkills(): Promise<Array<SkillSummary>> {
-  const response = await fetch(`${HERMES_API_URL}/api/skills`)
+  // Hit whichever server the probe found /api/skills on — the agent's
+  // dashboard backend on v0.19+, the gateway on older agents — with that
+  // server's credentials. This fetch previously went out unauthenticated to a
+  // hardcoded gateway base, bypassing both the discovered key and the 8643
+  // auto-detect (issues #17/#23).
+  const target = getCapabilityTarget('skills') ?? {
+    base: HERMES_API,
+    headers: getAuthHeaders(),
+  }
+  const response = await fetch(`${target.base}/api/skills`, {
+    headers: target.headers,
+  })
   if (!response.ok) {
     const body = await response.text().catch(() => '')
     throw new Error(body || `Hermes skills request failed (${response.status})`)
@@ -343,9 +355,11 @@ async function fetchHermesSkills(): Promise<Array<SkillSummary>> {
     ? payload
     : Array.isArray(asRecord(payload).items)
       ? (asRecord(payload).items as Array<unknown>)
-      : Array.isArray(asRecord(payload).skills)
-        ? (asRecord(payload).skills as Array<unknown>)
-        : []
+      : Array.isArray(asRecord(payload).data)
+        ? (asRecord(payload).data as Array<unknown>)
+        : Array.isArray(asRecord(payload).skills)
+          ? (asRecord(payload).skills as Array<unknown>)
+          : []
 
   const prefs = readLocalPrefs()
   const disabledSet = new Set(prefs.disabled)

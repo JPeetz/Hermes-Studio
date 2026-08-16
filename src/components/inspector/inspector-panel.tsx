@@ -3,7 +3,10 @@ import { create } from 'zustand'
 import { useActivityStore } from './activity-store'
 import type { ActivityEvent } from './activity-store'
 import { getUnavailableReason } from '@/lib/feature-gates'
-import { useFeatureAvailable } from '@/hooks/use-feature-available'
+import {
+  useDashboardStatus,
+  useFeatureAvailable,
+} from '@/hooks/use-feature-available'
 import { cn } from '@/lib/utils'
 
 // ── Store ─────────────────────────────────────────────────────────────────────
@@ -381,6 +384,7 @@ export function InspectorPanel() {
   const isOpen = useInspectorStore((s) => s.isOpen)
   const memoryAvailable = useFeatureAvailable('memory')
   const skillsAvailable = useFeatureAvailable('skills')
+  const dashboardStatus = useDashboardStatus()
   const [activeTab, setActiveTab] = useState<TabId>('activity')
 
   useEffect(() => {
@@ -467,7 +471,7 @@ export function InspectorPanel() {
                     }}
                     title={
                       !available && tab.feature
-                        ? getUnavailableReason(tab.feature)
+                        ? getUnavailableReason(tab.feature, dashboardStatus)
                         : undefined
                     }
                   >

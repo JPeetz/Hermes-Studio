@@ -15,11 +15,20 @@ export type MemorySearchMatch = {
   text: string
 }
 
+/** The only subdirectories the memory browser will surface. */
+const MEMORY_DIRS = ['memory', 'memories'] as const
+
+/**
+ * Depth cap for the memory walk. Memory trees are shallow; the cap exists
+ * because a symlinked directory pointing at an ancestor would otherwise
+ * recurse forever (statSync follows symlinks).
+ */
+const MAX_MEMORY_DEPTH = 8
+
 function isBrowserMemoryPath(relativePath: string): boolean {
   return (
     relativePath === 'MEMORY.md' ||
-    relativePath.startsWith('memory/') ||
-    relativePath.startsWith('memories/')
+    MEMORY_DIRS.some((dir) => relativePath.startsWith(`${dir}/`))
   )
 }
 
@@ -91,7 +100,10 @@ function walkWorkspaceDir(
   entries: Array<MemoryFileMeta>,
   workspaceRoot: string,
   dirPath: string,
+  depth = 0,
 ) {
+  if (depth > MAX_MEMORY_DEPTH) return
+
   let dirEntries: Array<string>
   try {
     dirEntries = fs.readdirSync(dirPath)
@@ -109,7 +121,7 @@ function walkWorkspaceDir(
     }
     if (stats.isDirectory()) {
       if (shouldSkipDirectory(name)) continue
-      walkWorkspaceDir(entries, workspaceRoot, fullPath)
+      walkWorkspaceDir(entries, workspaceRoot, fullPath, depth + 1)
       continue
     }
     pushIfMarkdownFile(entries, workspaceRoot, fullPath)
@@ -129,11 +141,30 @@ function compareMemoryFiles(a: MemoryFileMeta, b: MemoryFileMeta): number {
   return a.path.localeCompare(b.path)
 }
 
+/**
+ * Only `MEMORY.md`, `memory/**` and `memories/**` can pass
+ * isBrowserMemoryPath(), so only those are worth walking.
+ *
+ * This used to walk the entire Hermes home and filter afterwards. On a real
+ * install that home holds skills, LSP binaries and model caches — ~400k files
+ * on the machine this was measured on — each one stat()ed to find markdown in
+ * at most three places, with symlinked skill directories followed along the
+ * way. The Memory panel did not fail, it simply never responded, and because
+ * this runs synchronously it took every request behind it down with it.
+ * Measured 90s+ -> 34ms.
+ */
 export function listMemoryFiles(): Array<MemoryFileMeta> {
   const workspaceRoot = getMemoryWorkspaceRoot()
   const results: Array<MemoryFileMeta> = []
 
-  walkWorkspaceDir(results, workspaceRoot, workspaceRoot)
+  pushIfMarkdownFile(
+    results,
+    workspaceRoot,
+    path.join(workspaceRoot, 'MEMORY.md'),
+  )
+  for (const dir of MEMORY_DIRS) {
+    walkWorkspaceDir(results, workspaceRoot, path.join(workspaceRoot, dir))
+  }
 
   results.sort(compareMemoryFiles)
   return results

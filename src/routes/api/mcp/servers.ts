@@ -5,15 +5,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import YAML from 'yaml'
 import { isAuthenticated } from '../../../server/auth-middleware'
 import { requireJsonContentType } from '../../../server/rate-limit'
-import {
-  BEARER_TOKEN,
-  HERMES_API,
-  ensureGatewayProbed,
-  getCapabilities,
-} from '../../../server/gateway-capabilities'
-import { createCapabilityUnavailablePayload } from '@/lib/feature-gates'
-
-type AuthResult = Response | true
 
 // ─── Local config file I/O (mirrors hermes-config.ts) ────────────────────────
 
@@ -69,10 +60,6 @@ type McpServerRecord = {
   timeout?: number
   connectTimeout?: number
   auth?: unknown
-}
-
-function authHeaders(): Record<string, string> {
-  return BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
 }
 
 function toStringRecord(value: unknown): Record<string, string> | undefined {
@@ -142,48 +129,46 @@ function readServers(payload: unknown): Array<McpServerRecord> {
 export const Route = createFileRoute('/api/mcp/servers')({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        const authResult = isAuthenticated(request) as AuthResult
-        if (authResult !== true) return authResult
-
-        await ensureGatewayProbed()
-        if (!getCapabilities().config) {
-          return Response.json({
-            ...createCapabilityUnavailablePayload('config', {
-              message:
-                'Gateway config API unavailable. You can still draft MCP config snippets locally.',
-            }),
-            servers: [],
-          })
+      GET: ({ request }) => {
+        // isAuthenticated returns a boolean, never a Response. Casting it to
+        // `Response | true` and returning it handed `false` to the router,
+        // which answered an unauthenticated request with a 500 HTTPError
+        // instead of a 401.
+        if (!isAuthenticated(request)) {
+          return Response.json(
+            { ok: false, error: 'Unauthorized' },
+            { status: 401 },
+          )
         }
 
+        // Read the same store PUT writes. This used to fetch the gateway's
+        // /api/config behind a `config` capability gate, which meant two
+        // things were wrong at once: saves went to the local config.yaml while
+        // reads came from the gateway, and on agent v0.19+ — where /api/config
+        // moved off the gateway onto the dashboard backend — the gate blanked
+        // the panel entirely. That is issue #23's symptom in a surface the
+        // issue never enumerated. MCP servers are local configuration, so
+        // there is no capability to gate on.
         try {
-          const response = await fetch(`${HERMES_API}/api/config`, {
-            headers: authHeaders(),
-          })
-
-          if (!response.ok) {
-            return Response.json({
-              servers: [],
-              ok: false,
-              message: `Failed to load MCP servers from gateway config (${response.status}).`,
-            })
-          }
-
-          const payload = (await response.json().catch(() => ({}))) as unknown
-          return Response.json({ ok: true, servers: readServers(payload) })
-        } catch {
+          return Response.json({ ok: true, servers: readServers(readConfig()) })
+        } catch (err) {
           return Response.json({
             servers: [],
             ok: false,
-            message: 'Could not reach Hermes gateway config endpoint.',
+            message: `Failed to read MCP servers from config.yaml: ${
+              err instanceof Error ? err.message : String(err)
+            }`,
           })
         }
       },
 
       PUT: async ({ request }) => {
-        const authResult = isAuthenticated(request) as AuthResult
-        if (authResult !== true) return authResult
+        if (!isAuthenticated(request)) {
+          return Response.json(
+            { ok: false, error: 'Unauthorized' },
+            { status: 401 },
+          )
+        }
         const csrfCheck = requireJsonContentType(request)
         if (csrfCheck) return csrfCheck
 

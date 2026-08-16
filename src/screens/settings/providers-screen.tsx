@@ -12,20 +12,16 @@ import { ProviderIcon } from './components/provider-icon'
 import { ProviderWizard } from './components/provider-wizard'
 import type { ModelCatalogEntry } from '@/lib/model-types'
 import type { ProviderSummaryForEdit } from './components/provider-wizard'
-import BackendUnavailableState from '@/components/backend-unavailable-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from '@/components/ui/toast'
-import { getUnavailableReason } from '@/lib/feature-gates'
-import { useFeatureAvailable } from '@/hooks/use-feature-available'
 import {
   getProviderDisplayName,
   getProviderInfo,
   normalizeProviderId,
 } from '@/lib/provider-catalog'
-import { getConfig, patchConfig } from '@/server/hermes-api'
 import { cn } from '@/lib/utils'
 
 /**
@@ -115,21 +111,42 @@ type SaveSettingPayload = {
   label: string
 }
 
-const HERMES_API_URL = process.env.HERMES_API_URL || 'http://127.0.0.1:8642'
+/**
+ * Config I/O goes through Studio's own server routes, never
+ * `@/server/hermes-api`.
+ *
+ * This is a client component: importing getConfig/patchConfig here shipped the
+ * server client into the browser bundle, which then called the gateway's
+ * /api/config cross-origin with no credentials — and v0.19+ agents do not
+ * serve /api/config on the gateway at all (issues #17 and #23).
+ * /api/config-get and /api/config-patch are local-filesystem routes behind
+ * Studio's own session check.
+ */
+async function fetchHermesConfig(): Promise<HermesConfig> {
+  const response = await fetch('/api/config-get')
+  const payload = (await response
+    .json()
+    .catch(() => ({}))) as ConfigQueryResponse
+  if (!response.ok || payload.ok === false) {
+    throw new Error(payload.error || `HTTP ${response.status}`)
+  }
+  return payload.payload ?? {}
+}
 
-type HermesCatalogEntry =
-  | string
-  | {
-      id: string
-      provider: string
-      name: string
-      [key: string]: unknown
-    }
-
-function isHermesCatalogEntry(
-  entry: HermesCatalogEntry | null,
-): entry is HermesCatalogEntry {
-  return entry !== null
+async function patchHermesConfig(
+  patch: Record<string, unknown>,
+): Promise<void> {
+  const response = await fetch('/api/config-patch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ raw: JSON.stringify(patch) }),
+  })
+  const payload = (await response
+    .json()
+    .catch(() => ({}))) as ConfigPatchResponse
+  if (!response.ok || payload.ok === false) {
+    throw new Error(payload.error || `HTTP ${response.status}`)
+  }
 }
 
 async function fetchModels(): Promise<{
@@ -137,80 +154,22 @@ async function fetchModels(): Promise<{
   models?: Array<ModelCatalogEntry>
   configuredProviders?: Array<string>
 }> {
-  const response = await fetch(`${HERMES_API_URL}/v1/models`)
+  // Go through Studio's own /api/models route, which holds the gateway bearer
+  // server-side and already normalizes entries. This is a client component, so
+  // the previous `fetch(`${HERMES_API_URL}/v1/models`)` was the browser calling
+  // the gateway directly, cross-origin and with no credentials — it 401'd on
+  // any gateway with API_SERVER_KEY set and left the model list empty
+  // (issue #17). vite.config.ts inlines HERMES_API_URL into the client bundle,
+  // which is what made it look like it should work.
+  const response = await fetch('/api/models')
   if (!response.ok) {
     throw new Error(`Hermes models request failed (${response.status})`)
   }
 
-  const payload = (await response.json()) as
-    | Array<unknown>
-    | {
-        data?: Array<Record<string, unknown>>
-        models?: Array<Record<string, unknown>>
-      }
-  const rawModels = Array.isArray(payload)
-    ? payload
-    : Array.isArray(payload.data)
-      ? payload.data
-      : Array.isArray(payload.models)
-        ? payload.models
-        : []
-
-  const models = rawModels
-    .map((entry) => {
-      if (typeof entry === 'string') return entry
-      if (!entry || typeof entry !== 'object') return null
-      const record = entry as Record<string, unknown>
-      const id =
-        typeof record.id === 'string'
-          ? record.id.trim()
-          : typeof record.name === 'string'
-            ? record.name.trim()
-            : typeof record.model === 'string'
-              ? record.model.trim()
-              : ''
-      if (!id) return null
-      const provider =
-        typeof record.provider === 'string' && record.provider.trim()
-          ? record.provider.trim()
-          : typeof record.owned_by === 'string' && record.owned_by.trim()
-            ? record.owned_by.trim()
-            : id.includes('/')
-              ? id.split('/')[0]
-              : 'hermes-agent'
-
-      return {
-        ...record,
-        id,
-        provider,
-        name:
-          typeof record.name === 'string' && record.name.trim()
-            ? record.name.trim()
-            : typeof record.display_name === 'string' &&
-                record.display_name.trim()
-              ? record.display_name.trim()
-              : typeof record.label === 'string' && record.label.trim()
-                ? record.label.trim()
-                : id,
-      }
-    })
-    .filter(isHermesCatalogEntry)
-
-  const configuredProviders = Array.from(
-    new Set(
-      models.flatMap((entry) => {
-        if (typeof entry === 'string') return []
-        return typeof entry.provider === 'string' && entry.provider
-          ? [entry.provider]
-          : []
-      }),
-    ),
-  )
-
-  return {
-    ok: true,
-    models: models as Array<ModelCatalogEntry>,
-    configuredProviders,
+  return (await response.json()) as {
+    ok?: boolean
+    models?: Array<ModelCatalogEntry>
+    configuredProviders?: Array<string>
   }
 }
 
@@ -999,7 +958,7 @@ function ActiveModelCard({
 
   const configQuery = useQuery({
     queryKey: ['hermes', 'active-config'],
-    queryFn: getConfig,
+    queryFn: fetchHermesConfig,
   })
 
   const saveMutation = useMutation({
@@ -1039,7 +998,7 @@ function ActiveModelCard({
           }
         : null
 
-      await patchConfig(patch)
+      await patchHermesConfig(patch)
     },
     onSuccess: async () => {
       await Promise.all([
@@ -1386,7 +1345,6 @@ function ProviderManagementSection(props: {
 
 export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
   const queryClient = useQueryClient()
-  const configAvailable = useFeatureAvailable('config')
   const [activeTab, setActiveTab] = useState<SettingsTabId>('providers')
   const [search, setSearch] = useState('')
   const [draftValues, setDraftValues] = useState<Record<string, string>>({})
@@ -1400,7 +1358,6 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
     queryFn: fetchModels,
     refetchInterval: 60_000,
     retry: false,
-    enabled: configAvailable,
   })
 
   const configQuery = useQuery({
@@ -1416,7 +1373,6 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
       return payload.payload ?? {}
     },
     retry: 1,
-    enabled: configAvailable,
   })
 
   const saveMutation = useMutation({
@@ -1553,21 +1509,6 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
   }
 
   const totalSearchMatches = filteredSettings.length
-
-  if (!configAvailable) {
-    return (
-      <div
-        className={cn(
-          embedded ? 'h-full bg-[var(--theme-bg)]' : 'min-h-full bg-[var(--theme-bg)]',
-        )}
-      >
-        <BackendUnavailableState
-          feature="Provider Setup"
-          description={getUnavailableReason('config')}
-        />
-      </div>
-    )
-  }
 
   return (
     <div

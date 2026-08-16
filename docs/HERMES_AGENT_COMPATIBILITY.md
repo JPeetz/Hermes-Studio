@@ -120,9 +120,52 @@ cd hermes-agent && git pull && git checkout v0.18.0
 pip install -e .
 ```
 
-### Memory/Skills APIs unavailable
+### Memory/Skills/Config APIs report missing (Agent v0.19+)
 
-**Symptom:** Memory editor shows "API not available"
+**Symptom:** Startup log shows `missing=[skills, memory, config]` even on a
+current agent; `curl http://127.0.0.1:8642/api/skills` returns 404.
+
+**Cause:** Not a version problem. Hermes Agent v0.19 moved `/api/skills`,
+`/api/memory`, and `/api/config` off the gateway's embedded API server
+(port 8642) onto the agent's own web dashboard backend
+(`hermes_cli/web_server.py`, separate process, default port 9119, its own
+session auth). The capability probe on 8642 correctly finds them absent.
+
+**Effect on Studio:** none that needs fixing — Studio's Skills, Memory, and
+Settings/Providers panels are backed by your local `~/.hermes` files
+(`skills/`, memory workspace, `config.yaml` + `.env`) and keep working.
+These capabilities no longer gate the "Enhanced" connection tier.
+
+#### Optional: point Studio at the dashboard backend
+
+If you want Studio to read those routes from the dashboard instead of only
+from local files, set two server-side env vars:
+
+| Variable | Meaning |
+|---|---|
+| `HERMES_DASHBOARD_URL` | Base URL of the agent's dashboard, e.g. `http://127.0.0.1:9119`. Unset (the default) means Studio never contacts it. |
+| `HERMES_DASHBOARD_SESSION_TOKEN` | Session token shared with the dashboard process. `HERMES_DASHBOARD_TOKEN` is also accepted. |
+
+Studio sends the token as `X-Hermes-Session-Token` (the dashboard also accepts
+`Authorization: Bearer`), probes `/api/skills|memory|config` on the dashboard
+first, and falls back to the gateway for pre-v0.19 agents. A dashboard 401 is
+tracked separately from a gateway 401, so a bad dashboard token never marks
+your gateway as unauthorized.
+
+> **The token is ephemeral by default.** The dashboard reads
+> `HERMES_DASHBOARD_SESSION_TOKEN` from its own environment and otherwise
+> generates a random one **per process** — so a value you hardcode in Studio
+> goes stale the next time the agent restarts. Start the agent with the same
+> variable set on both sides, or leave `HERMES_DASHBOARD_URL` unset and rely on
+> the local-file path.
+
+Both variables are read server-side only and are never inlined into the browser
+bundle. Neither is required: with them unset, Skills/Memory/Config still work
+from `~/.hermes`.
+
+### Memory/Skills APIs unavailable (older agents)
+
+**Symptom:** Memory editor shows "API not available" on an agent **< 0.19**
 
 **Cause:** Agent built without optional features
 

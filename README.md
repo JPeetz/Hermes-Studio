@@ -655,6 +655,16 @@ git clone https://github.com/NousResearch/hermes-agent.git
 cd hermes-agent && pip install -e . && hermes --gateway
 ```
 
+> **Note (Hermes Agent v0.19+):** `missing=[skills, memory, config]` is **normal** —
+> those routes moved off the gateway's API server onto the agent's own web
+> dashboard (a separate process, default port 9119). Studio's Skills, Memory,
+> and Settings panels keep working against your local `~/.hermes` files; this
+> is not a version problem and upgrading won't change it.
+>
+> To have Studio read those routes from the dashboard as well, set
+> `HERMES_DASHBOARD_URL` (and a shared `HERMES_DASHBOARD_SESSION_TOKEN`) — see
+> [docs/HERMES_AGENT_COMPATIBILITY.md](docs/HERMES_AGENT_COMPATIBILITY.md).
+
 ### "Connection refused" or workspace hangs on load
 
 Your Hermes gateway isn't running. Start it:

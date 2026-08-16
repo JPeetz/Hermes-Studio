@@ -2,11 +2,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { requireLocalOrAuth } from '../../server/auth-middleware'
 import {
-  HERMES_API,
   ensureGatewayProbed,
   getCapabilities,
 } from '../../server/gateway-capabilities'
 import { getMemory } from '../../server/hermes-api'
+import { listMemoryFiles } from '../../server/memory-browser'
 
 export const Route = createFileRoute('/api/memory')({
   server: {
@@ -18,13 +18,10 @@ export const Route = createFileRoute('/api/memory')({
 
         await ensureGatewayProbed()
         if (!getCapabilities().memory) {
-          return json(
-            {
-              ok: false,
-              error: `Gateway does not support /api/memory on ${HERMES_API}`,
-            },
-            { status: 503 },
-          )
+          // Hermes v0.19+ serves /api/memory from its separate dashboard
+          // backend, not the api_server — degrade to the same local ~/.hermes
+          // listing the Memory screen uses instead of 503ing (issue #23).
+          return json({ ok: true, source: 'local', files: listMemoryFiles() })
         }
 
         try {

@@ -9,7 +9,9 @@ import { isAuthenticated } from '../../../server/auth-middleware'
 import {
   HERMES_API,
   ensureGatewayProbed,
+  getAuthHeaders,
   getCapabilities,
+  getCapabilityTarget,
 } from '../../../server/gateway-capabilities'
 
 const execFileAsync = promisify(execFile)
@@ -198,13 +200,25 @@ export const Route = createFileRoute('/api/skills/install')({
             return json({ ok: true, installed: true, skillId, method: 'github' })
           }
 
-          // ── Strategy 2: Hermes gateway native install ─────────────────────
+          // ── Strategy 2: Hermes native install (dashboard or gateway) ──────
           await ensureGatewayProbed()
           if (getCapabilities().skills) {
             try {
-              const res = await fetch(`${HERMES_API}/api/skills/install`, {
+              // Unauthenticated before: the POST 401'd and fell silently
+              // through to the clawhub CLI, so an install that should have
+              // been served natively looked like "clawhub not installed"
+              // (issue #17). Target resolution also follows /api/skills onto
+              // the dashboard backend on agent v0.19+ (issue #23).
+              const target = getCapabilityTarget('skills') ?? {
+                base: HERMES_API,
+                headers: getAuthHeaders(),
+              }
+              const res = await fetch(`${target.base}/api/skills/install`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  ...target.headers,
+                  'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({ skillId }),
                 signal: AbortSignal.timeout(30_000),
               })

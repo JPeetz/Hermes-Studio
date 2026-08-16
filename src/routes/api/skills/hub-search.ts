@@ -1,7 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
-import { BEARER_TOKEN, HERMES_API } from '../../../server/gateway-capabilities'
+import {
+  BEARER_TOKEN,
+  HERMES_API,
+  ensureGatewayProbed,
+  getCapabilityTarget,
+} from '../../../server/gateway-capabilities'
 import { readSkillsSettings } from './settings'
 
 export type HubSkillSource = 'skillsmp' | 'installed-fallback'
@@ -124,17 +129,36 @@ async function searchSkillsmp(
 
 async function fetchInstalledIds(): Promise<Set<string>> {
   try {
-    const res = await fetch(`${HERMES_API}/api/skills`, {
+    // Same target resolution as fetchHermesSkills() in ../skills.ts: on agent
+    // v0.19+ /api/skills lives on the dashboard backend, so a hardcoded
+    // gateway base silently returned nothing and the marketplace showed every
+    // skill as not-installed (issue #23).
+    await ensureGatewayProbed()
+    const target = getCapabilityTarget('skills') ?? {
+      base: HERMES_API,
       headers: hermesAuthHeaders(),
+    }
+    const res = await fetch(`${target.base}/api/skills`, {
+      headers: target.headers,
       signal: AbortSignal.timeout(5_000),
     })
     if (!res.ok) return new Set()
-    const data = asRecord(await res.json())
-    const items = Array.isArray(data.skills)
-      ? (data.skills as unknown[])
-      : Array.isArray(data)
-        ? (data as unknown[])
-        : []
+    const payload = (await res.json()) as unknown
+    // The gateway answers list endpoints in the OpenAI list shape
+    // ({ object: "list", data: [...] }); older builds used `items`, and the
+    // dashboard uses `skills`. Reading only `skills` made every skill look
+    // not-installed against a current gateway — the same parsing mismatch as
+    // issue #18. Mirrors the chain in ../skills.ts.
+    const data = asRecord(payload)
+    const items = Array.isArray(payload)
+      ? (payload as Array<unknown>)
+      : Array.isArray(data.skills)
+        ? (data.skills as Array<unknown>)
+        : Array.isArray(data.data)
+          ? (data.data as Array<unknown>)
+          : Array.isArray(data.items)
+            ? (data.items as Array<unknown>)
+            : []
     return new Set(
       items
         .map((e) => {

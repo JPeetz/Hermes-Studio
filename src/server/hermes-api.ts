@@ -10,9 +10,12 @@ import {
   HERMES_API,
   SESSIONS_API_UNAVAILABLE_MESSAGE,
   ensureGatewayProbed,
+  getAuthHeaders,
   getCapabilities,
+  getCapabilityTarget,
   probeGateway,
 } from './gateway-capabilities'
+import type { SplitCapability } from './gateway-capabilities'
 
 const _authHeaders = (): Record<string, string> =>
   BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
@@ -90,6 +93,37 @@ async function hermesPatch<T>(path: string, body: unknown): Promise<T> {
   if (!res.ok) {
     const text = await res.text().catch(() => '')
     throw new Error(`Hermes API PATCH ${path}: ${res.status} ${text}`)
+  }
+  return res.json() as Promise<T>
+}
+
+/**
+ * Request against a split capability (skills/memory/config) at whichever
+ * server the probe found it on — the agent's dashboard backend on v0.19+,
+ * the gateway on older agents (issue #23). Falls back to the gateway when the
+ * probe found neither, preserving the old error shape.
+ */
+async function splitCapabilityRequest<T>(
+  cap: SplitCapability,
+  path: string,
+  init?: { method?: string; body?: unknown },
+): Promise<T> {
+  const target = getCapabilityTarget(cap) ?? {
+    base: HERMES_API,
+    headers: getAuthHeaders(),
+  }
+  const method = init?.method ?? 'GET'
+  const res = await fetch(`${target.base}${path}`, {
+    method,
+    headers:
+      init?.body === undefined
+        ? target.headers
+        : { ...target.headers, 'Content-Type': 'application/json' },
+    body: init?.body === undefined ? undefined : JSON.stringify(init.body),
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`Hermes API ${method} ${path}: ${res.status} ${text}`)
   }
   return res.json() as Promise<T>
 }
@@ -385,33 +419,39 @@ export async function sendChat(
 // ── Memory ───────────────────────────────────────────────────────
 
 export async function getMemory(): Promise<unknown> {
-  return hermesGet('/api/memory')
+  return splitCapabilityRequest('memory', '/api/memory')
 }
 
 // ── Skills ───────────────────────────────────────────────────────
 
 export async function listSkills(): Promise<unknown> {
-  return hermesGet('/api/skills')
+  return splitCapabilityRequest('skills', '/api/skills')
 }
 
 export async function getSkill(name: string): Promise<unknown> {
-  return hermesGet(`/api/skills/${encodeURIComponent(name)}`)
+  return splitCapabilityRequest(
+    'skills',
+    `/api/skills/${encodeURIComponent(name)}`,
+  )
 }
 
 export async function getSkillCategories(): Promise<unknown> {
-  return hermesGet('/api/skills/categories')
+  return splitCapabilityRequest('skills', '/api/skills/categories')
 }
 
 // ── Config ───────────────────────────────────────────────────────
 
 export async function getConfig(): Promise<HermesConfig> {
-  return hermesGet<HermesConfig>('/api/config')
+  return splitCapabilityRequest<HermesConfig>('config', '/api/config')
 }
 
 export async function patchConfig(
   patch: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
-  return hermesPatch<Record<string, unknown>>('/api/config', patch)
+  return splitCapabilityRequest<Record<string, unknown>>('config', '/api/config', {
+    method: 'PATCH',
+    body: patch,
+  })
 }
 
 // ── Models ───────────────────────────────────────────────────────
