@@ -5,7 +5,7 @@
  * the split-component architecture.
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowRight01Icon,
@@ -119,10 +119,10 @@ export function ConductorHome({ conductor, goalDraft, setGoalDraft, onSubmit, on
   const [now, setNowState] = useState(() => Date.now())
 
   // Refresh "now" periodically for relative timestamps
-  useState(() => {
+  useEffect(() => {
     const timer = window.setInterval(() => setNowState(Date.now()), 10_000)
     return () => window.clearInterval(timer)
-  })
+  }, [])
 
   const selectedHistoryEntry = conductor.selectedHistoryEntry
   const hasMissionHistory = conductor.missionHistory.length > 0
