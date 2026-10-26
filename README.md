@@ -288,6 +288,8 @@ ANTHROPIC_API_KEY=your-key-here
 
 > **Redis is optional.** Hermes Studio automatically tries to connect to a local Redis instance for session persistence. If Redis isn't running, it silently falls back to file-based storage — no configuration needed.
 
+> **Running the built server under systemd.** `node server-entry.js` does not load `.env` itself, so values such as `HERMES_API_TOKEN` only take effect if they are in the process environment. The unit installed by `scripts/install-systemd.sh` loads `.env` through `EnvironmentFile=`. If you wrote your own unit, add `EnvironmentFile=/path/to/Hermes-Studio/.env` under `[Service]`. systemd's format is simpler than dotenv: no `export` prefix and no variable expansion.
+
 ---
 
 ## 🧠 Local Models (Ollama, LM Studio, vLLM)

@@ -10,6 +10,7 @@ ExecStart=/usr/bin/node HERMES_INSTALL_DIR/server-entry.js
 Environment=PORT=3002
 Environment=NODE_OPTIONS=--max-old-space-size=2048
 Environment=NODE_ENV=production
+EnvironmentFile=-HERMES_INSTALL_DIR/.env
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
