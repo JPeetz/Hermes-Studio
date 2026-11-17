@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { HERMES_API } from '../../../server/gateway-capabilities'
+import { BEARER_TOKEN, HERMES_API } from '../../../server/gateway-capabilities'
 import { isAuthenticated } from '../../../server/auth-middleware'
 
 async function proxyRequest(request: Request, splat: string) {
@@ -11,6 +11,11 @@ async function proxyRequest(request: Request, splat: string) {
   const headers = new Headers(request.headers)
   headers.delete('host')
   headers.delete('content-length')
+  // The browser authenticates to Studio with its own cookie, so the forwarded
+  // headers carry no gateway credential. Inject the gateway's API_SERVER_KEY
+  // (HERMES_API_TOKEN) or every proxied call 401s.
+  if (BEARER_TOKEN) headers.set('Authorization', `Bearer ${BEARER_TOKEN}`)
+  else headers.delete('authorization')
 
   const init: RequestInit = {
     method: request.method,

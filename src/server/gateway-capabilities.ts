@@ -8,7 +8,26 @@
  *   - Enhanced: Hermes-native extras (sessions, skills, memory, config, jobs)
  */
 
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
 export let HERMES_API = process.env.HERMES_API_URL || 'http://127.0.0.1:8642'
+
+/**
+ * Studio edits ~/.hermes/config.yaml directly (/api/hermes-config), so a local
+ * config file is enough to unlock the settings screens. Newer gateways dropped
+ * the /api/config endpoint the probe below looks for.
+ */
+function hasLocalHermesConfig(): boolean {
+  try {
+    const home =
+      process.env.HERMES_HOME || path.join(os.homedir(), '.hermes')
+    return fs.existsSync(path.join(home, 'config.yaml'))
+  } catch {
+    return false
+  }
+}
 
 export const HERMES_UPGRADE_INSTRUCTIONS =
   'Update Hermes: cd hermes-agent && git pull && pip install -e . && hermes --gateway'
@@ -232,7 +251,7 @@ export async function probeGateway(options?: {
       enhancedChat,
       skills,
       memory,
-      config,
+      config: config || hasLocalHermesConfig(),
       jobs,
     }
     lastProbeAt = Date.now()

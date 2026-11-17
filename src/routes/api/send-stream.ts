@@ -17,6 +17,7 @@ import {
   createSession,
   ensureGatewayProbed,
   getGatewayCapabilities,
+  getSession,
   streamChat,
 } from '../../server/hermes-api'
 import {
@@ -27,6 +28,26 @@ import type {OpenAICompatContentPart, OpenAICompatMessage} from '../../server/op
 // Hermes agent runs can take 5+ minutes with complex tool chains
 const SEND_STREAM_RUN_TIMEOUT_MS = 600_000
 const SESSION_BOOTSTRAP_KEYS = new Set(['main', 'new'])
+
+/**
+ * The chat screen mints a uuid thread id in the browser and streams its first
+ * message without awaiting POST /api/sessions, so the gateway can 404 the
+ * stream with "session_not_found". Make the row exist before streaming.
+ */
+async function ensureGatewaySession(sessionKey: string): Promise<void> {
+  try {
+    await getSession(sessionKey)
+    return
+  } catch {
+    // Not created yet (or a transient read failure) — try to create it below.
+  }
+  try {
+    await createSession({ id: sessionKey })
+  } catch {
+    // Lost the race to the client's own create, or the gateway refused; the
+    // stream request surfaces the real error.
+  }
+}
 
 function readString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
@@ -502,6 +523,8 @@ export const Route = createFileRoute('/api/send-stream')({
                 const session = await createSession()
                 sessionKey = session.id
                 resolvedFriendlyId = session.id
+              } else {
+                await ensureGatewaySession(sessionKey)
               }
 
               let startedSent = false

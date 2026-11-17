@@ -6,10 +6,15 @@ import { isAuthenticated } from '../../server/auth-middleware'
 import {
   HERMES_API,
   HERMES_UPGRADE_INSTRUCTIONS,
+  BEARER_TOKEN,
   ensureGatewayProbed,
   getCapabilities,
 } from '../../server/gateway-capabilities'
 import { createCapabilityUnavailablePayload } from '@/lib/feature-gates'
+
+/** Gateway credential — without it every proxy call 401s (API_SERVER_KEY is mandatory). */
+const gatewayAuth = (): Record<string, string> =>
+  BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
 
 export const Route = createFileRoute('/api/hermes-jobs')({
   server: {
@@ -34,7 +39,7 @@ export const Route = createFileRoute('/api/hermes-jobs')({
         const url = new URL(request.url)
         const params = url.searchParams.toString()
         const target = `${HERMES_API}/api/jobs${params ? `?${params}` : ''}`
-        const res = await fetch(target)
+        const res = await fetch(target, { headers: gatewayAuth() })
         return new Response(res.body, {
           status: res.status,
           headers: { 'Content-Type': 'application/json' },
@@ -60,7 +65,7 @@ export const Route = createFileRoute('/api/hermes-jobs')({
         const body = await request.text()
         const res = await fetch(`${HERMES_API}/api/jobs`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...gatewayAuth() },
           body,
         })
         return new Response(await res.text(), {

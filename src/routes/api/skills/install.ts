@@ -8,6 +8,7 @@ import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
 import {
   HERMES_API,
+  BEARER_TOKEN,
   ensureGatewayProbed,
   getCapabilities,
 } from '../../../server/gateway-capabilities'
@@ -204,7 +205,12 @@ export const Route = createFileRoute('/api/skills/install')({
             try {
               const res = await fetch(`${HERMES_API}/api/skills/install`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(BEARER_TOKEN
+                    ? { Authorization: `Bearer ${BEARER_TOKEN}` }
+                    : {}),
+                },
                 body: JSON.stringify({ skillId }),
                 signal: AbortSignal.timeout(30_000),
               })

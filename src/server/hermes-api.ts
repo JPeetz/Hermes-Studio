@@ -117,10 +117,13 @@ export async function listSessions(
   limit = 50,
   offset = 0,
 ): Promise<Array<HermesSession>> {
-  const resp = await hermesGet<{ items: Array<HermesSession>; total: number }>(
-    `/api/sessions?limit=${limit}&offset=${offset}`,
-  )
-  return resp.items
+  // Hermes <=0.18 answered { items, total }; newer gateways answer the
+  // OpenAI-style { object, data }. Accept both.
+  const resp = await hermesGet<{
+    items?: Array<HermesSession>
+    data?: Array<HermesSession>
+  }>(`/api/sessions?limit=${limit}&offset=${offset}`)
+  return resp.items ?? resp.data ?? []
 }
 
 export async function getSession(sessionId: string): Promise<HermesSession> {
@@ -160,10 +163,13 @@ export async function deleteSession(sessionId: string): Promise<void> {
 export async function getMessages(
   sessionId: string,
 ): Promise<Array<HermesMessage>> {
-  const resp = await hermesGet<{ items: Array<HermesMessage>; total: number }>(
-    `/api/sessions/${sessionId}/messages`,
-  )
-  return resp.items
+  // Same envelope drift as listSessions: { items } on old gateways, { data } on new.
+  const resp = await hermesGet<{
+    items?: Array<HermesMessage>
+    data?: Array<HermesMessage>
+    messages?: Array<HermesMessage>
+  }>(`/api/sessions/${sessionId}/messages`)
+  return resp.items ?? resp.data ?? resp.messages ?? []
 }
 
 export async function searchSessions(

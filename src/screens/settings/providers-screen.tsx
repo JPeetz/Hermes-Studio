@@ -137,7 +137,7 @@ async function fetchModels(): Promise<{
   models?: Array<ModelCatalogEntry>
   configuredProviders?: Array<string>
 }> {
-  const response = await fetch(`${HERMES_API_URL}/v1/models`)
+  const response = await fetch('/api/hermes-proxy/v1/models')
   if (!response.ok) {
     throw new Error(`Hermes models request failed (${response.status})`)
   }
