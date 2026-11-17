@@ -6,9 +6,14 @@ import { createFileRoute } from '@tanstack/react-router'
 import { isAuthenticated } from '../../server/auth-middleware'
 import {
   HERMES_API,
+  BEARER_TOKEN,
   ensureGatewayProbed,
   getCapabilities,
 } from '../../server/gateway-capabilities'
+
+/** Gateway credential — without it every proxy call 401s (API_SERVER_KEY is mandatory). */
+const gatewayAuth = (): Record<string, string> =>
+  BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
 
 export const Route = createFileRoute('/api/hermes-runs')({
   server: {
@@ -30,7 +35,7 @@ export const Route = createFileRoute('/api/hermes-runs')({
         const body = await request.text()
         const res = await fetch(`${HERMES_API}/v1/runs`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...gatewayAuth() },
           body,
         })
         return new Response(await res.text(), {

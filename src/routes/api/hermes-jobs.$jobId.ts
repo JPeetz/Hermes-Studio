@@ -6,9 +6,14 @@ import { isAuthenticated } from '../../server/auth-middleware'
 import {
   HERMES_API,
   HERMES_UPGRADE_INSTRUCTIONS,
+  BEARER_TOKEN,
   ensureGatewayProbed,
   getCapabilities,
 } from '../../server/gateway-capabilities'
+
+/** Gateway credential — without it every proxy call 401s (API_SERVER_KEY is mandatory). */
+const gatewayAuth = (): Record<string, string> =>
+  BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
 
 export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
   server: {
@@ -34,7 +39,7 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
         const target = subPath
           ? `${HERMES_API}/api/jobs/${params.jobId}/${subPath}${url.search}`
           : `${HERMES_API}/api/jobs/${params.jobId}`
-        const res = await fetch(target)
+        const res = await fetch(target, { headers: gatewayAuth() })
         return new Response(await res.text(), {
           status: res.status,
           headers: { 'Content-Type': 'application/json' },
@@ -63,7 +68,7 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
           : `${HERMES_API}/api/jobs/${params.jobId}`
         const res = await fetch(target, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...gatewayAuth() },
           body: body || undefined,
         })
         return new Response(await res.text(), {
@@ -89,7 +94,7 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
         const body = await request.text()
         const res = await fetch(`${HERMES_API}/api/jobs/${params.jobId}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...gatewayAuth() },
           body,
         })
         return new Response(await res.text(), {
@@ -114,6 +119,7 @@ export const Route = createFileRoute('/api/hermes-jobs/$jobId')({
         }
         const res = await fetch(`${HERMES_API}/api/jobs/${params.jobId}`, {
           method: 'DELETE',
+          headers: gatewayAuth(),
         })
         return new Response(await res.text(), {
           status: res.status,
